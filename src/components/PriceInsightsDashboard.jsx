@@ -606,6 +606,7 @@ const Dashboard = () => {
                   ? "bg-gray-800 border-gray-700"
                   : "bg-white border-gray-200"
               }`}
+              style={{ outline: "none" }}
             >
               <div className="flex justify-between items-center mb-4">
                 <h3
@@ -622,85 +623,90 @@ const Dashboard = () => {
                   />
                 </span>
               </div>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={monthlyAverages}>
-                  {/* Gridlines */}
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke={isDarkMode ? "#333" : "#eee"}
-                    vertical={false} // optional: remove vertical grid if you want clean look
-                  />
 
-                  {/* X-Axis: Month/Year format */}
-                  <XAxis
-                    dataKey="month"
-                    stroke={isDarkMode ? "#aaa" : "#666"}
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={(tick) => {
-                      const [year, month] = tick.split("-");
-                      return `${month}/${year.slice(2)}`; // e.g., "09/25"
-                    }}
-                    interval="preserveStartEnd" // show all ticks
-                    axisLine={false}
-                    tickLine={false}
-                  />
+              {/* ✅ Wrap in div to prevent focus outline */}
+              <div tabIndex="-1" style={{ outline: "none" }}>
+                <ResponsiveContainer
+                  width="100%"
+                  height={250}
+                  margin={{ top: 5, right: 10, left: 10, bottom: 40 }}
+                >
+                  <LineChart data={monthlyAverages}>
+                    {/* Gridlines */}
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke={isDarkMode ? "#333" : "#eee"}
+                      vertical={false}
+                    />
 
-                  {/* Y-Axis: Format as ₦0, ₦20,000, ₦40,000, etc. */}
-                  <YAxis
-                    stroke={isDarkMode ? "#aaa" : "#666"}
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={(v) => {
-                      if (v >= 100000) return `₦${(v / 1000).toFixed(0)}k`;
-                      if (v >= 10000) return `₦${(v / 1000).toFixed(0)}k`;
-                      return `₦${v}`;
-                    }}
-                    domain={[0, "auto"]} // auto-scale based on data
-                    axisLine={false}
-                    tickLine={false}
-                  />
+                    {/* X-Axis */}
+                    <XAxis
+                      dataKey="month"
+                      stroke={isDarkMode ? "#aaa" : "#666"}
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(tick) => {
+                        const [year, month] = tick.split("-");
+                        return `${month}/${year.slice(2)}`; // e.g., "09/25"
+                      }}
+                      interval="preserveStartEnd"
+                      axisLine={false}
+                      tickLine={false}
+                    />
 
-                  {/* Tooltip */}
-                  <Tooltip
-                    formatter={(v) => [`₦${v.toLocaleString()}`, "Price Index"]}
-                    labelFormatter={(label) => `Month: ${label}`}
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? "#1e1e1e" : "#fff",
-                      border: `1px solid ${isDarkMode ? "#333" : "#ddd"}`,
-                      borderRadius: "6px",
-                      fontSize: "12px",
-                    }}
-                    itemStyle={{ color: isDarkMode ? "#fff" : "#333" }}
-                  />
+                    {/* Y-Axis */}
+                    <YAxis
+                      stroke={isDarkMode ? "#aaa" : "#666"}
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(v) => {
+                        if (v >= 1000) return `₦${(v / 1000).toFixed(0)}k`;
+                        return `₦${v}`;
+                      }}
+                      domain={[0, "auto"]}
+                      axisLine={false}
+                      tickLine={false}
+                    />
 
-                  {/* Line with Animation & Small Dots */}
-                  <Line
-                    type="linear"
-                    dataKey="avg"
-                    stroke="#05f2c1"
-                    strokeWidth={2}
-                    dot={{
-                      r: 3, // ✅ Smaller dot
-                      fill: "#05f2c1",
-                      stroke: isDarkMode ? "#000" : "#fff", // subtle outline
-                      strokeWidth: 1,
-                    }}
-                    activeDot={{
-                      r: 5,
-                      fill: "#05f2c1",
-                      stroke: "#ffffff",
-                      strokeWidth: 2,
-                    }}
-                    animationDuration={1500} // ✅ Smooth animation on load
-                    animationEasing="ease-out"
-                    onMouseEnter={() => {
-                      document.body.style.cursor = "pointer";
-                    }}
-                    onMouseLeave={() => {
-                      document.body.style.cursor = "default";
-                    }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+                    {/* Tooltip (no border) */}
+                    <Tooltip
+                      formatter={(v) => [
+                        `₦${v.toLocaleString()}`,
+                        "Price Index",
+                      ]}
+                      labelFormatter={(label) => `Month: ${label}`}
+                      contentStyle={{
+                        backgroundColor: isDarkMode ? "#1e1e1e" : "#fff",
+                        border: "none", // ✅ No border
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                      }}
+                      itemStyle={{ color: isDarkMode ? "#fff" : "#333" }}
+                    />
+
+                    {/* Line */}
+                    <Line
+                      type="linear"
+                      dataKey="avg"
+                      stroke="#05f2c1"
+                      strokeWidth={2}
+                      dot={{
+                        r: 3,
+                        fill: "#05f2c1",
+                        stroke: isDarkMode ? "#000" : "#fff",
+                        strokeWidth: 1,
+                      }}
+                      activeDot={{
+                        r: 5,
+                        fill: "#05f2c1",
+                        stroke: "#ffffff",
+                        strokeWidth: 2,
+                      }}
+                      animationDuration={1500}
+                      animationEasing="ease-out"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 

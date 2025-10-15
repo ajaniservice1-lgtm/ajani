@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect} from "react";
+import { LabelList } from "recharts";
 import {
   BarChart,
   Bar,
@@ -7,10 +8,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+  LineChart,
+  Line,
+  Cell, // ✅ Re-add this
 } from "recharts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -209,16 +209,16 @@ const Dashboard = () => {
     return acc;
   }, {});
 
-  const avgPricesArray = Object.keys(averagePricesByArea).map((area) => ({
-    area,
-    price: Math.round(
-      averagePricesByArea[area].total / averagePricesByArea[area].count
-    ),
-  }));
+  const avgPricesArray =
+    Object.keys(averagePricesByArea).length > 0
+      ? Object.keys(averagePricesByArea).map((area) => ({
+          area,
+          price: Math.round(
+            averagePricesByArea[area].total / averagePricesByArea[area].count
+          ),
+        }))
+      : [];
 
-  const sortedAvgPricesArray = [...avgPricesArray].sort(
-    (a, b) => a.price - b.price
-  );
 
   const priceIndex = avgPricesArray.length
     ? Math.round(
@@ -243,25 +243,6 @@ const Dashboard = () => {
         )
       : { area: "—", price: 0 };
 
-  const categoryComparisonData = [
-    { name: "Accommodation", value: 0 },
-    { name: "Transportation", value: 0 },
-    { name: "Weekend Event", value: 0 },
-  ];
-
-  filteredVendors.forEach((vendor) => {
-    const cat = vendor.category;
-    const price = parseFloat(vendor.price_from) || 0;
-
-    if (cat === "accommodation.hotel") {
-      categoryComparisonData[0].value += price;
-    } else if (cat === "transport.ridehail") {
-      categoryComparisonData[1].value += price;
-    } else if (cat === "event.weekend") {
-      categoryComparisonData[2].value += price;
-    }
-  });
-
   const COLORS = ["#101828", "#05f2c1", "#3276ee"];
 
   // Auto-refetch every 90 seconds
@@ -276,61 +257,6 @@ const Dashboard = () => {
     setSelectedArea(data.area);
   };
 
-  const handleLegendClick = (entry) => {
-    setActiveCategories((prev) => ({
-      ...prev,
-      [entry.value]: !prev[entry.value],
-    }));
-  };
-
-  const filteredPieData = categoryComparisonData.filter(
-    (item) => activeCategories[item.name]
-  );
-
-  const renderLegendText = (value, entry) => {
-    const isActive = activeCategories[value];
-    const textColor = isDarkMode
-      ? isActive
-        ? "#ffffff"
-        : "#777777"
-      : isActive
-      ? "#101828"
-      : "#777777";
-
-    return (
-      <span
-        style={{
-          color: textColor,
-          fontWeight: isActive ? "bold" : "normal",
-          textDecoration: isActive ? "none" : "line-through",
-          cursor: "pointer",
-          padding: "0 4px",
-          transition: "all 0.2s ease",
-        }}
-        onClick={() => handleLegendClick(entry)}
-        onMouseEnter={(e) => {
-          e.target.style.color = isDarkMode
-            ? isActive
-              ? "#05f2c1"
-              : "#aaaaaa"
-            : isActive
-            ? "#05f2c1"
-            : "#aaaaaa";
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.color = isDarkMode
-            ? isActive
-              ? "#ffffff"
-              : "#777777"
-            : isActive
-            ? "#101828"
-            : "#777777";
-        }}
-      >
-        {value}
-      </span>
-    );
-  };
 
   // ✅ Pull-to-refresh
   const handleTouchStart = (e) => {
@@ -389,12 +315,28 @@ const Dashboard = () => {
     );
   }
 
+  // After calculating sortedAvgPricesArray
+  const sortedAvgPricesArray = [...avgPricesArray].sort((a, b) =>
+    a.area.localeCompare(b.area)
+  );
+
+  // ✅ Add this safety guard
+  if (!sortedAvgPricesArray || sortedAvgPricesArray.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        No data available for selected filters.
+      </div>
+    );
+  }
   return (
-    <section id="priceinsight">
+    <section
+      id="priceinsight"
+      className={`min-h-screen transition-colors duration-300 ${
+        isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+      }`}
+    >
       <div
-        className={`min-h-screen transition-colors duration-300 ${
-          isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-        }`}
+        className="min-h-screen max-w-7xl mx-auto"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -564,7 +506,7 @@ const Dashboard = () => {
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Bar Chart */}
+            {/* Bar Chart — Average Prices by Area */}
             <div
               className={`p-4 rounded-lg shadow border ${
                 isDarkMode
@@ -574,7 +516,7 @@ const Dashboard = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h3
-                  className={`font-semibold ${
+                  className={`font-semibold text-sm ${
                     isDarkMode ? "text-white" : "text-[#101828]"
                   }`}
                 >
@@ -583,41 +525,83 @@ const Dashboard = () => {
                 <span className="bg-blue-100 p-2 rounded-full">
                   <FontAwesomeIcon
                     icon={faMapMarkerAlt}
-                    className="text-[#1ab9d6]"
+                    className="text-[#1ab9d6] text-xs"
                   />
                 </span>
               </div>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={sortedAvgPricesArray}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke={isDarkMode ? "#444" : "#ddd"}
-                  />
-                  <XAxis dataKey="area" stroke={isDarkMode ? "#aaa" : "#666"} />
-                  <YAxis
-                    stroke={isDarkMode ? "#aaa" : "#666"}
-                    tickFormatter={(v) => `₦${v}`}
-                  />
-                  <Tooltip
-                    formatter={(v) => [`₦${v.toLocaleString()}`, "Price"]}
-                  />
-                  <Bar
-                    dataKey="price"
-                    onClick={handleBarClick}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {sortedAvgPricesArray.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+
+              {/* ✅ Safety Check */}
+              {sortedAvgPricesArray && sortedAvgPricesArray.length > 0 ? (
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={sortedAvgPricesArray}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke={isDarkMode ? "#333" : "#eee"}
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="area"
+                      stroke={isDarkMode ? "#aaa" : "#666"}
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      stroke={isDarkMode ? "#aaa" : "#666"}
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(v) => {
+                        if (v >= 1000) return `₦${(v / 1000).toFixed(0)}k`;
+                        return `₦${v}`;
+                      }}
+                      domain={[0, "auto"]}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      formatter={(v) => [`₦${v.toLocaleString()}`, "Price"]}
+                      contentStyle={{
+                        backgroundColor: isDarkMode ? "#1e1e1e" : "#fff",
+                        border: `1px solid ${isDarkMode ? "#333" : "#ddd"}`,
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                      }}
+                      itemStyle={{ color: isDarkMode ? "#fff" : "#333" }}
+                    />
+                    <Bar
+                      dataKey="price"
+                      onClick={handleBarClick}
+                      style={{ cursor: "pointer" }}
+                      fill="#05f2c1" // ✅ Single color to avoid Cell issues
+                      animationBegin={200}
+                      animationDuration={1000}
+                      animationEasing="ease-out"
+                    >
+                      <LabelList
+                        dataKey="price"
+                        position="top"
+                        formatter={(value) => {
+                          if (value >= 1000)
+                            return `₦${(value / 1000).toFixed(0)}k`;
+                          return `₦${value}`;
+                        }}
+                        style={{
+                          fontSize: "11px",
+                          fill: isDarkMode ? "#e0e0e0" : "#444",
+                          fontWeight: "500",
+                        }}
                       />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No data available for selected filters.
+                </div>
+              )}
             </div>
 
-            {/* Pie Chart */}
+            {/* Line Chart - Monthly Price Trends */}
             <div
               className={`p-4 rounded-lg shadow border ${
                 isDarkMode
@@ -627,57 +611,97 @@ const Dashboard = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h3
-                  className={`font-semibold ${
+                  className={`font-semibold text-sm ${
                     isDarkMode ? "text-white" : "text-[#101828]"
                   }`}
                 >
-                  Category Comparison
+                  Monthly Price Trends
                 </h3>
                 <span className="bg-blue-100 p-2 rounded-full">
                   <FontAwesomeIcon
-                    icon={faLayerGroup}
-                    className="text-[#1ab9d6]"
+                    icon={faArrowUp}
+                    className="text-[#1ab9d6] text-xs"
                   />
                 </span>
               </div>
               <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={filteredPieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={10}
-                    dataKey="value"
-                    label={({ name, value }) =>
-                      `${name}: ₦${value.toLocaleString()}`
-                    }
-                  >
-                    {filteredPieData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(v) => [`₦${v.toLocaleString()}`, "Total"]}
+                <LineChart data={monthlyAverages}>
+                  {/* Gridlines */}
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={isDarkMode ? "#333" : "#eee"}
+                    vertical={false} // optional: remove vertical grid if you want clean look
                   />
-                  <Legend
-                    formatter={renderLegendText}
-                    wrapperStyle={{
-                      paddingTop: 10,
-                      paddingLeft: 10,
-                      paddingRight: 10,
-                      paddingBottom: 10,
+
+                  {/* X-Axis: Month/Year format */}
+                  <XAxis
+                    dataKey="month"
+                    stroke={isDarkMode ? "#aaa" : "#666"}
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(tick) => {
+                      const [year, month] = tick.split("-");
+                      return `${month}/${year.slice(2)}`; // e.g., "09/25"
+                    }}
+                    interval="preserveStartEnd" // show all ticks
+                    axisLine={false}
+                    tickLine={false}
+                  />
+
+                  {/* Y-Axis: Format as ₦0, ₦20,000, ₦40,000, etc. */}
+                  <YAxis
+                    stroke={isDarkMode ? "#aaa" : "#666"}
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(v) => {
+                      if (v >= 100000) return `₦${(v / 1000).toFixed(0)}k`;
+                      if (v >= 10000) return `₦${(v / 1000).toFixed(0)}k`;
+                      return `₦${v}`;
+                    }}
+                    domain={[0, "auto"]} // auto-scale based on data
+                    axisLine={false}
+                    tickLine={false}
+                  />
+
+                  {/* Tooltip */}
+                  <Tooltip
+                    formatter={(v) => [`₦${v.toLocaleString()}`, "Price Index"]}
+                    labelFormatter={(label) => `Month: ${label}`}
+                    contentStyle={{
+                      backgroundColor: isDarkMode ? "#1e1e1e" : "#fff",
+                      border: `1px solid ${isDarkMode ? "#333" : "#ddd"}`,
+                      borderRadius: "6px",
                       fontSize: "12px",
                     }}
-                    layout="vertical"
-                    verticalAlign="middle"
-                    align="right"
+                    itemStyle={{ color: isDarkMode ? "#fff" : "#333" }}
                   />
-                </PieChart>
+
+                  {/* Line with Animation & Small Dots */}
+                  <Line
+                    type="linear"
+                    dataKey="avg"
+                    stroke="#05f2c1"
+                    strokeWidth={2}
+                    dot={{
+                      r: 3, // ✅ Smaller dot
+                      fill: "#05f2c1",
+                      stroke: isDarkMode ? "#000" : "#fff", // subtle outline
+                      strokeWidth: 1,
+                    }}
+                    activeDot={{
+                      r: 5,
+                      fill: "#05f2c1",
+                      stroke: "#ffffff",
+                      strokeWidth: 2,
+                    }}
+                    animationDuration={1500} // ✅ Smooth animation on load
+                    animationEasing="ease-out"
+                    onMouseEnter={() => {
+                      document.body.style.cursor = "pointer";
+                    }}
+                    onMouseLeave={() => {
+                      document.body.style.cursor = "default";
+                    }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>

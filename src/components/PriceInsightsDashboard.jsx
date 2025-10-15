@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { LabelList } from "recharts";
 import {
   BarChart,
@@ -219,7 +219,6 @@ const Dashboard = () => {
         }))
       : [];
 
-
   const priceIndex = avgPricesArray.length
     ? Math.round(
         avgPricesArray.reduce((sum, item) => sum + item.price, 0) /
@@ -256,7 +255,6 @@ const Dashboard = () => {
   const handleBarClick = (data) => {
     setSelectedArea(data.area);
   };
-
 
   // ✅ Pull-to-refresh
   const handleTouchStart = (e) => {
@@ -332,7 +330,7 @@ const Dashboard = () => {
     <section
       id="priceinsight"
       className={`min-h-screen transition-colors duration-300 ${
-        isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+        isDarkMode ? "bg-gray-900 text-white" : "bg-[#eef8fd] text-gray-900"
       }`}
     >
       <div

@@ -120,7 +120,9 @@ const Dashboard = () => {
     return () => clearTimeout(timer);
   }, [error]);
 
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(
+    "accommodation.hotel"
+  );
   const [selectedArea, setSelectedArea] = useState("");
   const [pulling, setPulling] = useState(false);
   const [pullStartY, setPullStartY] = useState(0);

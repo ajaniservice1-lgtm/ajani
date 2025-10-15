@@ -131,11 +131,11 @@ const Dashboard = () => {
   const [areaSuggestions, setAreaSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const [activeCategories, setActiveCategories] = useState({
-    Accommodation: true,
-    Transportation: true,
-    "Weekend Event": true,
-  });
+  // const [activeCategories, setActiveCategories] = useState({
+  //   Accommodation: true,
+  //   Transportation: true,
+  //   "Weekend Event": true,
+  // });
 
   const safeVendors = Array.isArray(vendors) ? vendors : [];
 

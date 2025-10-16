@@ -130,7 +130,7 @@ const Header = () => {
               <a href="#" onClick={closeMenu}>
                 <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
                 <div className="md:text-sm text-[12.5px] text-slate-600 hover:text-gray-900 duration-300 font-rubik mb-[-2px]">
-                  Ibadan Price Insights
+                  Ajani The Ibadan Guide
                 </div>
               </a>
               <button

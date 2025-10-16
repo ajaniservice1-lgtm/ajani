@@ -12,6 +12,16 @@
   /* --font-dmsans: "DM Sans", sans-serif; */
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 /* In your CSS or Tailwind config */
 .wip-banner {
   background: linear-gradient(90deg, #101828 0%, #05f2c1 50%, #3276ee 100%);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import NoDataMessage from "./NoDataMessage";
 import { LabelList } from "recharts";
 import {
   BarChart,
@@ -18,8 +19,11 @@ import {
   faArrowUp,
   faArrowDown,
   faLayerGroup,
+  faChartLine,
   faSun,
   faMoon,
+  faUndo, // ✅ For reset button
+  faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
 // ✅ Custom Hook: Fetch Data from Google Sheet
@@ -321,13 +325,13 @@ const Dashboard = () => {
   );
 
   // ✅ Add this safety guard
-  if (!sortedAvgPricesArray || sortedAvgPricesArray.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        No data available for selected filters.
-      </div>
-    );
-  }
+  // if (!sortedAvgPricesArray || sortedAvgPricesArray.length === 0) {
+  //   return (
+  //     <div className="text-center py-8 text-gray-500">
+  //       No data available for selected filters.
+  //     </div>
+  //   );
+  // }
   return (
     <section
       id="priceinsight"
@@ -463,12 +467,21 @@ const Dashboard = () => {
               },
               {
                 title: "Most Affordable Area",
-                value: affordableArea.area,
-                change: `${Math.round(
-                  ((priceIndex - affordableArea.price) / priceIndex) * 100
-                )}% below avg`,
+                value:
+                  selectedCategory === "accommodation.hotel"
+                    ? affordableArea.area
+                    : "—",
+                change:
+                  selectedCategory === "accommodation.hotel"
+                    ? `${Math.round(
+                        ((priceIndex - affordableArea.price) / priceIndex) * 100
+                      )}% below avg`
+                    : "No data applicable",
                 icon: faArrowDown,
-                color: "text-green-500",
+                color:
+                  selectedCategory === "accommodation.hotel"
+                    ? "text-green-500"
+                    : "text-gray-500",
               },
               {
                 title: "Price Alert",
@@ -530,8 +543,16 @@ const Dashboard = () => {
                 </span>
               </div>
 
-              {/* ✅ Safety Check */}
-              {sortedAvgPricesArray && sortedAvgPricesArray.length > 0 ? (
+              {/* ✅ Show No Data if empty */}
+              {sortedAvgPricesArray.length === 0 ? (
+                <NoDataMessage
+                  onReset={() => {
+                    setSelectedCategory("accommodation.hotel");
+                    setSelectedArea("");
+                  }}
+                  isDarkMode={isDarkMode}
+                />
+              ) : (
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={sortedAvgPricesArray}>
                     <CartesianGrid
@@ -572,7 +593,7 @@ const Dashboard = () => {
                       dataKey="price"
                       onClick={handleBarClick}
                       style={{ cursor: "pointer" }}
-                      fill="#05f2c1" // ✅ Single color to avoid Cell issues
+                      fill="#05f2c1"
                       animationBegin={200}
                       animationDuration={1000}
                       animationEasing="ease-out"
@@ -594,10 +615,6 @@ const Dashboard = () => {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  No data available for selected filters.
-                </div>
               )}
             </div>
 
@@ -626,89 +643,99 @@ const Dashboard = () => {
                 </span>
               </div>
 
-              {/* ✅ Wrap in div to prevent focus outline */}
-              <div tabIndex="-1" style={{ outline: "none" }}>
-                <ResponsiveContainer
-                  width="100%"
-                  height={250}
-                  margin={{ top: 5, right: 10, left: 10, bottom: 40 }}
-                >
-                  <LineChart data={monthlyAverages}>
-                    {/* Gridlines */}
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke={isDarkMode ? "#333" : "#eee"}
-                      vertical={false}
-                    />
+              {/* ✅ Show No Data if empty */}
+              {monthlyAverages.length === 0 ? (
+                <NoDataMessage
+                  onReset={() => {
+                    setSelectedCategory("accommodation.hotel");
+                    setSelectedArea("");
+                  }}
+                  isDarkMode={isDarkMode}
+                />
+              ) : (
+                <div tabIndex="-1" style={{ outline: "none" }}>
+                  <ResponsiveContainer
+                    width="100%"
+                    height={250}
+                    margin={{ top: 5, right: 10, left: 10, bottom: 40 }}
+                  >
+                    <LineChart data={monthlyAverages}>
+                      {/* Gridlines */}
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={isDarkMode ? "#333" : "#eee"}
+                        vertical={false}
+                      />
 
-                    {/* X-Axis */}
-                    <XAxis
-                      dataKey="month"
-                      stroke={isDarkMode ? "#aaa" : "#666"}
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(tick) => {
-                        const [year, month] = tick.split("-");
-                        return `${month}/${year.slice(2)}`; // e.g., "09/25"
-                      }}
-                      interval="preserveStartEnd"
-                      axisLine={false}
-                      tickLine={false}
-                    />
+                      {/* X-Axis */}
+                      <XAxis
+                        dataKey="month"
+                        stroke={isDarkMode ? "#aaa" : "#666"}
+                        tick={{ fontSize: 12 }}
+                        tickFormatter={(tick) => {
+                          const [year, month] = tick.split("-");
+                          return `${month}/${year.slice(2)}`; // e.g., "09/25"
+                        }}
+                        interval="preserveStartEnd"
+                        axisLine={false}
+                        tickLine={false}
+                      />
 
-                    {/* Y-Axis */}
-                    <YAxis
-                      stroke={isDarkMode ? "#aaa" : "#666"}
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(v) => {
-                        if (v >= 1000) return `₦${(v / 1000).toFixed(0)}k`;
-                        return `₦${v}`;
-                      }}
-                      domain={[0, "auto"]}
-                      axisLine={false}
-                      tickLine={false}
-                    />
+                      {/* Y-Axis */}
+                      <YAxis
+                        stroke={isDarkMode ? "#aaa" : "#666"}
+                        tick={{ fontSize: 12 }}
+                        tickFormatter={(v) => {
+                          if (v >= 1000) return `₦${(v / 1000).toFixed(0)}k`;
+                          return `₦${v}`;
+                        }}
+                        domain={[0, "auto"]}
+                        axisLine={false}
+                        tickLine={false}
+                      />
 
-                    {/* Tooltip (no border) */}
-                    <Tooltip
-                      formatter={(v) => [
-                        `₦${v.toLocaleString()}`,
-                        "Price Index",
-                      ]}
-                      labelFormatter={(label) => `Month: ${label}`}
-                      contentStyle={{
-                        backgroundColor: isDarkMode ? "#1e1e1e" : "#fff",
-                        border: "none", // ✅ No border
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                      }}
-                      itemStyle={{ color: isDarkMode ? "#fff" : "#333" }}
-                    />
+                      {/* Tooltip (no border) */}
+                      <Tooltip
+                        formatter={(v) => [
+                          `₦${v.toLocaleString()}`,
+                          "Price Index",
+                        ]}
+                        labelFormatter={(label) => `Month: ${label}`}
+                        contentStyle={{
+                          backgroundColor: isDarkMode ? "#1e1e1e" : "#fff",
+                          border: "none", // ✅ No border
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                        }}
+                        itemStyle={{ color: isDarkMode ? "#fff" : "#333" }}
+                      />
 
-                    {/* Line */}
-                    <Line
-                      type="linear"
-                      dataKey="avg"
-                      stroke="#05f2c1"
-                      strokeWidth={2}
-                      dot={{
-                        r: 3,
-                        fill: "#05f2c1",
-                        stroke: isDarkMode ? "#000" : "#fff",
-                        strokeWidth: 1,
-                      }}
-                      activeDot={{
-                        r: 5,
-                        fill: "#05f2c1",
-                        stroke: "#ffffff",
-                        strokeWidth: 2,
-                      }}
-                      animationDuration={1500}
-                      animationEasing="ease-out"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+                      {/* Line */}
+                      <Line
+                        type="linear"
+                        dataKey="avg"
+                        stroke="#05f2c1"
+                        strokeWidth={2}
+                        dot={{
+                          r: 3,
+                          fill: "#05f2c1",
+                          stroke: isDarkMode ? "#000" : "#fff",
+                          strokeWidth: 1,
+                        }}
+                        activeDot={{
+                          r: 5,
+                          fill: "#05f2c1",
+                          stroke: "#ffffff",
+                          strokeWidth: 2,
+                        }}
+                        animationDuration={1500}
+                        animationEasing="ease-out"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
           </div>
 

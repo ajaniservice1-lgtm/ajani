@@ -62,25 +62,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-      {/* Centered Bottom Bounce Animation: "Click here to learn more" */}
-      <div className="absolute bottom-9 left-1/2 transform -translate-x-1/2">
-        <a
-          href="#priceinsight"
-          onClick={(e) => {
-            e.preventDefault();
-            const element = document.getElementById("priceinsight");
-            if (element) {
-              window.scrollTo({
-                top: element.offsetTop - 80,
-                behavior: "smooth",
-              });
-            }
-          }}
-          className="inline-flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-gray-800 px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 animate-bounce"
-        >
-          <i className="fas fa-arrow-down text-xs"></i> Click here to learn more
-        </a>
-      </div>
     </section>
   );
 };

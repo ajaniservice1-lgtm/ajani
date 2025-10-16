@@ -18,8 +18,7 @@ const Hero = () => {
           <div className="flex flex-col justify-center space-y-6 text-center lg:text-left">
             {/* Headline with animated "Hi," */}
             <h1 className="text-4xl md:text-4xl lg:text-5xl font-extrabold mb-4 text-[#101828] leading-tight">
-              <span className="inline-block animate-wiggle">Hi👋, </span>
-              <span>{"   "}I'm Ajani — Your Ibadan Guide </span>
+             Hi, I'm Ajani  Your Ibadan Guide 
             </h1>
 
             {/* Subtitle */}

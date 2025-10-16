@@ -135,12 +135,6 @@ const Dashboard = () => {
   const [areaSuggestions, setAreaSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // const [activeCategories, setActiveCategories] = useState({
-  //   Accommodation: true,
-  //   Transportation: true,
-  //   "Weekend Event": true,
-  // });
-
   const safeVendors = Array.isArray(vendors) ? vendors : [];
 
   // ✅ Get unique areas for suggestions
@@ -324,14 +318,6 @@ const Dashboard = () => {
     a.area.localeCompare(b.area)
   );
 
-  // ✅ Add this safety guard
-  // if (!sortedAvgPricesArray || sortedAvgPricesArray.length === 0) {
-  //   return (
-  //     <div className="text-center py-8 text-gray-500">
-  //       No data available for selected filters.
-  //     </div>
-  //   );
-  // }
   return (
     <section
       id="priceinsight"

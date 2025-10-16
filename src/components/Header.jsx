@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Logo from "../assets/Logos/logo5.png";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -25,19 +27,24 @@ const Header = () => {
           <nav className="flex items-center justify-between mt-3">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+              <button
+                onClick={() => {
                   closeMenu();
+                  navigate("/"); // Go to home route
+                  setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }, 100); // Small delay to ensure DOM is ready
                 }}
+                className="flex items-center gap-3 focus:outline-none"
+                aria-label="Go to homepage"
               >
-                <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
-                <div className="md:text-sm text-[12.5px] text-slate-600 duration-300 hover:text-gray-900">
-                  Ibadan Price Insights
+                <div className="">
+                  <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
+                  <div className="md:text-sm text-[12.5px] text-slate-600 duration-300 hover:text-gray-900">
+                    Ibadan Price Insights
+                  </div>
                 </div>
-              </a>
+              </button>
             </div>
 
             {/* Desktop Navigation */}
@@ -201,4 +208,3 @@ const Header = () => {
 };
 
 export default Header;
-

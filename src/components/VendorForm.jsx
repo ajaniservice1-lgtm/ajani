@@ -17,14 +17,50 @@ const VendorForm = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, type: "", message: "" });
 
-  const categories = [
-    "Food & Dining",
-    "Accommodation",
-    "Shopping",
-    "Services",
-    "Events",
-    "Entertainment",
-  ];
+  // ✅ Define category structure
+  const categoryMap = {
+    accommodation: ["hotel", "guesthouse", "airbnb", "shortlet", "resort"],
+    food: ["restaurant", "cafe", "bar", "streetfood", "amala"],
+    event: ["weekend", "concert", "art", "tech", "nightlife"],
+    shopping: ["mall", "market", "boutique"],
+    transport: ["ridehail", "carrental", "bus", "dispatch"],
+    attraction: ["garden", "hall", "tower", "park"],
+    health: ["hospital", "pharmacy", "gym", "spa"],
+    edu: ["university", "library", "cowork"],
+    service: ["plumber", "laundry", "beauty", "photographer"],
+    biz: ["bank", "fx", "hub"],
+    promo: ["deal"],
+    jobs: ["gig"],
+    realestate: ["rental"],
+    gov: ["service"], // corrected from "government"
+  };
+
+  const [selectedMainCategory, setSelectedMainCategory] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+
+  // Sync formData.category when subcategory changes
+  const handleCategoryChange = () => {
+    if (selectedMainCategory && selectedSubcategory) {
+      setFormData((prev) => ({
+        ...prev,
+        category: `${selectedMainCategory}.${selectedSubcategory}`,
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, category: "" }));
+    }
+  };
+
+  // Reset subcategory when main category changes
+  const handleMainCategoryChange = (e) => {
+    const mainCat = e.target.value;
+    setSelectedMainCategory(mainCat);
+    setSelectedSubcategory("");
+    setFormData((prev) => ({ ...prev, category: "" }));
+  };
+
+  const handleSubcategoryChange = (e) => {
+    setSelectedSubcategory(e.target.value);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -218,24 +254,45 @@ const VendorForm = () => {
                 />
               </div>
 
+              {/* ✅ REPLACED CATEGORY SECTION */}
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-1">
                   Category
                 </label>
+                {/* Main Category */}
                 <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
+                  value={selectedMainCategory}
+                  onChange={handleMainCategoryChange}
+                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white mb-2"
                   required
                 >
-                  <option value="">Select category</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                  <option value="">Select main category</option>
+                  {Object.keys(categoryMap).map((mainCat) => (
+                    <option key={mainCat} value={mainCat}>
+                      {mainCat.charAt(0).toUpperCase() + mainCat.slice(1)}
                     </option>
                   ))}
                 </select>
+
+                {/* Subcategory (only if main category selected) */}
+                {selectedMainCategory && (
+                  <select
+                    value={selectedSubcategory}
+                    onChange={handleSubcategoryChange}
+                    onBlur={handleCategoryChange} // ensure formData.category is updated
+                    className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
+                    required
+                  >
+                    <option value="">Select subcategory</option>
+                    {categoryMap[selectedMainCategory].map((sub) => (
+                      <option key={sub} value={sub}>
+                        {sub
+                          .replace(/([a-z])([A-Z])/g, "$1 $2")
+                          .replace(/^\w/, (c) => c.toUpperCase())}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
 

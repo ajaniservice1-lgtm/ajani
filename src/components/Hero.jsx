@@ -11,7 +11,7 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="bg-[#f8f9fa] lg:h-screen md:h-screen h-auto py-12 lg:pt-0 flex items-center mt-[-40px]"
+      className="bg-[#f8f9fa] lg:h-screen md:h-screen h-auto py-12 lg:pt-0 font-rubik flex items-center mt-[-40px]"
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 w-full">
         {/* Grid Layout: Text Left, Image Right */}

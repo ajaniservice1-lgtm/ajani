@@ -12,6 +12,10 @@
   /* --font-dmsans: "DM Sans", sans-serif; */
 }
 
+body {
+  overflow-x: hidden;
+}
+
 @keyframes wiggle {
   0% { transform: rotate(0deg); }
   25% { transform: rotate(5deg); }

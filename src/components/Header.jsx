@@ -32,8 +32,11 @@ const Header = () => {
                   closeMenu();
                   navigate("/"); // Go to home route
                   setTimeout(() => {
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }, 100); // Small delay to ensure DOM is ready
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth", // ✅ Smooth scroll from current position → top
+                    });
+                  }, 150);
                 }}
                 className="flex items-center gap-3 focus:outline-none"
                 aria-label="Go to homepage"

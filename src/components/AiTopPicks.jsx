@@ -143,7 +143,7 @@ const AiTopPicks = () => {
                 Verified today by Ajani's team
               </div>
 
-              <div className="flex gap-3">
+              <div className="">
                 <a
                   href={`https://wa.me/${(card.whatsapp || "").replace(
                     /\D/g,
@@ -151,16 +151,10 @@ const AiTopPicks = () => {
                   )}?text=Hi%20Ajani%20👋`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-lg transition shadow hover:shadow-md hover:-translate-y-0.5"
+                  className="flex items-center gap-2 justify-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-lg transition shadow hover:shadow-md hover:-translate-y-0.5"
                 >
-                  <i className="fab fa-whatsapp"></i> Ask Ajani
-                </a>
-                <a
-                  href="#vendors"
-                  className="inline-flex items-center gap-3 px-5 py-2.5 bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#1e293b] rounded-xl font-medium text-sm transition"
-                >
-                  <i className="fas fa-list text-xs"></i>
-                  See More
+                  <i className="fab fa-whatsapp "></i>
+                  Ask Ajani
                 </a>
               </div>
             </div>

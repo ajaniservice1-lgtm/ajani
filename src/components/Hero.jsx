@@ -13,7 +13,7 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="bg-[#f8f9fa] py-16 md:py-20 lg:py-14 font-rubik"
+      className="bg-[#f8f9fa] py-10 md:py-20 lg:py-16 font-rubik"
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 items-center">

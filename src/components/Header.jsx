@@ -44,7 +44,7 @@ const Header = () => {
                 <div className="">
                   <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
                   <div className="md:text-sm text-[12.5px] text-slate-600 duration-300 hover:text-gray-900">
-                    Ajani The Ibadan Guide
+                    The Ibadan Smart Guide
                   </div>
                 </div>
               </button>

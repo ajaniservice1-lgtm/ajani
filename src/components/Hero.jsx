@@ -94,7 +94,7 @@ const Hero = () => {
                 </button>
               </div>
               <p className="text-[13px]">
-                Trusted by 2,000+ locals . 300+ vendors onboarded
+                Trusted by 2,000+ locals • 300+ vendors onboarded
               </p>
             </>
           </div>

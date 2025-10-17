@@ -15,7 +15,7 @@ const Footer = () => {
             <div className="flex items-center gap-3 mb-4">
               <img src={Logo} alt="Ajani Logo" className="h-8 w-auto" />
               <span className="text-slate-300 text-sm md:text-base">
-                • Ajani The Ibadan Guide
+                • The Ibadan Smart Guide
               </span>
             </div>
 

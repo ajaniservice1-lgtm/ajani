@@ -14,9 +14,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <img src={Logo} alt="Ajani Logo" className="h-8 w-auto" />
-              <span className="text-slate-300 text-sm md:text-base">
-                • The Ibadan Smart Guide
-              </span>
+              <span className="text-slate-300 text-sm md:text-base"></span>
             </div>
 
             <p className="mb-4 leading-relaxed max-w-md">

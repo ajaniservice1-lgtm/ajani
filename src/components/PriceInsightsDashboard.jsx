@@ -1,3 +1,4 @@
+import CategoryDropdown from "./CategoryDropdown";
 import React, { useState, useEffect } from "react";
 import NoDataMessage from "./NoDataMessage";
 import { LabelList } from "recharts";
@@ -356,22 +357,38 @@ const Dashboard = () => {
             </button>
           </div>
 
+          {/* ✅ NEW: Instruction Banner - Responsive & Styled */}
+          <div
+            className={`mb-6 p-4 rounded-lg border-l-4 border-blue-500 bg-blue-50 ${
+              isDarkMode ? "bg-blue-900/20 text-blue-100" : "text-blue-800"
+            }`}
+          >
+            <div className="flex items-start space-x-2">
+              <FontAwesomeIcon
+                icon={faInfoCircle}
+                className={`mt-0.5 text-blue-500 ${
+                  isDarkMode ? "text-blue-300" : ""
+                }`}
+              />
+              <div>
+                <h3 className="font-semibold text-sm">
+                  Select Category & Subcategory
+                </h3>
+                <p className="text-xs mt-1">
+                  Choose a main category (e.g., Accommodation) and a subcategory
+                  (e.g., Hotel) to see real-time price insights.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Filters */}
           <div className="flex flex-wrap gap-3 mb-6">
-            <select
+            <CategoryDropdown
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className={`px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 min-w-[120px] ${
-                isDarkMode
-                  ? "bg-gray-800 text-white border-gray-700"
-                  : "bg-white text-gray-900 border-gray-300"
-              }`}
-            >
-              <option value="All">All Categories</option>
-              <option value="accommodation.hotel">Accommodation</option>
-              <option value="transport.ridehail">Transportation</option>
-              <option value="event.weekend">Weekend Event</option>
-            </select>
+              onChange={setSelectedCategory}
+              isDarkMode={isDarkMode}
+            />
 
             {/* ✅ Area Input with Autocomplete */}
             <div className="relative min-w-[120px] flex-1">
@@ -453,21 +470,18 @@ const Dashboard = () => {
               },
               {
                 title: "Most Affordable Area",
-                value:
-                  selectedCategory === "accommodation.hotel"
-                    ? affordableArea.area
-                    : "—",
-                change:
-                  selectedCategory === "accommodation.hotel"
-                    ? `${Math.round(
-                        ((priceIndex - affordableArea.price) / priceIndex) * 100
-                      )}% below avg`
-                    : "No data applicable",
+                value: selectedCategory.startsWith("accommodation.")
+                  ? affordableArea.area
+                  : "—",
+                change: selectedCategory.startsWith("accommodation.")
+                  ? `${Math.round(
+                      ((priceIndex - affordableArea.price) / priceIndex) * 100
+                    )}% below avg`
+                  : "No data applicable",
                 icon: faArrowDown,
-                color:
-                  selectedCategory === "accommodation.hotel"
-                    ? "text-green-500"
-                    : "text-gray-500",
+                color: selectedCategory.startsWith("accommodation.")
+                  ? "text-green-500"
+                  : "text-gray-500",
               },
               {
                 title: "Price Alert",

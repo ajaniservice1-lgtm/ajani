@@ -158,7 +158,7 @@ const FeaturedBanner = () => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-left mb-8">
           <h2 className="text-2xl font-bold mb-2">Featured Businesses</h2>
-          <p className="text-gray-300">
+          <p className="text-gray-300 lg:text-xl text-sm">
             Discover these sponsored listings from local businesses
           </p>
         </div>

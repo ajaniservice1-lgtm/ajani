@@ -92,7 +92,7 @@ const AiTopPicks = () => {
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-2">Ajani's Top Picks for You</h2>
-          <p className="text-slate-600">
+          <p className="text-slate-600 text-sm">
             Verified recommendations based on popular queries
           </p>
         </div>

@@ -182,7 +182,9 @@ const FeaturedBanner = () => {
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
                 {ad.subtitle}
               </h3>
-              <p className="text-sm text-gray-600 mb-4">{ad.description}</p>
+              <p className=" text-gray-600 mb-4 lg:text-xl text-sm">
+                {ad.description}
+              </p>
               <button
                 className={`px-4 py-2 rounded-lg font-semibold text-white transition ${ad.buttonColor}`}
                 onClick={(e) => {

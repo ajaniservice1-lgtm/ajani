@@ -1,14 +1,13 @@
 // src/App.jsx
-import React from "react";
+import React, { lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import HomePage from "./pages/HomePage";
-import PrivacyPage from "./pages/PrivacyPage";
-import TermsPage from "./pages/TermsPage";
-import ContactPage from "./pages/ContactPage";
 
 // ✅ Import TrackingWrapper
 import TrackingWrapper from "./components/TrackingWrapper";
+const HomePage = lazy(() => import("./pages/HomePage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
 
 function App() {
   return (

@@ -176,13 +176,13 @@ const FeaturedBanner = () => {
               }}
               aria-label={`View details for ${ad.subtitle}`}
             >
-              <div className="text-xs font-medium text-gray-500 mb-2">
+              <div className="font-medium text-gray-500 mb-2">
                 {ad.title}
               </div>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
                 {ad.subtitle}
               </h3>
-              <p className=" text-gray-600 mb-4 lg:text-xl text-sm">
+              <p className=" text-gray-600 mb-4 text-sm">
                 {ad.description}
               </p>
               <button

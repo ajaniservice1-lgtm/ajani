@@ -12,18 +12,14 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  Cell, // ✅ Re-add this
 } from "recharts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMapMarkerAlt,
   faArrowUp,
   faArrowDown,
-  faLayerGroup,
-  faChartLine,
   faSun,
   faMoon,
-  faUndo, // ✅ For reset button
   faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -243,7 +239,20 @@ const Dashboard = () => {
         )
       : { area: "—", price: 0 };
 
-  const COLORS = ["#101828", "#05f2c1", "#3276ee"];
+  // ✅ Define categories structure
+  const categories = {
+    accommodation: ["hotel", "hostel", "guesthouse"],
+    food: ["restaurant", "cafe", "fastfood"],
+    transport: ["taxi", "bus", "bike"],
+    entertainment: ["cinema", "club", "park"],
+  };
+
+  // ✅ Helper functions
+  const getMainCategory = (cat) => cat.split(".")[0] || "accommodation";
+  const getSubCategory = (cat) => cat.split(".")[1] || "hotel";
+  const updateSelectedCategory = (newMain, newSub) => {
+    setSelectedCategory(`${newMain}.${newSub}`);
+  };
 
   // Auto-refetch every 90 seconds
   useEffect(() => {
@@ -357,7 +366,7 @@ const Dashboard = () => {
             </button>
           </div>
 
-          {/* ✅ NEW: Instruction Banner - Responsive & Styled */}
+          {/* ✅ Instruction Banner */}
           <div
             className={`mb-6 p-4 rounded-lg border-l-4 border-blue-500 bg-blue-50 ${
               isDarkMode ? "bg-blue-900/20 text-blue-100" : "text-blue-800"
@@ -382,15 +391,80 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            <CategoryDropdown
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              isDarkMode={isDarkMode}
-            />
+          {/* ✅ Filters with Labeled Dropdowns */}
+          <div className="flex flex-col gap-3 mb-6">
+            <div className="flex flex-row gap-3">
+              {/* Main Category */}
+              <div className="flex flex-col flex-1">
+                <label
+                  htmlFor="main-category"
+                  className={`text-xs font-medium mb-1 ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Main Category
+                </label>
+                <select
+                  id="main-category"
+                  value={getMainCategory(selectedCategory)}
+                  onChange={(e) => {
+                    const newMain = e.target.value;
+                    const currentSub = getSubCategory(selectedCategory);
+                    const validSubs = categories[newMain] || [];
+                    const newSub = validSubs.includes(currentSub)
+                      ? currentSub
+                      : validSubs[0] || "hotel";
+                    updateSelectedCategory(newMain, newSub);
+                  }}
+                  className={`px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 w-full ${
+                    isDarkMode
+                      ? "bg-gray-800 text-white border-gray-700"
+                      : "bg-white text-gray-900 border-gray-300"
+                  }`}
+                >
+                  {Object.keys(categories).map((main) => (
+                    <option key={main} value={main}>
+                      {main.charAt(0).toUpperCase() + main.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {/* ✅ Area Input with Autocomplete */}
+              {/* Subcategory */}
+              <div className="flex flex-col flex-1">
+                <label
+                  htmlFor="subcategory"
+                  className={`text-xs font-medium mb-1 ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Subcategory
+                </label>
+                <select
+                  id="subcategory"
+                  value={getSubCategory(selectedCategory)}
+                  onChange={(e) => {
+                    const newSub = e.target.value;
+                    const currentMain = getMainCategory(selectedCategory);
+                    updateSelectedCategory(currentMain, newSub);
+                  }}
+                  className={`px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 w-full ${
+                    isDarkMode
+                      ? "bg-gray-800 text-white border-gray-700"
+                      : "bg-white text-gray-900 border-gray-300"
+                  }`}
+                  disabled={!getMainCategory(selectedCategory)}
+                >
+                  {categories[getMainCategory(selectedCategory)]?.map((sub) => (
+                    <option key={sub} value={sub}>
+                      {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Area Input with Autocomplete */}
             <div className="relative min-w-[120px] flex-1">
               <input
                 type="text"
@@ -543,7 +617,6 @@ const Dashboard = () => {
                 </span>
               </div>
 
-              {/* ✅ Show No Data if empty */}
               {sortedAvgPricesArray.length === 0 ? (
                 <NoDataMessage
                   onReset={() => {
@@ -643,7 +716,6 @@ const Dashboard = () => {
                 </span>
               </div>
 
-              {/* ✅ Show No Data if empty */}
               {monthlyAverages.length === 0 ? (
                 <NoDataMessage
                   onReset={() => {
@@ -660,28 +732,23 @@ const Dashboard = () => {
                     margin={{ top: 5, right: 10, left: 10, bottom: 40 }}
                   >
                     <LineChart data={monthlyAverages}>
-                      {/* Gridlines */}
                       <CartesianGrid
                         strokeDasharray="3 3"
                         stroke={isDarkMode ? "#333" : "#eee"}
                         vertical={false}
                       />
-
-                      {/* X-Axis */}
                       <XAxis
                         dataKey="month"
                         stroke={isDarkMode ? "#aaa" : "#666"}
                         tick={{ fontSize: 12 }}
                         tickFormatter={(tick) => {
                           const [year, month] = tick.split("-");
-                          return `${month}/${year.slice(2)}`; // e.g., "09/25"
+                          return `${month}/${year.slice(2)}`;
                         }}
                         interval="preserveStartEnd"
                         axisLine={false}
                         tickLine={false}
                       />
-
-                      {/* Y-Axis */}
                       <YAxis
                         stroke={isDarkMode ? "#aaa" : "#666"}
                         tick={{ fontSize: 12 }}
@@ -693,8 +760,6 @@ const Dashboard = () => {
                         axisLine={false}
                         tickLine={false}
                       />
-
-                      {/* Tooltip (no border) */}
                       <Tooltip
                         formatter={(v) => [
                           `₦${v.toLocaleString()}`,
@@ -703,15 +768,13 @@ const Dashboard = () => {
                         labelFormatter={(label) => `Month: ${label}`}
                         contentStyle={{
                           backgroundColor: isDarkMode ? "#1e1e1e" : "#fff",
-                          border: "none", // ✅ No border
+                          border: "none",
                           borderRadius: "6px",
                           fontSize: "12px",
                           boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                         }}
                         itemStyle={{ color: isDarkMode ? "#fff" : "#333" }}
                       />
-
-                      {/* Line */}
                       <Line
                         type="linear"
                         dataKey="avg"

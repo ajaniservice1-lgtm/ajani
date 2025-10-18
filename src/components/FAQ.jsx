@@ -65,7 +65,7 @@ const FAQ = () => {
                 openIndex === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
               }`}
             >
-              <p className="lg:text-xl text-sm">{faq.a}</p>
+              <p className=" text-sm">{faq.a}</p>
             </div>
           </div>
         ))}

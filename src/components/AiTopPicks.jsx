@@ -104,14 +104,14 @@ const AiTopPicks = () => {
               className="bg-white rounded-xl p-6 border border-slate-200 shadow hover:shadow-md hover:-translate-y-1 transition"
             >
               <div className="flex items-center gap-3 mb-4">
-                <img
+                {/* <img
                   src={getIconImage(card)}
                   alt={`${card.name} icon`}
                   className="w-10 h-10 rounded-full bg-gray-100 object-cover"
                   onError={(e) => {
                     e.target.src = "https://via.placeholder.com/40?text=⚡";
                   }}
-                />
+                /> */}
                 <h3 className="font-bold text-lg">{card.name}</h3>
               </div>
 

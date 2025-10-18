@@ -115,7 +115,7 @@ const Header = () => {
       <div className="fixed inset-0 z-50 pointer-events-none md:hidden">
         {/* Dimmed Overlay — only visible when menu is open */}
         <div
-          className={`fixed inset-0 transition-opacity duration-300 ${
+          className={`fixed inset-0 bg-white bg-opacity-50 transition-opacity duration-300 ${
             isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0"
           }`}
           onClick={closeMenu}
@@ -124,7 +124,7 @@ const Header = () => {
 
         {/* Left-Sliding Menu Panel */}
         <div
-          className={`fixed left-0 top-0 w-full h-screen bg-white shadow-xl flex flex-col transform transition-transform duration-300 ease-in-out z-50 ${
+          className={`fixed left-0 top-0 w-full h-screen flex flex-col transform transition-transform duration-300 ease-in-out z-50 ${
             isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           onClick={(e) => e.stopPropagation()}

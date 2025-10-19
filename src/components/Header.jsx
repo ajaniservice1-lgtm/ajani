@@ -89,7 +89,7 @@ const Header = () => {
             {/* Mobile Hamburger */}
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="md:hidden text-gray-900 focus:outline-none"
+              className="md:hidden text-gray-900 cursor-pointer focus:outline-none"
               aria-label="Open menu"
             >
               <svg
@@ -112,13 +112,19 @@ const Header = () => {
       </header>
 
       {/* Always-rendered Mobile Menu (never conditionally removed) */}
-      <div className="fixed inset-0 z-50 pointer-events-none md:hidden">
+      <div
+        className={`fixed inset-0 z-50  md:hidden ${
+          isMenuOpen ? "pointer-events-auto" : "pointer-events-none"
+        }`}
+      >
         {/* Dimmed Overlay — only visible when menu is open */}
         <div
           className={`fixed inset-0 bg-white bg-opacity-50 transition-opacity duration-300 ${
-            isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0"
+            isMenuOpen
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
           }`}
-          onClick={closeMenu}
+          // onClick={closeMenu}
           aria-hidden="true"
         ></div>
 
@@ -127,7 +133,7 @@ const Header = () => {
           className={`fixed left-0 top-0 w-full h-screen flex flex-col transform transition-transform duration-300 ease-in-out z-50 ${
             isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
-          onClick={(e) => e.stopPropagation()}
+          // onClick={(e) => e.stopPropagation()}
         >
           {/* Header with logo and close button */}
           <div className="p-5 border-b border-gray-200 flex justify-between items-center">
@@ -139,7 +145,7 @@ const Header = () => {
             </a>
             <button
               onClick={closeMenu}
-              className="text-gray-900 hover:text-gray-600"
+              className="text-gray-900 hover:text-gray-600 cursor-pointer"
               aria-label="Close menu"
             >
               <svg

@@ -21,7 +21,9 @@ const FeaturedBanner = () => {
           <img
             src="https://media.istockphoto.com/id/2207324198/photo/buffet-style-serving-in-chafing-dish.jpg?s=1024x1024&w=is&k=20&c=ORtP-Vc-AmtBXMme8v3pjULWpZ8FcAugXuPbOFtO_Tc="
             alt="Amala Skye"
-            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-contain"
+            width={"100%"}
+            height={250}
+            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover"
           />
           <h3 className="text-xl font-bold text-gray-800">
             🔥 Amala Skye — Ibadan’s #1 Amala Spot!
@@ -67,7 +69,9 @@ const FeaturedBanner = () => {
           <img
             src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80"
             alt="Food Festival"
-            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-contain"
+            width={"100%"}
+            height={250}
+            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover"
           />
           <h3 className="text-xl font-bold text-gray-800">
             🎉 Taste of Ibadan — This Weekend Only!
@@ -119,7 +123,9 @@ const FeaturedBanner = () => {
           <img
             src="https://images.unsplash.com/photo-1694825588875-190db201a997?q=80&w=1630&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Dugbe Market"
-            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-contain"
+            width={"100%"}
+            height={250}
+            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover"
           />
           <h3 className="text-xl font-bold text-gray-800">
             🌶️ Dugbe Market — Fresh Spices & Local Delicacies!
@@ -176,15 +182,11 @@ const FeaturedBanner = () => {
               }}
               aria-label={`View details for ${ad.subtitle}`}
             >
-              <div className="font-medium text-gray-500 mb-2">
-                {ad.title}
-              </div>
+              <div className="font-medium text-gray-500 mb-2">{ad.title}</div>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
                 {ad.subtitle}
               </h3>
-              <p className=" text-gray-600 mb-4 text-sm">
-                {ad.description}
-              </p>
+              <p className=" text-gray-600 mb-4 text-sm">{ad.description}</p>
               <button
                 className={`px-4 py-2 rounded-lg font-semibold text-white transition ${ad.buttonColor}`}
                 onClick={(e) => {
@@ -207,7 +209,7 @@ const FeaturedBanner = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4"
             onClick={() => setShowModal(null)}
           >
             <motion.div

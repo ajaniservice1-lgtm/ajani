@@ -177,7 +177,7 @@ const Header = () => {
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className="block py-2 text-gray-900 duration-300 hover:text-green-600 font-medium"
+                className="block py-2 text-gray-900 duration-300 hover:text-gray-500 font-medium"
                 onClick={(e) => {
                   e.preventDefault();
                   const element = document.getElementById(item.id);

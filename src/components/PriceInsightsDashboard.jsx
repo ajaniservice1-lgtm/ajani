@@ -61,7 +61,9 @@ const useGoogleSheet = (sheetId, apiKey) => {
         }
       } catch (err) {
         console.error("Fetch error:", err);
-        setError("Failed to load data. Check console for details.");
+        setError(
+          "Failed to load Dashboard data,Try reloading the page and have a good internet connection"
+        );
         setData([]);
       } finally {
         setLoading(false);
@@ -299,9 +301,7 @@ const Dashboard = () => {
         }`}
       >
         <div className="text-center">
-          <p className="text-xl font-bold font-rubik">
-            ⚠️ Error Loading Data..
-          </p>
+          <p className="text-xl font-bold font-rubik">⚠️</p>
           <p className="mt-2">{error}</p>
         </div>
       </div>

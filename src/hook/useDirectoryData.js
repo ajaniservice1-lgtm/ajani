@@ -27,7 +27,9 @@ export const useDirectoryData = (sheetId, apiKey) => {
         }
       } catch (err) {
         console.error("Fetch error:", err);
-        setError("Failed to load directory data.");
+        setError(
+          "⚠️ Failed to load directory data, Try reloading the page and have a good internet connection."
+        );
       } finally {
         setLoading(false);
       }

@@ -47,7 +47,9 @@ const useGoogleSheet = (sheetId, apiKey) => {
         }
       } catch (err) {
         console.error("Fetch error:", err);
-        setError("Failed to load data. Check console for details.");
+        setError(
+          "⚠️ Failed to load Directory data. Try reloading the page and have a good internet connection."
+        );
       } finally {
         setLoading(false);
       }

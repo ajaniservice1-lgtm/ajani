@@ -143,7 +143,8 @@ const Directory = () => {
 
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
+  const [mainCategory, setMainCategory] = useState(""); // New state
+  const [subCategory, setSubCategory] = useState(""); // New state
   const [area, setArea] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
@@ -153,6 +154,36 @@ const Directory = () => {
     ...new Set(listings.map((item) => item.area).filter(Boolean)),
   ].sort();
 
+  // Extract Main Categories and Subcategories
+  const mainCategories = [
+    ...new Set(
+      listings
+        .map((item) => {
+          const parts = item.category?.split(".") || [];
+          return parts[0] || item.category; // If no dot, use full category as main
+        })
+        .filter(Boolean)
+    ),
+  ].sort();
+
+  // Get subcategories based on selected main category
+  const subCategories = mainCategory
+    ? [
+        ...new Set(
+          listings
+            .filter((item) => {
+              const parts = item.category?.split(".") || [];
+              return parts[0] === mainCategory;
+            })
+            .map((item) => {
+              const parts = item.category?.split(".") || [];
+              return parts[1] || item.category; // If no dot, use full category as sub
+            })
+            .filter(Boolean)
+        ),
+      ]
+    : [];
+
   // Filter and paginate
   useEffect(() => {
     let result = listings.filter((item) => {
@@ -161,14 +192,20 @@ const Directory = () => {
         (item.short_desc &&
           item.short_desc.toLowerCase().includes(search.toLowerCase())) ||
         (item.tags && item.tags.toLowerCase().includes(search.toLowerCase()));
-      const matchesCat = category ? item.category === category : true;
+      const matchesMainCat = mainCategory
+        ? item.category?.startsWith(mainCategory)
+        : true;
+      const matchesSubCat = subCategory
+        ? item.category?.includes(`.${subCategory}`) ||
+          (item.category === subCategory && !item.category.includes("."))
+        : true;
       const matchesArea = area ? item.area === area : true;
-      return matchesSearch && matchesCat && matchesArea;
+      return matchesSearch && matchesMainCat && matchesSubCat && matchesArea;
     });
 
     setFiltered(result);
     setCurrentPage(1);
-  }, [listings, search, category, area]);
+  }, [listings, search, mainCategory, subCategory, area]);
 
   // Pagination
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -221,24 +258,49 @@ const Directory = () => {
       {/* Filters */}
       <div className="bg-white p-6 rounded-xl border border-slate-200">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Main Category */}
           <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
+            <label className="block text-sm font-medium mb-1">
+              Main Category
+            </label>
             <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              value={mainCategory}
+              onChange={(e) => {
+                setMainCategory(e.target.value);
+                setSubCategory(""); // Reset subcategory when main changes
+              }}
               className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">All categories</option>
-              {Array.from(new Set(listings.map((v) => v.category))).map(
-                (cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                )
-              )}
+              <option value="">All main categories</option>
+              {mainCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
             </select>
           </div>
 
+          {/* Subcategory */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Subcategory
+            </label>
+            <select
+              value={subCategory}
+              onChange={(e) => setSubCategory(e.target.value)}
+              className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={!mainCategory} // Disable if no main category is selected
+            >
+              <option value="">All subcategories</option>
+              {subCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Area */}
           <div>
             <label className="block text-sm font-medium mb-1">Area</label>
             <select

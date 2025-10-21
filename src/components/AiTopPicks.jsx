@@ -13,7 +13,8 @@ const FALLBACK_IMAGES = {
 };
 
 const getCardImage = (item) => {
-  const sheetImage = (item.image_url || "").trim();
+  // IMPORTANT: Use the exact header name "image url" here
+  const sheetImage = (item["image url"] || "").trim();
   if (sheetImage && sheetImage.startsWith("http")) return sheetImage;
 
   if (item.category?.includes("food")) return FALLBACK_IMAGES["food-default"];
@@ -42,6 +43,52 @@ const formatTags = (tagString) => {
     }
     return name;
   });
+};
+
+// ✅ Reusable component for truncating text with a "See More" button
+const TruncatedText = ({ text, maxLines = 4 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // If the text is short, just display it without any truncation
+  if (!text || text.length < 200) {
+    return <p className="text-slate-700 text-sm mb-3">{text}</p>;
+  }
+
+  // For longer text, use CSS for initial truncation and JS for toggle
+  return (
+    <div className="relative">
+      <p
+        className={`text-slate-700 text-sm mb-3 ${
+          isExpanded ? "" : "line-clamp-4"
+        }`}
+        style={{
+          WebkitLineClamp: isExpanded ? "unset" : maxLines,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          display: "-webkit-box",
+        }}
+      >
+        {text}
+      </p>
+      {!isExpanded && (
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="text-[#3276ee] text-sm font-medium hover:underline mt-1 block"
+        >
+          See More...
+        </button>
+      )}
+      {isExpanded && (
+        <button
+          onClick={() => setIsExpanded(false)}
+          className="text-blue-600 text-sm font-medium hover:underline mt-1 block"
+        >
+          See Less
+        </button>
+      )}
+    </div>
+  );
 };
 
 const AiTopPicks = () => {
@@ -125,7 +172,8 @@ const AiTopPicks = () => {
                 }}
               />
 
-              <p className="mb-4 text-slate-700">{card.short_desc}</p>
+              {/* ✅ Replace the plain <p> with the TruncatedText component */}
+              <TruncatedText text={card.short_desc} maxLines={4} />
 
               <div className="flex flex-wrap gap-2 mb-6">
                 {formatTags(card.tags).map((tag, j) => (

@@ -1,4 +1,4 @@
-import CategoryDropdown from "./CategoryDropdown";
+// import CategoryDropdown from "./CategoryDropdown";
 import React, { useState, useEffect } from "react";
 import NoDataMessage from "./NoDataMessage";
 import { LabelList } from "recharts";
@@ -243,10 +243,9 @@ const Dashboard = () => {
 
   // ✅ Define categories structure
   const categories = {
-    accommodation: ["hotel", "hostel", "guesthouse"],
-    food: ["restaurant", "cafe", "fastfood"],
-    transport: ["taxi", "bus", "bike"],
-    entertainment: ["cinema", "club", "park"],
+    accommodation: ["hotel", "shortlet", "guesthouse", "resorts", "airbnb"],
+    transport: ["taxi", "bus", "bike", "carrental", "dispatch"],
+    event: ["cinema", "club", "park", "weekend", "concert", "art", "tech"],
   };
 
   // ✅ Helper functions

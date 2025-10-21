@@ -5,7 +5,7 @@ import { faComment, faStore } from "@fortawesome/free-solid-svg-icons";
 // ✅ Hardcoded fallback images by ID and category
 const FALLBACK_IMAGES = {
   // By ID (match your sheet's 'id' column)
-  1: "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+  1: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
   2: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
   3: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
   // By category
@@ -27,7 +27,6 @@ const useGoogleSheet = (sheetId, apiKey) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ✅ Fixed: Removed extra spaces around ${sheetId}
         const response = await fetch(
           `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`
         );
@@ -39,6 +38,7 @@ const useGoogleSheet = (sheetId, apiKey) => {
           const formatted = rows.map((row) => {
             const obj = {};
             headers.forEach((header, index) => {
+              // Use the exact header name from your sheet, including spaces
               obj[header] = row[index] || "";
             });
             return obj;
@@ -64,7 +64,8 @@ const useGoogleSheet = (sheetId, apiKey) => {
 // ✅ Image resolver with fallback logic
 const getFallbackImage = (item) => {
   // 1. Try image from sheet (trim and validate)
-  const sheetImage = (item.image_url || "").trim();
+  // IMPORTANT: Use the exact header name "image url" here
+  const sheetImage = (item["image url"] || "").trim();
   if (sheetImage && sheetImage.startsWith("http")) {
     return sheetImage;
   }
@@ -86,6 +87,52 @@ const getFallbackImage = (item) => {
 
   // 4. Final fallback
   return "https://via.placeholder.com/300x200?text=No+Image";
+};
+
+// ✅ Reusable component for truncating text with a "See More" button
+const TruncatedText = ({ text, maxLines = 4 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // If the text is short, just display it without any truncation
+  if (!text || text.length < 200) {
+    return <p className="text-slate-700 text-sm mb-3">{text}</p>;
+  }
+
+  // For longer text, use CSS for initial truncation and JS for toggle
+  return (
+    <div className="relative">
+      <p
+        className={`text-slate-700 text-sm mb-3 ${
+          isExpanded ? "" : "line-clamp-4"
+        }`}
+        style={{
+          WebkitLineClamp: isExpanded ? "unset" : maxLines,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          display: "-webkit-box",
+        }}
+      >
+        {text}
+      </p>
+      {!isExpanded && (
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="text-[#3276ee] text-sm font-medium hover:underline mt-1 block"
+        >
+          See More...
+        </button>
+      )}
+      {isExpanded && (
+        <button
+          onClick={() => setIsExpanded(false)}
+          className="text-blue-600 text-sm font-medium hover:underline mt-1 block"
+        >
+          See Less
+        </button>
+      )}
+    </div>
+  );
 };
 
 const Directory = () => {
@@ -238,9 +285,7 @@ const Directory = () => {
                     <div className="text-sm text-slate-600 mb-2">
                       <span>{item.area}</span> • <span>{item.category}</span>
                     </div>
-                    <p className="text-slate-700 text-sm mb-3 flex-grow">
-                      {item.short_desc}
-                    </p>
+                    <TruncatedText text={item.short_desc} maxLines={4} />
                     <div className="font-bold mb-2">
                       From ₦{formatPrice(item.price_from)}
                     </div>
@@ -257,14 +302,14 @@ const Directory = () => {
                         return price ? (
                           <span
                             key={i}
-                            className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-sm font-medium"
+                            className="bg-[#E6F2FF] text-blue-700 px-3 py-1 rounded-lg text-sm font-medium"
                           >
                             {name} ₦{parseInt(price).toLocaleString()}
                           </span>
                         ) : (
                           <span
                             key={i}
-                            className="bg-gray-100 text-gray-800 px-3 py-1 rounded-lg text-sm"
+                            className="bg-gray-100 text-[#003366] px-3 py-1 rounded-lg text-sm"
                           >
                             {name}
                           </span>

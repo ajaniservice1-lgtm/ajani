@@ -508,6 +508,15 @@ const VendorForm = () => {
                 </div>
               </div>
             </div>
+            <div className="flex gap-2.5">
+              <input type="checkbox" className="" required />
+              <label
+                htmlFor="checkbox"
+                className="text-sm font-medium text-gray-200 leading-[-1.5]"
+              >
+                Click here for promotional and discount messages.
+              </label>
+            </div>
 
             {/* Submit Button */}
             <div className="pt-4">

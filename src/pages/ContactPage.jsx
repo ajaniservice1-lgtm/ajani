@@ -71,7 +71,7 @@ const ContactPage = () => {
             <h1 className="text-3xl md:text-4xl font-extrabold text-[#101828]">
               Contact Us
             </h1>
-            <p className="mt-3 text-lg text-gray-500 max-w-3xl mx-auto">
+            <p className="mt-3 text-sm lg:text-[16px] text-gray-500 max-w-3xl mx-auto">
               We would love to hear from you! Whether you have questions,
               feedback, or just want to say hello, feel free to reach out.
             </p>

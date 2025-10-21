@@ -512,7 +512,7 @@ const VendorForm = () => {
               <input type="checkbox" className="" required />
               <label
                 htmlFor="checkbox"
-                className="text-sm font-medium text-gray-200 leading-[-1.5]"
+                className="text-sm font-medium text-gray-200 leading-[1.2]"
               >
                 Click here for promotional and discount messages.
               </label>

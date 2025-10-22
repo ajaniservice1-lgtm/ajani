@@ -4,6 +4,8 @@ import Logos from "../assets/Logos/images.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { faChartLine } from "@fortawesome/free-solid-svg-icons";
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import { IoCheckmarkCircleOutline } from "react-icons/io5";
 
 const Hero = () => {
   useEffect(() => {
@@ -54,7 +56,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-slate-200  mx-8 hover:bg-slate-300 hover:text-slate-900 text-slate-900 px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[#f2f9ff]  mx-8 hover:bg-slate-300 hover:text-slate-900 text-slate-900 px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <i className="fas fa-search mr-2"></i> Browse Directory
                 </button>
@@ -87,15 +89,16 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-slate-200  mx-8 hover:bg-slate-300 hover:text-slate-900 text-slate-900 px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[#f2f9ff]  mx-8 hover:bg-slate-300 hover:text-slate-900 text-slate-900 px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <FontAwesomeIcon icon={faCheck} />
                   List Your Business
                 </button>
               </div>
-              <p className="text-[13px]">
+              <span className="text-[13px] flex gap-1">
+                <IoCheckmarkCircleOutline className="text-sm  w-5 h-5 rounded-full" />
                 Trusted by 2,000+ locals • 300+ vendors onboarded
-              </p>
+              </span>
             </>
           </div>
           {/* Right Side: Image */}

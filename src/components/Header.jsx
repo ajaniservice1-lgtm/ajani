@@ -36,7 +36,7 @@ const Header = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#e6f2ff] font-rubik">
         <div className="max-w-7xl mx-auto px-4 py-2">
           {/* Nav Container - White rounded with shadow */}
-          <nav className="flex items-center justify-between bg-[#f2f9ff] rounded-full shadow-md px-6 py-3">
+          <nav className="flex items-center justify-between bg-[#f2f9ff] rounded-full shadow-md px-6 py-5">
             {/* Left: Logo + Tagline */}
             <div className="flex items-center gap-4">
               <button
@@ -128,7 +128,7 @@ const Header = () => {
 
         {/* Sliding Panel */}
         <div
-          className={`fixed left-0 top-0 w-full h-screen bg-[#f2f9ff] flex flex-col transform transition-transform duration-300 ease-in-out z-50 ${
+          className={`fixed left-0 top-0 w-full h-screen bg-white flex flex-col transform transition-transform duration-300 ease-in-out z-50 ${
             isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -136,22 +136,13 @@ const Header = () => {
           {/* Header */}
           <div className="p-5 border-b border-gray-200 flex justify-between items-center">
             <button
-              onClick={() => {
-                closeMenu();
-                navigate("/");
-                setTimeout(() => {
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }, 150);
-              }}
-              className="flex items-center gap-3 focus:outline-none"
-              aria-label="Go to homepage"
+              onClick={closeMenu}
+              className="flex flex-col items-start focus:outline-none"
+              aria-label="Close menu"
             >
-              <div className="flex items-center gap-2">
-                <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
-                <hr className="border-r border-gray-300 h-6 mx-2" />
-                <div className="md:text-sm text-[12.5px] text-slate-600 duration-300 hover:text-gray-900">
-                  The Ibadan Smart Guide
-                </div>
+              <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
+              <div className="text-[12.5px] text-slate-600 font-rubik">
+                Est. Feb 2025
               </div>
             </button>
             <button

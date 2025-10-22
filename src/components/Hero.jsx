@@ -4,8 +4,7 @@ import Logos from "../assets/Logos/images.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { faChartLine } from "@fortawesome/free-solid-svg-icons";
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
-import { IoCheckmarkCircleOutline } from "react-icons/io5";
+// import { IoCheckmarkCircleOutline } from "react-icons/io5";
 
 const Hero = () => {
   useEffect(() => {
@@ -96,7 +95,7 @@ const Hero = () => {
                 </button>
               </div>
               <span className="text-[13px] flex gap-1">
-                <IoCheckmarkCircleOutline className="text-sm  w-5 h-5 rounded-full" />
+                {/* <IoCheckmarkCircleOutline className="text-sm  w-5 h-5 rounded-full" /> */}
                 Trusted by 2,000+ locals • 300+ vendors onboarded
               </span>
             </>

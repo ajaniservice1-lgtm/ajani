@@ -95,7 +95,7 @@ const TruncatedText = ({ text, maxLines = 4 }) => {
   }
 
   return (
-    <div className="relative">
+    <div className="relative ">
       <p
         className={`text-slate-700 text-sm mb-3 ${
           isExpanded ? "" : "line-clamp-4"
@@ -229,7 +229,7 @@ const Directory = () => {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-5 py-12 font-rubik">
+      <div className="max-w-7xl mx-auto px-5 py-12 font-rubik ">
         <div className="text-center text-red-500">{error}</div>
       </div>
     );

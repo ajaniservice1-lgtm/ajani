@@ -120,7 +120,7 @@ const Header = () => {
       <div className="fixed inset-0 z-50 pointer-events-none md:hidden">
         {/* Overlay */}
         <div
-          className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${
+          className={`fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
             isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0"
           }`}
           onClick={closeMenu}
@@ -129,13 +129,13 @@ const Header = () => {
 
         {/* Sliding Panel */}
         <div
-          className={`fixed left-0 top-0 w-full h-screen bg-[#f2f9ff] flex flex-col transform transition-transform duration-300 ease-in-out z-50 ${
+          className={`fixed left-0 top-0 w-90 h-screen bg-[#e6f2ff] flex flex-col transform transition-transform duration-300 ease-in-out z-50 ${
             isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="p-5 border-b border-gray-200 flex justify-between items-center">
+          <div className="p-5 border-b border-gray-200 flex justify-between items-center bg-[#f2f9ff] rounded-full shadow-md px-6 py-3 mt-1.5">
             <button
               onClick={closeMenu}
               className="flex flex-col items-start focus:outline-none"

@@ -2,20 +2,23 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faStore } from "@fortawesome/free-solid-svg-icons";
 
-// ✅ Hardcoded fallback images by ID and category
+// ✅ Helper: Capitalize first letter
+const capitalizeFirst = (str) => {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+// ✅ Hardcoded fallback images by ID and category (whitespace cleaned)
 const FALLBACK_IMAGES = {
-  // By ID (match your sheet's 'id' column)
   1: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
   2: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
   3: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-  // By category
   "hotel-default":
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
   "transport-default":
     "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=80",
   "event-default":
     "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&q=80",
-  // Add more as needed
 };
 
 // ✅ Custom Hook: Fetch Data from Google Sheets API
@@ -38,7 +41,6 @@ const useGoogleSheet = (sheetId, apiKey) => {
           const formatted = rows.map((row) => {
             const obj = {};
             headers.forEach((header, index) => {
-              // Use the exact header name from your sheet, including spaces
               obj[header] = row[index] || "";
             });
             return obj;
@@ -63,19 +65,15 @@ const useGoogleSheet = (sheetId, apiKey) => {
 
 // ✅ Image resolver with fallback logic
 const getFallbackImage = (item) => {
-  // 1. Try image from sheet (trim and validate)
-  // IMPORTANT: Use the exact header name "image url" here
   const sheetImage = (item["image url"] || "").trim();
   if (sheetImage && sheetImage.startsWith("http")) {
     return sheetImage;
   }
 
-  // 2. Try by ID
   if (item.id && FALLBACK_IMAGES[item.id]) {
     return FALLBACK_IMAGES[item.id];
   }
 
-  // 3. Try by category
   if (item.category) {
     if (item.category.includes("hotel"))
       return FALLBACK_IMAGES["hotel-default"];
@@ -85,20 +83,17 @@ const getFallbackImage = (item) => {
       return FALLBACK_IMAGES["event-default"];
   }
 
-  // 4. Final fallback
   return "https://via.placeholder.com/300x200?text=No+Image";
 };
 
-// ✅ Reusable component for truncating text with a "See More" button
+// ✅ Reusable component for truncating text
 const TruncatedText = ({ text, maxLines = 4 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // If the text is short, just display it without any truncation
   if (!text || text.length < 200) {
     return <p className="text-slate-700 text-sm mb-3">{text}</p>;
   }
 
-  // For longer text, use CSS for initial truncation and JS for toggle
   return (
     <div className="relative">
       <p
@@ -143,48 +138,50 @@ const Directory = () => {
 
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
-  const [mainCategory, setMainCategory] = useState(""); // New state
-  const [subCategory, setSubCategory] = useState(""); // New state
+  const [mainCategory, setMainCategory] = useState("");
+  const [subCategory, setSubCategory] = useState("");
   const [area, setArea] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
 
-  // Get unique areas
+  // Unique areas
   const areas = [
     ...new Set(listings.map((item) => item.area).filter(Boolean)),
   ].sort();
 
-  // Extract Main Categories and Subcategories
+  // Extract and capitalize main categories
   const mainCategories = [
     ...new Set(
       listings
         .map((item) => {
           const parts = item.category?.split(".") || [];
-          return parts[0] || item.category; // If no dot, use full category as main
+          return capitalizeFirst(parts[0]) || capitalizeFirst(item.category);
         })
         .filter(Boolean)
     ),
   ].sort();
 
-  // Get subcategories based on selected main category
+  // Extract and capitalize subcategories based on selected main category
   const subCategories = mainCategory
     ? [
         ...new Set(
           listings
             .filter((item) => {
               const parts = item.category?.split(".") || [];
-              return parts[0] === mainCategory;
+              return capitalizeFirst(parts[0]) === mainCategory;
             })
             .map((item) => {
               const parts = item.category?.split(".") || [];
-              return parts[1] || item.category; // If no dot, use full category as sub
+              return (
+                capitalizeFirst(parts[1]) || capitalizeFirst(item.category)
+              );
             })
             .filter(Boolean)
         ),
       ]
     : [];
 
-  // Filter and paginate
+  // Filter logic with capitalized comparison
   useEffect(() => {
     let result = listings.filter((item) => {
       const matchesSearch =
@@ -192,14 +189,19 @@ const Directory = () => {
         (item.short_desc &&
           item.short_desc.toLowerCase().includes(search.toLowerCase())) ||
         (item.tags && item.tags.toLowerCase().includes(search.toLowerCase()));
-      const matchesMainCat = mainCategory
-        ? item.category?.startsWith(mainCategory)
-        : true;
-      const matchesSubCat = subCategory
-        ? item.category?.includes(`.${subCategory}`) ||
-          (item.category === subCategory && !item.category.includes("."))
-        : true;
+
+      const itemCatParts = item.category?.split(".") || [];
+      const itemMainCat =
+        capitalizeFirst(itemCatParts[0]) || capitalizeFirst(item.category);
+      const itemSubCat =
+        itemCatParts.length > 1
+          ? capitalizeFirst(itemCatParts[1])
+          : itemMainCat;
+
+      const matchesMainCat = mainCategory ? itemMainCat === mainCategory : true;
+      const matchesSubCat = subCategory ? itemSubCat === subCategory : true;
       const matchesArea = area ? item.area === area : true;
+
       return matchesSearch && matchesMainCat && matchesSubCat && matchesArea;
     });
 
@@ -267,7 +269,7 @@ const Directory = () => {
               value={mainCategory}
               onChange={(e) => {
                 setMainCategory(e.target.value);
-                setSubCategory(""); // Reset subcategory when main changes
+                setSubCategory("");
               }}
               className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -289,7 +291,7 @@ const Directory = () => {
               value={subCategory}
               onChange={(e) => setSubCategory(e.target.value)}
               className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={!mainCategory} // Disable if no main category is selected
+              disabled={!mainCategory}
             >
               <option value="">All subcategories</option>
               {subCategories.map((cat) => (

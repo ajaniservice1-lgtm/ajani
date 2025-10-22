@@ -13,7 +13,7 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="bg-[#f8f9fa] py-10 md:py-20 lg:py-16 font-rubik"
+      className="bg-[#e6f2ff] py-10 md:py-20 lg:py-16 font-rubik"
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -24,7 +24,7 @@ const Hero = () => {
             </h1>
 
             {/* Subtitle */}
-            <p className="text-sm md:text-lg lg:text-[17px] leading-relaxed text-slate-600 mb-6">
+            <p className="text-sm md:text-lg lg:text-[16px] leading-relaxed text-slate-600 mb-6">
               Real time price insights, a verified vendor directory, and an easy
               way for businesses to get discovered
             </p>

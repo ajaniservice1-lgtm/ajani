@@ -160,11 +160,11 @@ const FeaturedBanner = () => {
   ];
 
   return (
-    <section className="py-16 bg-gray-900 text-white font-rubik">
+    <section className="py-16 bg-gray-900  shadow-xl p-6   text-white font-rubik my-5">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-left mb-8">
           <h2 className="text-2xl font-bold mb-2">Featured Businesses</h2>
-          <p className="text-gray-300 lg:text-xl text-sm">
+          <p className="text-gray-300 lg:text-[17px] text-sm">
             Discover these sponsored listings from local businesses
           </p>
         </div>

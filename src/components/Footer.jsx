@@ -65,14 +65,14 @@ const Footer = () => {
               </Link>
             </div>
 
-            <a
+            {/* <a
               href="https://wa.me/2348123456789?text=Hi%20Ajani%20👋"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition"
             >
               <i className="fab fa-whatsapp"></i> Chat with Ajani
-            </a>
+            </a> */}
           </div>
         </div>
 

@@ -1,4 +1,3 @@
-// src/components/PriceInsights.jsx
 import React, { useState, useEffect } from "react";
 
 const PriceInsights = () => {
@@ -6,27 +5,42 @@ const PriceInsights = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Replace with your actual GAS URL
-  const GAS_URL =
-    "https://script.google.com/macros/s/AKfycbzfPOJl8EQl4bRWC-hW-whFrpPkzGPEPqoRnEChzxRwocUlpiY33U8iCTlWVIde0Gm5/exec";
+  // 🔑 Replace these with your actual values
+  const SHEET_ID = "1DS_FhKW-95K_UmBhSKOOLpFi6UVXAzj8IpBgFVmABiQ"; // ← your sheet ID
+  const API_KEY = "AIzaSyCELfgRKcAaUeLnInsvenpXJRi2kSSwS3E";
+  const RANGE = "Sheet1!A1:F10"; // ← adjust if your sheet has a different name or more rows
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(GAS_URL);
-        if (!response.ok) throw new Error("Network response was not ok");
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
         const result = await response.json();
 
-        if (Array.isArray(result)) {
-          setData(result);
-        } else if (result.error) {
-          throw new Error(result.error);
-        } else {
-          setData([]);
+        if (!result.values || result.values.length === 0) {
+          throw new Error("No data found in the sheet.");
         }
+
+        const [headers, ...rows] = result.values;
+
+        // Convert rows to array of objects
+        const formattedData = rows.map((row) => {
+          const obj = {};
+          headers.forEach((header, index) => {
+            obj[header] = row[index] !== undefined ? row[index] : "";
+          });
+          return obj;
+        });
+
+        setData(formattedData);
       } catch (err) {
-        console.error("GAS Fetch error:", err);
+        console.error("Sheets API error:", err);
         setError("Failed to load price data.");
         setData([]);
       } finally {
@@ -37,9 +51,11 @@ const PriceInsights = () => {
     fetchData();
   }, []);
 
+  // Your existing formatPrice function
   const formatPrice = (n) => {
     if (n == null || n === "") return "–";
-    const num = parseInt(n);
+    const num = parseInt(n, 10);
+    if (isNaN(num)) return "–";
     if (num >= 1000) {
       const k = Math.floor(num / 1000);
       const remainder = num % 1000;
@@ -48,6 +64,7 @@ const PriceInsights = () => {
     return num.toLocaleString();
   };
 
+  // Loading & error UI (same as before)
   if (loading) {
     return (
       <div className="p-6 bg-white rounded-lg shadow-md">
@@ -68,7 +85,6 @@ const PriceInsights = () => {
   return (
     <div className="p-6 bg-white rounded-lg shadow-md font-rubik">
       <h3 className="text-lg font-bold mb-4">Real-time price insights</h3>
-
       <div className="space-y-3">
         {data.map((item, index) => (
           <div
@@ -82,7 +98,6 @@ const PriceInsights = () => {
           </div>
         ))}
       </div>
-
       <div className="mt-4 text-xs text-gray-500">
         Updated weekly • Data from Ajani field reps & verified vendors
       </div>

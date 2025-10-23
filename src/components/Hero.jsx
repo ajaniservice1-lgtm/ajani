@@ -56,7 +56,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#f2f9ff]  mx-8 hover:bg-slate-300 hover:text-slate-900 text-slate-900 px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[#172c69]  mx-8 hover:bg-slate-300 hover:text-slate-400 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <i className="fas fa-search mr-2"></i> Browse Directory
                 </button>
@@ -73,7 +73,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#15a3bc]  mx-8 lg:mx-auto hover:bg-[#086676] text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[#172c69]  mx-8 lg:mx-auto hover:bg-[#086676] text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <FontAwesomeIcon icon={faChartLine} />
                   See Price Insights
@@ -89,7 +89,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#f2f9ff]  mx-8 hover:bg-slate-300 hover:text-slate-900 text-slate-900 px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[#172c69]  mx-8 hover:bg-slate-300 hover:text-slate-400 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <FontAwesomeIcon icon={faCheck} />
                   List Your Business

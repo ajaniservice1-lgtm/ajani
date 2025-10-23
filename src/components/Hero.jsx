@@ -1,6 +1,7 @@
 // src/components/Hero.jsx
 import React, { useEffect } from "react";
 import Logos from "../assets/Logos/images.jpg";
+import PriceInsights from "./PriceInsights";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { faChartLine } from "@fortawesome/free-solid-svg-icons";
@@ -101,13 +102,7 @@ const Hero = () => {
             </>
           </div>
           {/* Right Side: Image */}
-          <div className="hidden lg:block">
-            <img
-              src={Logos}
-              alt="Ajani - Your Ibadan Guide"
-              className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-md"
-            />
-          </div>
+          <PriceInsights />
         </div>
       </div>
     </section>

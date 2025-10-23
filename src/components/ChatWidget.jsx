@@ -58,7 +58,7 @@ const ChatWidget = () => {
       {!isOpen && (
         <button
           onClick={toggleChat}
-          className="bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg flex items-center gap-2"
+          className="bg-[#172c69] hover:bg-green-600 text-white p-4 rounded-full shadow-lg flex items-center gap-2"
         >
           💬 Ask Ajani
         </button>

@@ -53,8 +53,8 @@ const Header = () => {
                 <div className="flex items-center gap-2">
                   <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
                   {/* Vertical Divider */}
-                  <div className="w-px h-6 bg-gray-300 mx-2"></div>
-                  <span className="md:text-sm text-[12.5px] text-slate-600 duration-300 hover:text-gray-900">
+                  <div className="w-px h-6 bg-gray-300 mx-0"></div>
+                  <span className="md:text-sm text-[11.5px] text-slate-600 duration-300 hover:text-gray-900">
                     The Ibadan Smart Guide
                   </span>
                 </div>
@@ -64,6 +64,7 @@ const Header = () => {
             {/* Center: Navigation Links */}
             <div className="hidden md:flex items-center gap-6 text-gray-900 font-medium">
               {[
+                { label: "Blogs", id: "priceinsight" },
                 { label: "Price Insights", id: "priceinsight" },
                 { label: "Top Picks", id: "toppicks" },
                 { label: "Directory", id: "directory" },
@@ -175,6 +176,7 @@ const Header = () => {
           {/* Navigation Links */}
           <nav className="flex-1 p-5 space-y-4 font-rubik">
             {[
+              { label: "Blogs", id: "priceinsight" },
               { label: "Price Insights", id: "priceinsight" },
               { label: "Top Picks", id: "toppicks" },
               { label: "Directory", id: "directory" },

@@ -92,7 +92,7 @@ const PriceInsights = () => {
             className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
           >
             <span className="font-medium">{item.item}</span>
-            <span className="font-bold text-[#15a3bc] ">
+            <span className="font-bold text-[#172c69] ">
               ₦{formatPrice(item.min_price)} – {formatPrice(item.max_price)}
             </span>
           </div>

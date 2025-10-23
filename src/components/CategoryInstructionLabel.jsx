@@ -15,7 +15,7 @@ const CategoryInstructionLabel = ({ selectedCategory, isDarkMode }) => {
     <div
       className={`mb-6 p-4 rounded-lg border-l-4 ${
         isDarkMode
-          ? "bg-gray-800 border-l-blue-500 text-blue-200"
+          ? "bg-gray-800 border-l-blue-500 text-[#172c69]"
           : "bg-blue-50 border-l-blue-500 text-blue-800"
       } transition-all duration-500 ease-in-out animate-fadeInUp`}
       style={{

@@ -7,10 +7,12 @@ import Directory from "../components/Directory";
 import VendorForm from "../components/VendorForm";
 import FAQ from "../components/FAQ";
 import Footer from "../components/Footer";
+import ChatWidget from "../components/ChatWidget";
 
 export default function HomePage() {
   return (
     <section className="">
+      <ChatWidget />
       <Header />
       <Hero />
       <PriceInsightsDashboard />

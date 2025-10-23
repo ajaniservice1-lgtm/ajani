@@ -2,6 +2,7 @@
 import React, { lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+
 // ✅ Import TrackingWrapper
 import TrackingWrapper from "./components/TrackingWrapper";
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -16,6 +17,7 @@ function App() {
         {/* ✅ Wrap Routes with TrackingWrapper */}
         <TrackingWrapper>
           <Routes>
+
             <Route path="/" element={<HomePage />} />
             <Route path="/privacypage" element={<PrivacyPage />} />
             <Route path="/termspage" element={<TermsPage />} />

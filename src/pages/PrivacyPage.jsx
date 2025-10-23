@@ -213,10 +213,10 @@ const PrivacyPage = () => {
               <p className="text-gray-700 mt-3">
                 To exercise these rights, please contact us at{" "}
                 <a
-                  href="mailto:ajaniservice1@gmail.com"
+                  href="mailto:info@ajani.com"
                   className="text-blue-600 hover:underline"
                 >
-                  ajaniservice1@gmail.com
+                  info@ajani.com
                 </a>
                 .
               </p>
@@ -253,19 +253,19 @@ const PrivacyPage = () => {
                 <p className="text-gray-700">
                   Email:{" "}
                   <a
-                    href="mailto:ajaniservice1@gmail.com"
+                    href="mailto:info@ajani.com"
                     className="text-blue-600 hover:underline"
                   >
-                    ajaniservice1@gmail.com
+                    info@ajani.com
                   </a>
                 </p>
                 <p className="text-gray-700">
                   Phone:{" "}
                   <a
-                    href="tel:+2347077750648"
+                    href="tel:+08022662256"
                     className="text-blue-600 hover:underline"
                   >
-                    07077750648
+                    08022662256
                   </a>
                 </p>
                 <p className="text-gray-700">

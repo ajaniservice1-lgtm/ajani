@@ -135,7 +135,7 @@ const AiTopPicks = () => {
   }
 
   return (
-    <section id="toppicks" className="bg-slate-100 py-16 font-rubik">
+    <section id="toppicks" className="bg-[#eef8fd] py-16 font-rubik">
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-2">Ajani's Top Picks for You</h2>

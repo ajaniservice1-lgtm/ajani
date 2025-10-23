@@ -311,7 +311,7 @@ const Dashboard = () => {
     return (
       <div
         className={`min-h-screen flex items-center justify-center ${
-          isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
+          isDarkMode ? "bg-gray-900 text-white" : "bg-[#eef8fd] text-gray-900"
         }`}
       >
         <div className="text-center">
@@ -331,7 +331,7 @@ const Dashboard = () => {
     <section
       id="priceinsight"
       className={`min-h-screen transition-colors duration-300 ${
-        isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
+        isDarkMode ? "bg-gray-900 text-white" : "bg-[#eef8fd] text-gray-900"
       }`}
     >
       <div

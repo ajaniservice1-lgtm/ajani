@@ -15,7 +15,7 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="bg-[#e6f2ff] py-10 md:py-20 lg:py-16 font-rubik "
+      className="bg-[#eef8fd] py-10 md:py-20 lg:py-16 font-rubik "
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -56,7 +56,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#172c69]  mx-8 hover:bg-slate-300 hover:text-slate-400 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[#172c69] duration-300 mx-8 hover:bg-[#19243b] hover:text-white text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <i className="fas fa-search mr-2"></i> Browse Directory
                 </button>
@@ -73,7 +73,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#172c69]  mx-8 lg:mx-auto hover:bg-[#086676] text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[#172c69] duration-300  mx-8 lg:mx-auto hover:bg-[#19243b] text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <FontAwesomeIcon icon={faChartLine} />
                   See Price Insights
@@ -89,7 +89,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#172c69]  mx-8 hover:bg-slate-300 hover:text-slate-400 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[#172c69] duration-300 mx-8 hover:bg-[#19243b] hover:text-slate-400 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <FontAwesomeIcon icon={faCheck} />
                   List Your Business

@@ -33,10 +33,10 @@ const Header = () => {
   return (
     <>
       {/* Fixed Header - Light Blue Background */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#e6f2ff] font-rubik">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#f2f9ff] font-rubik">
         <div className="max-w-7xl mx-auto px-4 py-2">
           {/* Nav Container - White rounded with shadow */}
-          <nav className="flex items-center justify-between bg-[#f2f9ff] rounded-full shadow-md px-6 py-3">
+          <nav className="flex items-center justify-between bg-[#e6f2ff]  rounded-full shadow-md px-6 py-3">
             {/* Left: Logo + Tagline */}
             <div className="flex items-center gap-4">
               <button
@@ -54,7 +54,7 @@ const Header = () => {
                   <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
                   {/* Vertical Divider */}
                   <div className="w-px h-6 bg-gray-300 mx-0"></div>
-                  <span className="md:text-sm text-[11.5px] text-slate-600 duration-300 hover:text-gray-900">
+                  <span className="md:text-sm text-[11.5px] text-[#101828] duration-300 hover:text-gray-900">
                     The Ibadan Smart Guide
                   </span>
                 </div>
@@ -62,7 +62,7 @@ const Header = () => {
             </div>
 
             {/* Center: Navigation Links */}
-            <div className="hidden md:flex items-center gap-6 text-gray-900 font-medium">
+            <div className="hidden md:flex items-center gap-6 text-[#101828] font-medium">
               {[
                 { label: "Blogs", id: "priceinsight" },
                 { label: "Price Insights", id: "priceinsight" },

@@ -236,219 +236,223 @@ const Directory = () => {
   }
 
   return (
-    <section id="directory" className="max-w-7xl mx-auto px-5 py-12 font-rubik">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          <h2 className="text-3xl font-bold">Full Business Directory</h2>
-          <p className="text-slate-600">
-            Browse all verified businesses in Ibadan
-          </p>
-        </div>
-        <div className="relative w-full md:w-80">
-          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input
-            type="text"
-            placeholder="Search businesses or items..."
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {/* Main Category */}
+    <section id="directory" className="bg-[#eef8fd]">
+      <div className="max-w-7xl mx-auto px-5 py-12 font-rubik">
+        <div className="flex  flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Main Category
-            </label>
-            <select
-              value={mainCategory}
-              onChange={(e) => {
-                setMainCategory(e.target.value);
-                setSubCategory("");
-              }}
-              className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All main categories</option>
-              {mainCategories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+            <h2 className="text-3xl font-bold">Full Business Directory</h2>
+            <p className="text-slate-600">
+              Browse all verified businesses in Ibadan
+            </p>
           </div>
-
-          {/* Subcategory */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Subcategory
-            </label>
-            <select
-              value={subCategory}
-              onChange={(e) => setSubCategory(e.target.value)}
-              className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={!mainCategory}
-            >
-              <option value="">All subcategories</option>
-              {subCategories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Area */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Area</label>
-            <select
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All areas</option>
-              {areas.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
+          <div className="relative w-full md:w-80">
+            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input
+              type="text"
+              placeholder="Search businesses or items..."
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </div>
 
-        {/* Results */}
-        {currentItems.length === 0 ? (
-          <div className="text-center py-12 border border-dashed border-slate-300 rounded-lg text-slate-500">
-            <i className="fas fa-search text-4xl mb-4 block text-slate-400"></i>
-            <h4 className="font-semibold mb-2">No results found</h4>
-            <p>Try adjusting your filters or search term</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-              {currentItems.map((item) => (
-                <div
-                  key={item.id || item.name}
-                  className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow hover:shadow-md hover:-translate-y-1 transition flex flex-col h-full"
-                >
-                  <img
-                    src={getFallbackImage(item)}
-                    alt={item.name || "Business"}
-                    className="w-full h-44 object-cover bg-slate-100"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/300x200?text=Image+Not+Available";
-                    }}
-                  />
-                  <div className="p-4 flex flex-col flex-grow">
-                    <h3 className="font-bold text-lg mb-1">{item.name}</h3>
-                    <div className="text-sm text-slate-600 mb-2">
-                      <span>{item.area}</span> • <span>{item.category}</span>
-                    </div>
-                    <TruncatedText text={item.short_desc} maxLines={4} />
-                    <div className="font-bold mb-2">
-                      From ₦{formatPrice(item.price_from)}
-                    </div>
-                    {item.rating && (
-                      <div className="text-yellow-500 text-sm mb-2">
-                        ⭐ {item.rating}
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {(item.tags ? item.tags.split(",") : []).map((tag, i) => {
-                        const [name, price] = tag.trim().split(":");
-                        return price ? (
-                          <span
-                            key={i}
-                            className="bg-[#E6F2FF] text-blue-700 px-3 py-1 rounded-lg text-sm font-medium"
-                          >
-                            {name} ₦{parseInt(price).toLocaleString()}
-                          </span>
-                        ) : (
-                          <span
-                            key={i}
-                            className="bg-gray-100 text-[#003366] px-3 py-1 rounded-lg text-sm"
-                          >
-                            {name}
-                          </span>
-                        );
-                      })}
-                    </div>
-
-                    <div className="mt-auto flex gap-2">
-                      <a
-                        href={`https://wa.me/${(item.whatsapp || "").replace(
-                          /\D/g,
-                          ""
-                        )}?text=${encodeURIComponent(
-                          "Tell me more about " + item.name
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center"
-                      >
-                        <FontAwesomeIcon icon={faComment} /> Ask Ajani
-                      </a>
-                      <a
-                        href="#vendors"
-                        className="flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-800 px-3 py-2 rounded text-sm font-medium justify-center"
-                      >
-                        <FontAwesomeIcon icon={faStore} />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              ))}
+        {/* Filters */}
+        <div className="bg-white p-6 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Main Category */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Main Category
+              </label>
+              <select
+                value={mainCategory}
+                onChange={(e) => {
+                  setMainCategory(e.target.value);
+                  setSubCategory("");
+                }}
+                className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All main categories</option>
+                {mainCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-8">
-                {currentPage > 1 && (
-                  <button
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    className="px-4 py-2 mx-1 rounded bg-slate-200 text-slate-800 hover:bg-slate-300"
+            {/* Subcategory */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Subcategory
+              </label>
+              <select
+                value={subCategory}
+                onChange={(e) => setSubCategory(e.target.value)}
+                className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!mainCategory}
+              >
+                <option value="">All subcategories</option>
+                {subCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Area */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Area</label>
+              <select
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All areas</option>
+                {areas.map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Results */}
+          {currentItems.length === 0 ? (
+            <div className="text-center py-12 border border-dashed border-slate-300 rounded-lg text-slate-500">
+              <i className="fas fa-search text-4xl mb-4 block text-slate-400"></i>
+              <h4 className="font-semibold mb-2">No results found</h4>
+              <p>Try adjusting your filters or search term</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                {currentItems.map((item) => (
+                  <div
+                    key={item.id || item.name}
+                    className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow hover:shadow-md hover:-translate-y-1 transition flex flex-col h-full"
                   >
-                    Prev
-                  </button>
-                )}
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .slice(
-                    Math.max(0, currentPage - 1),
-                    Math.min(totalPages, currentPage + 2)
-                  )
-                  .map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-4 py-2 mx-1 rounded ${
-                        currentPage === page
-                          ? "bg-blue-600 text-white"
-                          : "bg-slate-200 text-slate-800 hover:bg-slate-300"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                {currentPage < totalPages && (
-                  <button
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    className="px-4 py-2 mx-1 rounded bg-slate-200 text-slate-800 hover:bg-slate-300"
-                  >
-                    Next
-                  </button>
-                )}
+                    <img
+                      src={getFallbackImage(item)}
+                      alt={item.name || "Business"}
+                      className="w-full h-44 object-cover bg-slate-100"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://via.placeholder.com/300x200?text=Image+Not+Available";
+                      }}
+                    />
+                    <div className="p-4 flex flex-col flex-grow">
+                      <h3 className="font-bold text-lg mb-1">{item.name}</h3>
+                      <div className="text-sm text-slate-600 mb-2">
+                        <span>{item.area}</span> • <span>{item.category}</span>
+                      </div>
+                      <TruncatedText text={item.short_desc} maxLines={4} />
+                      <div className="font-bold mb-2">
+                        From ₦{formatPrice(item.price_from)}
+                      </div>
+                      {item.rating && (
+                        <div className="text-yellow-500 text-sm mb-2">
+                          ⭐ {item.rating}
+                        </div>
+                      )}
+
+                      {/* Tags */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {(item.tags ? item.tags.split(",") : []).map(
+                          (tag, i) => {
+                            const [name, price] = tag.trim().split(":");
+                            return price ? (
+                              <span
+                                key={i}
+                                className="bg-[#E6F2FF] text-blue-700 px-3 py-1 rounded-lg text-sm font-medium"
+                              >
+                                {name} ₦{parseInt(price).toLocaleString()}
+                              </span>
+                            ) : (
+                              <span
+                                key={i}
+                                className="bg-gray-100 text-[#003366] px-3 py-1 rounded-lg text-sm"
+                              >
+                                {name}
+                              </span>
+                            );
+                          }
+                        )}
+                      </div>
+
+                      <div className="mt-auto flex gap-2">
+                        <a
+                          href={`https://wa.me/${(item.whatsapp || "").replace(
+                            /\D/g,
+                            ""
+                          )}?text=${encodeURIComponent(
+                            "Tell me more about " + item.name
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 bg-[#172c69] hover:bg-[#19243b] duration-300 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center"
+                        >
+                          <FontAwesomeIcon icon={faComment} /> Ask Ajani
+                        </a>
+                        <a
+                          href="#vendors"
+                          className="flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-800 px-3 py-2 rounded text-sm font-medium justify-center"
+                        >
+                          <FontAwesomeIcon icon={faStore} />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </>
-        )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-8">
+                  {currentPage > 1 && (
+                    <button
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      className="px-4 py-2 mx-1 rounded bg-[#172c69] hover:bg-[#19243b] duration-300 text-slate-100 "
+                    >
+                      Prev
+                    </button>
+                  )}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .slice(
+                      Math.max(0, currentPage - 1),
+                      Math.min(totalPages, currentPage + 2)
+                    )
+                    .map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 mx-1 rounded ${
+                          currentPage === page
+                            ? "bg-[#172c69] hover:bg-[#19243b] duration-300 text-white"
+                            : "bg-slate-200 text-slate-800 hover:bg-slate-300"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  {currentPage < totalPages && (
+                    <button
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      className="px-4 py-2 mx-1 rounded bg-[#172c69] hover:bg-[#19243b] duration-300 text-white"
+                    >
+                      Next
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
+      {/* Header */}
     </section>
   );
 };

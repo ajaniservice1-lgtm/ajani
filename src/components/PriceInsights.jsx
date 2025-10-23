@@ -27,7 +27,7 @@ const PriceInsights = () => {
         }
       } catch (err) {
         console.error("GAS Fetch error:", err);
-        setError("Failed to load price data. Check console for details.");
+        setError("Failed to load price data.");
         setData([]);
       } finally {
         setLoading(false);

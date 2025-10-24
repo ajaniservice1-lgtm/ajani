@@ -283,7 +283,7 @@ const VendorForm = () => {
                     value={selectedSubcategory}
                     onChange={handleSubcategoryChange}
                     onBlur={handleCategoryChange}
-                    className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400 mt-3" // 👈 Added mt-2 here
+                    className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400 mt-4" // 👈 Added mt-2 here
                     required
                   >
                     <option value="">Select subcategory</option>

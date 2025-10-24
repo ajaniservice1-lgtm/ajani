@@ -7,6 +7,8 @@ const useCountUp = (target, duration = 1000) => {
   const startTimeRef = useRef();
   const targetRef = useRef(target);
 
+  
+
   useEffect(() => {
     targetRef.current = target;
   }, [target]);
@@ -29,6 +31,8 @@ const useCountUp = (target, duration = 1000) => {
       setCount(targetRef.current);
     }
   };
+
+  
 
   useEffect(() => {
     if (target > 0) {
@@ -119,6 +123,8 @@ const PriceInsights = () => {
 
     fetchData();
   }, []);
+
+  
 
   if (loading) {
     return (

@@ -68,7 +68,7 @@ const Header = () => {
                 blogpage
               </Link>
               {[
-                { label: "Price Insights", id: "priceinsight" },
+                { label: "Price Insights", id: "priceinsightss" },
                 { label: "Top Picks", id: "toppicks" },
                 { label: "Directory", id: "directory" },
                 { label: "For Businesses", id: "vendors" },
@@ -178,9 +178,11 @@ const Header = () => {
 
           {/* Navigation Links */}
           <nav className="flex-1 p-5 space-y-4 font-rubik">
+            <Link to="/blogpage" className="hover:text-blue-400 duration-300">
+              blogpage
+            </Link>
             {[
-              { label: "Blogs", id: "priceinsight" },
-              { label: "Price Insights", id: "priceinsight" },
+              { label: "Price Insights", id: "priceinsightss" },
               { label: "Top Picks", id: "toppicks" },
               { label: "Directory", id: "directory" },
               { label: "For Businesses", id: "vendors" },

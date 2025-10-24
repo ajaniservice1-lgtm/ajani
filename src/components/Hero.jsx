@@ -1,11 +1,11 @@
 // src/components/Hero.jsx
 import React, { useEffect } from "react";
-import Logos from "../assets/Logos/images.jpg";
+import CountUp from "react-countup";
 import PriceInsights from "./PriceInsights";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { faChartLine } from "@fortawesome/free-solid-svg-icons";
-// import { IoCheckmarkCircleOutline } from "react-icons/io5";
+import VisibilitySensor from "react-visibility-sensor";
 
 const Hero = () => {
   useEffect(() => {
@@ -21,12 +21,12 @@ const Hero = () => {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Side: Text Content */}
           <div className="flex flex-col justify-center space-y-6 text-center lg:text-left">
-            <h1 className="text-4xl md:text-4xl lg:text-5xl font-semibold mb-4 text-[#101828] leading-tight">
+            <h1 className="text-4xl md:text-4xl lg:text-5xl md:font-semibold font-extrabold mb-4 text-[#101828] leading-tight">
               Find the best of lbadan prices, places & trusted vendors.
             </h1>
 
             {/* Subtitle */}
-            <p className="text-sm md:text-lg lg:text-[16px] leading-relaxed text-slate-600 mb-6">
+            <p className="text-sm font-medium md:font-normal md:text-lg lg:text-[16px] leading-relaxed text-slate-600 mb-6">
               Real time price insights, a verified vendor directory, and an easy
               way for businesses to get discovered
             </p>
@@ -56,7 +56,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[rgb(0,6,90)] duration-300 mx-8 hover:bg-[rgb(15,19,71)] hover:text-white text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="hidden md:inline-flex items-center justify-center gap-2 bg-[rgb(0,6,90)] duration-300 mx-8 hover:bg-[rgb(15,19,71)] hover:text-white text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <i className="fas fa-search mr-2"></i> Browse Directory
                 </button>
@@ -89,15 +89,15 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[rgb(0,6,90)] duration-300 mx-8 hover:bg-[rgb(15,19,71)] hover:text-slate-100 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="hidden md:flex items-center justify-center gap-2 bg-[rgb(0,6,90)] duration-300 mx-8 hover:bg-[rgb(15,19,71)] hover:text-slate-100 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <FontAwesomeIcon icon={faCheck} />
                   List Your Business
                 </button>
               </div>
-              <span className="text-[13px] flex gap-1">
-                {/* <IoCheckmarkCircleOutline className="text-sm  w-5 h-5 rounded-full" /> */}
-                Trusted by 2,000+ locals • 300+ vendors onboarded
+              <span className="text-[13px] flex gap-1 font-medium md:font-normal text-slate-600">
+                Trusted by <CountUp end={2000} duration={2} separator="," />+
+                locals • <CountUp end={300} duration={2} />+ vendors onboarded
               </span>
             </>
           </div>

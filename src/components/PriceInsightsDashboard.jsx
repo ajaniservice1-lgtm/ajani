@@ -1,5 +1,5 @@
 // import CategoryDropdown from "./CategoryDropdown";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import NoDataMessage from "./NoDataMessage";
 import { LabelList } from "recharts";
 import {
@@ -99,10 +99,111 @@ const useDarkMode = () => {
   return { isDarkMode, toggleDarkMode };
 };
 
+// ✅ Custom Hook: Count Up Animation
+const useCountUp = (target, duration = 1000) => {
+  const [count, setCount] = useState(0);
+  const requestRef = useRef();
+  const startTimeRef = useRef();
+  const targetRef = useRef(target);
+
+  useEffect(() => {
+    targetRef.current = target;
+  }, [target]);
+
+  const animate = (time) => {
+    if (startTimeRef.current === undefined) {
+      startTimeRef.current = time;
+    }
+    const elapsed = time - startTimeRef.current;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeOut = 1 - Math.pow(1 - progress, 2);
+    const current = Math.floor(easeOut * targetRef.current);
+    setCount(current);
+    if (progress < 1) {
+      requestRef.current = requestAnimationFrame(animate);
+    } else {
+      setCount(targetRef.current);
+    }
+  };
+
+  useEffect(() => {
+    if (target > 0) {
+      requestRef.current = requestAnimationFrame(animate);
+      return () => cancelAnimationFrame(requestRef.current);
+    } else {
+      setCount(target);
+    }
+  }, [target, duration]);
+
+  return count;
+};
+
+// ✅ Custom Animated Label for BarChart
+const AnimatedBarLabel = ({ x, y, width, height, value, index }) => {
+  const animatedValue = useCountUp(value, 1200);
+
+  return (
+    <text
+      x={x + width / 2}
+      y={y - 10}
+      fill="#444"
+      fontSize="11px"
+      fontWeight="500"
+      textAnchor="middle"
+      dominantBaseline="middle"
+    >
+      {animatedValue >= 1000
+        ? `₦${(animatedValue / 1000).toFixed(0)}k`
+        : `₦${animatedValue}`}
+    </text>
+  );
+};
+
+// ✅ Child Component: Price Card (to safely use hooks)
+const PriceCard = ({
+  title,
+  value,
+  change,
+  icon,
+  color,
+  isPrice,
+  hideValue,
+  isDarkMode, // ✅ Now receiving isDarkMode as prop
+}) => {
+  const animatedValue = useCountUp(value, 1200);
+  const displayValue = hideValue
+    ? "—"
+    : isPrice
+    ? `₦${animatedValue.toLocaleString()}`
+    : animatedValue;
+
+  return (
+    <div
+      className={`p-4 rounded-lg shadow border ${
+        isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+      }`}
+    >
+      <h4
+        className={`text-xs md:text-sm font-medium ${
+          isDarkMode ? "text-blue-400" : "text-[#101828]"
+        }`}
+      >
+        {title}
+      </h4>
+      <div className="text-xl font-bold mt-1">{displayValue}</div>
+      <div className={`text-xs mt-1 flex items-center ${color}`}>
+        <FontAwesomeIcon icon={icon} className="mr-1" /> {change}
+      </div>
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = "AIzaSyCELfgRKcAaUeLnInsvenpXJRi2kSSwS3E";
 
+
+  
   const {
     data: vendors,
     loading: dataLoading,
@@ -536,16 +637,17 @@ const Dashboard = () => {
             {[
               {
                 title: "Price Index",
-                value: `₦${currentMonthAvg.toLocaleString()}`,
+                value: currentMonthAvg,
                 change: changeText,
                 icon: changePercent >= 0 ? faArrowUp : faArrowDown,
                 color: changePercent >= 0 ? "text-green-500" : "text-red-500",
+                isPrice: true,
               },
               {
                 title: "Most Affordable Area",
                 value: selectedCategory.startsWith("accommodation.")
-                  ? affordableArea.area
-                  : "—",
+                  ? affordableArea.price
+                  : 0,
                 change: selectedCategory.startsWith("accommodation.")
                   ? `${Math.round(
                       ((priceIndex - affordableArea.price) / priceIndex) * 100
@@ -555,38 +657,21 @@ const Dashboard = () => {
                 color: selectedCategory.startsWith("accommodation.")
                   ? "text-green-500"
                   : "text-gray-500",
+                isPrice: true,
+                hideValue: !selectedCategory.startsWith("accommodation."),
               },
               {
                 title: "Price Alert",
-                value: alertArea.area,
+                value: alertArea.price,
                 change: `${Math.round(
                   ((alertArea.price - priceIndex) / priceIndex) * 100
                 )}% increase`,
                 icon: faArrowUp,
                 color: "text-red-500",
+                isPrice: true,
               },
             ].map((card, i) => (
-              <div
-                key={i}
-                className={`p-4 rounded-lg shadow border ${
-                  isDarkMode
-                    ? "bg-gray-800 border-gray-700"
-                    : "bg-white border-gray-200"
-                }`}
-              >
-                <h4
-                  className={`text-xs md:text-sm font-medium ${
-                    isDarkMode ? "text-blue-400" : "text-[#101828]"
-                  }`}
-                >
-                  {card.title}
-                </h4>
-                <div className="text-xl font-bold mt-1">{card.value}</div>
-                <div className={`text-xs mt-1 flex items-center ${card.color}`}>
-                  <FontAwesomeIcon icon={card.icon} className="mr-1" />{" "}
-                  {card.change}
-                </div>
-              </div>
+              <PriceCard key={i} {...card} isDarkMode={isDarkMode} /> // ✅ Pass isDarkMode here
             ))}
           </div>
 
@@ -672,17 +757,7 @@ const Dashboard = () => {
                     >
                       <LabelList
                         dataKey="price"
-                        position="top"
-                        formatter={(value) => {
-                          if (value >= 1000)
-                            return `₦${(value / 1000).toFixed(0)}k`;
-                          return `₦${value}`;
-                        }}
-                        style={{
-                          fontSize: "11px",
-                          fill: isDarkMode ? "#e0e0e0" : "#444",
-                          fontWeight: "500",
-                        }}
+                        content={(props) => <AnimatedBarLabel {...props} />}
                       />
                     </Bar>
                   </BarChart>

@@ -208,7 +208,10 @@ const VendorForm = () => {
   };
 
   return (
-    <section id="vendors" className="py-16 bg-gray-900 text-white relative">
+    <section
+      id="vendors"
+      className="py-16 bg-[rgb(0,6,90)] text-white relative"
+    >
       {/* Toast Notification */}
       {toast.show && (
         <div
@@ -230,7 +233,7 @@ const VendorForm = () => {
           </p>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+        <div className="bg-[rgba(255,255,255,0.08)] p-6 rounded-lg  shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800">
           <p className="text-sm text-gray-400 mb-6">
             Fill this form — we’ll review and add you to our catalog within 24
             hours.
@@ -249,7 +252,7 @@ const VendorForm = () => {
                   value={formData.businessName}
                   onChange={handleChange}
                   placeholder="e.g., Amala Skye"
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                  className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                   required
                 />
               </div>
@@ -263,7 +266,7 @@ const VendorForm = () => {
                 <select
                   value={selectedMainCategory}
                   onChange={handleMainCategoryChange}
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white mb-2"
+                  className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                   required
                 >
                   <option value="">Select main category</option>
@@ -280,7 +283,7 @@ const VendorForm = () => {
                     value={selectedSubcategory}
                     onChange={handleSubcategoryChange}
                     onBlur={handleCategoryChange} // ensure formData.category is updated
-                    className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
+                    className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                     required
                   >
                     <option value="">Select subcategory</option>
@@ -308,7 +311,7 @@ const VendorForm = () => {
                   value={formData.area}
                   onChange={handleChange}
                   placeholder="e.g., Bodija"
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                  className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                   required
                 />
               </div>
@@ -323,7 +326,7 @@ const VendorForm = () => {
                   value={formData.startingPrice}
                   onChange={handleChange}
                   placeholder="1500"
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                  className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                   required
                 />
               </div>
@@ -338,7 +341,7 @@ const VendorForm = () => {
                   value={formData.whatsapp}
                   onChange={handleChange}
                   placeholder="+23480..."
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                  className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                   required
                 />
               </div>
@@ -355,7 +358,7 @@ const VendorForm = () => {
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="Street, area, Ibadan"
-                className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                 required
               />
             </div>
@@ -371,7 +374,7 @@ const VendorForm = () => {
                 onChange={handleChange}
                 placeholder="What makes your business great?"
                 rows={3}
-                className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                 required
               />
             </div>
@@ -474,7 +477,7 @@ const VendorForm = () => {
                       onChange={(e) =>
                         handleItemPriceChange(index, "itemName", e.target.value)
                       }
-                      className="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                      className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                     />
                     <div className="flex space-x-3">
                       <input
@@ -484,7 +487,7 @@ const VendorForm = () => {
                         onChange={(e) =>
                           handleItemPriceChange(index, "price", e.target.value)
                         }
-                        className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                        className="w-full p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
                       />
                       <button
                         type="button"
@@ -523,7 +526,9 @@ const VendorForm = () => {
 
               <button
                 type="submit"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                className="flex items-center gap-2 hover:bg-blue-700 font-semibold py-2 px-4 transition
+                
+                p-3 bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
               >
                 <i className="fab fa-telegram-plane"></i> Submit Listing
               </button>

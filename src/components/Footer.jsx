@@ -6,7 +6,7 @@ const Footer = () => {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-slate-700 text-slate-400 text-sm py-10 font-rubik bg-[#101828]">
+    <footer className="border-t border-slate-700 text-slate-200 text-sm py-10 font-rubik bg-[rgb(0,6,90)]">
       <div className="max-w-7xl mx-auto px-5">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">

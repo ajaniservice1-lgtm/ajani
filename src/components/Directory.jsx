@@ -393,7 +393,7 @@ const Directory = () => {
                           )}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 bg-[#172c69] hover:bg-[#19243b] duration-300 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center"
+                          className="flex items-center gap-1 hover:bg-[#19243b] duration-300 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center bg-blue-900 shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800  focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         >
                           <FontAwesomeIcon icon={faComment} /> Ask Ajani
                         </a>
@@ -431,7 +431,7 @@ const Directory = () => {
                         onClick={() => setCurrentPage(page)}
                         className={`px-4 py-2 mx-1 rounded ${
                           currentPage === page
-                            ? "bg-[#172c69] hover:bg-[#19243b] duration-300 text-white"
+                            ? "bg-[rgb(0,6,90)] hover:bg-[#0e265c] duration-300 text-white"
                             : "bg-slate-200 text-slate-800 hover:bg-slate-300"
                         }`}
                       >

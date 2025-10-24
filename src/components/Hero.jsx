@@ -56,7 +56,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#172c69] duration-300 mx-8 hover:bg-[#19243b] hover:text-white text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[rgb(0,6,90)] duration-300 mx-8 hover:bg-[rgb(15,19,71)] hover:text-white text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <i className="fas fa-search mr-2"></i> Browse Directory
                 </button>
@@ -73,7 +73,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#172c69] duration-300  mx-8 lg:mx-auto hover:bg-[#19243b] text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[rgb(0,6,90)] duration-300  mx-8 lg:mx-auto hover:bg-[rgb(15,19,71)] text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <FontAwesomeIcon icon={faChartLine} />
                   See Price Insights
@@ -89,7 +89,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="inline-flex items-center justify-center gap-2 bg-[#172c69] duration-300 mx-8 hover:bg-[#19243b] hover:text-slate-400 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="inline-flex items-center justify-center gap-2 bg-[rgb(0,6,90)] duration-300 mx-8 hover:bg-[rgb(15,19,71)] hover:text-slate-100 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <FontAwesomeIcon icon={faCheck} />
                   List Your Business

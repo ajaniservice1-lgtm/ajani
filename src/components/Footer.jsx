@@ -49,6 +49,15 @@ const Footer = () => {
               >
                 <i className="fas fa-envelope"></i>
               </a>
+              <a
+                href="https://www.tiktok.com/@ajanismartguide?lang=en-GB"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-500 hover:text-blue-400 transition-colors"
+                aria-label="Follow us on TikTok"
+              >
+                <i className="fab fa-tiktok"></i>
+              </a>
             </div>
           </div>
 

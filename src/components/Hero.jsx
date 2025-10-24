@@ -14,7 +14,7 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="bg-[#eef8fd] py-10 md:py-20 lg:py-16 font-rubik "
+      className="bg-[#eef8fd] py-8 md:py-20 lg:py-16 font-rubik "
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 items-center">

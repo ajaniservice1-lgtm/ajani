@@ -14,18 +14,18 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="bg-[#eef8fd] py-10 md:py-20 lg:py-16 font-rubik "
+      className="bg-[#eef8fd] py-16 md:py-20 lg:py-16 font-rubik "
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Side: Text Content */}
           <div className="flex flex-col justify-center space-y-6 text-center lg:text-left">
-            <h1 className="text-4xl md:text-4xl lg:text-5xl md:font-semibold font-extrabold mb-4 text-[#101828] leading-tight">
+            <h1 className="text-4xl md:text-4xl lg:text-5xl md:font-semibold font-bold mb-4 text-[#101828] leading-tight">
               Find the best of lbadan prices, places & trusted vendors.
             </h1>
 
             {/* Subtitle */}
-            <p className="text-sm font-medium md:font-normal md:text-lg lg:text-[16px] leading-relaxed text-slate-600 mb-6">
+            <p className="text-sm  font-medium md:font-normal md:text-lg lg:text-[16px] leading-relaxed text-slate-600 mb-6">
               Real time price insights, a verified vendor directory, and an easy
               way for businesses to get discovered
             </p>
@@ -94,7 +94,7 @@ const Hero = () => {
                   List Your Business
                 </button>
               </div>
-              <span className="text-[13px] flex gap-1 font-medium md:font-normal text-slate-600">
+              <span className="text-[13px] flex gap-1 font-medium md:font-normal text-slate-600 justify-center md:justify-start">
                 Trusted by <CountUp end={2000} duration={2} separator="," />+
                 locals • <CountUp end={300} duration={2} />+ vendors onboarded
               </span>

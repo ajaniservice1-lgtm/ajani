@@ -64,15 +64,10 @@ const Header = () => {
 
             {/* Center: Navigation Links */}
             <div className="hidden md:flex items-center gap-6 text-[#101828] text-sm">
-              <Link to="/blogpage" className="hover:text-blue-400 duration-300">
-                blogpage
-              </Link>
               {[
-                { label: "Price Insights", id: "priceinsightss" },
-                { label: "Top Picks", id: "toppicks" },
                 { label: "Directory", id: "directory" },
                 { label: "For Businesses", id: "vendors" },
-                { label: "FAQ", id: "faq" },
+                { label: "Top Picks", id: "toppicks" },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -182,11 +177,9 @@ const Header = () => {
               blogpage
             </Link>
             {[
-              { label: "Price Insights", id: "priceinsightss" },
               { label: "Top Picks", id: "toppicks" },
               { label: "Directory", id: "directory" },
               { label: "For Businesses", id: "vendors" },
-              { label: "FAQ", id: "faq" },
             ].map((item) => (
               <button
                 key={item.id}

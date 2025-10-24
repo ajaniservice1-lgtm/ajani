@@ -60,7 +60,7 @@ const FeaturedBanner = () => {
       description:
         "Experience the best of Ibadan cuisine this weekend at Agodi Gardens. 20+ vendors.",
       button: "Get Details",
-      bgColor: "bg-blue-50",
+      bgColor: "bg-gray-200",
       buttonColor: "bg-blue-600 hover:bg-blue-700",
       image:
         "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
@@ -114,7 +114,7 @@ const FeaturedBanner = () => {
       description:
         "Fresh produce, spices, and local delicacies. Open daily from 8AM to 6PM.",
       button: "Contact",
-      bgColor: "bg-blue-50",
+      bgColor: "bg-[#ffff]",
       buttonColor: "bg-blue-600 hover:bg-blue-700",
       image:
         "https://images.unsplash.com/photo-1694825588875-190db201a997?q=80&w=1630&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -160,7 +160,7 @@ const FeaturedBanner = () => {
   ];
 
   return (
-    <section className="py-16 bg-[rgb(0,6,90)]  shadow-xl p-6   text-white font-rubik my-5">
+    <section className="py-16 bg-gray-900  shadow-xl p-6   text-white font-rubik my-5">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-left mb-8">
           <h2 className="text-2xl font-bold mb-2">Featured Businesses</h2>

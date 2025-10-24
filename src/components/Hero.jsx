@@ -5,7 +5,6 @@ import PriceInsights from "./PriceInsights";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { faChartLine } from "@fortawesome/free-solid-svg-icons";
-import VisibilitySensor from "react-visibility-sensor";
 
 const Hero = () => {
   useEffect(() => {

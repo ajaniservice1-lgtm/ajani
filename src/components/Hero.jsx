@@ -14,7 +14,7 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="bg-[#eef8fd] py-16 md:py-20 lg:py-16 font-rubik "
+      className="bg-[#eef8fd] py-14 md:py-20 lg:py-16 font-rubik "
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -88,7 +88,7 @@ const Hero = () => {
                       });
                     }
                   }}
-                  className="hidden md:flex items-center justify-center gap-2 bg-[rgb(0,6,90)] duration-300 mx-8 hover:bg-[rgb(15,19,71)] hover:text-slate-100 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
+                  className="md:flex items-center justify-center gap-2 bg-[rgb(0,6,90)] duration-300 mx-8 hover:bg-[rgb(15,19,71)] hover:text-slate-100 text-white px-6 py-3 rounded-lg font-medium text-lg transition"
                 >
                   <FontAwesomeIcon icon={faCheck} />
                   List Your Business

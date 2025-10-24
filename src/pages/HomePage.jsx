@@ -1,6 +1,6 @@
 import Header from "../components/Header";
 import Hero from "../components/Hero";
-import Dashboard from "../components/PriceInsightsDashboard";
+import Dashboard from "../components/Dashboard";
 import AiTopPicks from "../components/AiTopPicks";
 import FeaturedBanner from "../components/FeaturedBanner";
 import Directory from "../components/Directory";

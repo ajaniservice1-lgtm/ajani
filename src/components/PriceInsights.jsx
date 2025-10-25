@@ -7,8 +7,6 @@ const useCountUp = (target, duration = 1000) => {
   const startTimeRef = useRef();
   const targetRef = useRef(target);
 
-  
-
   useEffect(() => {
     targetRef.current = target;
   }, [target]);
@@ -31,8 +29,6 @@ const useCountUp = (target, duration = 1000) => {
       setCount(targetRef.current);
     }
   };
-
-  
 
   useEffect(() => {
     if (target > 0) {
@@ -124,8 +120,6 @@ const PriceInsights = () => {
     fetchData();
   }, []);
 
-  
-
   if (loading) {
     return (
       <div className="p-6 bg-white rounded-lg shadow-md">
@@ -144,7 +138,7 @@ const PriceInsights = () => {
   }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md font-rubik">
+    <div className="p-6 bg-white rounded-lg shadow-md  font-rubik">
       <h3 className="text-lg font-bold mb-4">Real-time price insights</h3>
       <div className="space-y-3">
         {data.map((item, index) => (

@@ -198,12 +198,28 @@ const PriceCard = ({
   );
 };
 
-
+// ✅ Animated Y-Axis Numbers
+const AnimatedYAxisTick = ({ x, y, payload, isDarkMode }) => {
+  const animatedValue = useCountUp(payload.value, 800); // animate each tick
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor="end"
+      fill={isDarkMode ? "#aaa" : "#666"}
+      fontSize={12}
+    >
+      {animatedValue >= 1000
+        ? `₦${(animatedValue / 1000).toFixed(0)}k`
+        : `₦${animatedValue}`}
+    </text>
+  );
+};
 
 const Dashboard = () => {
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = "AIzaSyCELfgRKcAaUeLnInsvenpXJRi2kSSwS3E";
-  
+
   const {
     data: vendors,
     loading: dataLoading,
@@ -726,16 +742,12 @@ const Dashboard = () => {
                       tickLine={false}
                     />
                     <YAxis
-                      stroke={isDarkMode ? "#aaa" : "#666"}
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(v) => {
-                        if (v >= 1000) return `₦${(v / 1000).toFixed(0)}k`;
-                        return `₦${v}`;
-                      }}
+                      tick={(props) => (
+                        <AnimatedYAxisTick {...props} isDarkMode={isDarkMode} />
+                      )}
                       domain={[0, "auto"]}
-                      axisLine={false}
-                      tickLine={false}
                     />
+
                     <Tooltip
                       formatter={(v) => [`₦${v.toLocaleString()}`, "Price"]}
                       contentStyle={{
@@ -824,16 +836,15 @@ const Dashboard = () => {
                         tickLine={false}
                       />
                       <YAxis
-                        stroke={isDarkMode ? "#aaa" : "#666"}
-                        tick={{ fontSize: 12 }}
-                        tickFormatter={(v) => {
-                          if (v >= 1000) return `₦${(v / 1000).toFixed(0)}k`;
-                          return `₦${v}`;
-                        }}
+                        tick={(props) => (
+                          <AnimatedYAxisTick
+                            {...props}
+                            isDarkMode={isDarkMode}
+                          />
+                        )}
                         domain={[0, "auto"]}
-                        axisLine={false}
-                        tickLine={false}
                       />
+
                       <Tooltip
                         formatter={(v) => [
                           `₦${v.toLocaleString()}`,

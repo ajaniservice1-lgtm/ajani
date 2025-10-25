@@ -37,7 +37,7 @@ const Header = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#f2f9ff] font-rubik">
         <div className="max-w-7xl mx-auto px-4 py-2">
           {/* Nav Container - White rounded with shadow */}
-          <nav className="flex items-center justify-between bg-[#e6f2ff]  shadow-md rounded-full px-6 py-3 w-full">
+          <nav className="flex items-center justify-between bg-[#e6f2ff] font-medium   shadow-md rounded-full px-6 py-3 w-full">
             {/* Left: Logo */}
             <div className="flex items-center gap-4">
               <button

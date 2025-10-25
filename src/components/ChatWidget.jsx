@@ -58,7 +58,7 @@ const ChatWidget = () => {
       {!isOpen && (
         <button
           onClick={toggleChat}
-          className="bg-[#172c69] hover:bg-[#19243b] duration-300 text-white p-4 rounded-full shadow-lg flex items-center gap-2"
+          className="bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white p-4 rounded-full shadow-lg flex items-center gap-2"
         >
           💬 Ask Ajani
         </button>
@@ -68,7 +68,7 @@ const ChatWidget = () => {
       {isOpen && (
         <div className="w-80 bg-white border border-gray-300 rounded-xl shadow-xl flex flex-col h-96">
           {/* Header */}
-          <div className="bg-[#172c69] text-white p-3 rounded-t-xl flex justify-between items-center">
+          <div className="bg-[rgb(0,6,90)] text-white p-3 rounded-t-xl flex justify-between items-center">
             <span>💬 Ask Ajani</span>
             <button
               onClick={toggleChat}
@@ -116,7 +116,7 @@ const ChatWidget = () => {
             />
             <button
               onClick={handleSend}
-              className=" bg-[#172c69] hover:bg-[#19243b] duration-300 text-white px-3 py-1 rounded text-sm"
+              className=" bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-3 py-1 rounded text-sm"
             >
               Send
             </button>

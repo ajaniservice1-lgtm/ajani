@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDirectoryData } from "../hook/useDirectoryData";
+import { motion } from "framer-motion";
 
-// ✅ Hardcoded fallback images
 const FALLBACK_IMAGES = {
   "food-default":
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
@@ -13,24 +13,12 @@ const FALLBACK_IMAGES = {
 };
 
 const getCardImage = (item) => {
-  // IMPORTANT: Use the exact header name "image url" here
   const sheetImage = (item["image url"] || "").trim();
   if (sheetImage && sheetImage.startsWith("http")) return sheetImage;
-
   if (item.category?.includes("food")) return FALLBACK_IMAGES["food-default"];
   if (item.category?.includes("hotel")) return FALLBACK_IMAGES["hotel-default"];
   if (item.category?.includes("event")) return FALLBACK_IMAGES["event-default"];
   return FALLBACK_IMAGES["default"];
-};
-
-const getIconImage = (item) => {
-  if (item.category?.includes("food"))
-    return "https://via.placeholder.com/40?text=U";
-  if (item.category?.includes("hotel"))
-    return "https://via.placeholder.com/40?text=B";
-  if (item.category?.includes("event"))
-    return "https://via.placeholder.com/40?text=C";
-  return "https://via.placeholder.com/40?text=⭐";
 };
 
 const formatTags = (tagString) => {
@@ -45,16 +33,11 @@ const formatTags = (tagString) => {
   });
 };
 
-// ✅ Reusable component for truncating text with a "See More" button
 const TruncatedText = ({ text, maxLines = 4 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  // If the text is short, just display it without any truncation
   if (!text || text.length < 200) {
     return <p className="text-slate-700 text-sm mb-3">{text}</p>;
   }
-
-  // For longer text, use CSS for initial truncation and JS for toggle
   return (
     <div className="relative">
       <p
@@ -71,15 +54,14 @@ const TruncatedText = ({ text, maxLines = 4 }) => {
       >
         {text}
       </p>
-      {!isExpanded && (
+      {!isExpanded ? (
         <button
           onClick={() => setIsExpanded(true)}
           className="text-[#3276ee] text-sm font-medium hover:underline mt-1 block"
         >
           See More...
         </button>
-      )}
-      {isExpanded && (
+      ) : (
         <button
           onClick={() => setIsExpanded(false)}
           className="text-blue-600 text-sm font-medium hover:underline mt-1 block"
@@ -91,18 +73,56 @@ const TruncatedText = ({ text, maxLines = 4 }) => {
   );
 };
 
+const sectionVariant = {
+  hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      staggerChildren: 0.12,
+      when: "beforeChildren",
+      duration: 0.6,
+    },
+  },
+};
+
+const titleVariant = {
+  hidden: { opacity: 0, y: 18, filter: "blur(4px)" },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.6, delay: i * 0.08, ease: "easeOut" },
+  }),
+};
+
+const cardsContainer = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.14, delayChildren: 0.18 },
+  },
+};
+
+const cardVariant = {
+  hidden: { opacity: 0, y: 30, filter: "blur(6px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.7, ease: "easeOut" },
+  },
+};
+
 const AiTopPicks = () => {
-  const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
-  const API_KEY = "AIzaSyCELfgRKcAaUeLnInsvenpXJRi2kSSwS3E";
+  const SHEET_ID = import.meta.env.VITE_SHEET_ID;
+  const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+  const { listings = [], loading, error } = useDirectoryData(SHEET_ID, API_KEY);
 
-  const { listings, loading, error } = useDirectoryData(SHEET_ID, API_KEY);
-
-  // ✅ Filter only featured items
-  const topPicks = listings
+  const topPicks = (Array.isArray(listings) ? listings : [])
     .filter((item) => item.is_featured?.toLowerCase() === "yes")
-    .slice(0, 3); // Only show 3
+    .slice(0, 3);
 
-  // ✅ Delay content by 4 seconds
   const [showContent, setShowContent] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 4000);
@@ -130,49 +150,71 @@ const AiTopPicks = () => {
     );
   }
 
-  if (topPicks.length === 0) {
-    return null; // Or show a fallback message
-  }
+  if (topPicks.length === 0) return null;
 
   return (
-    <section id="toppicks" className="bg-[#eef8fd] py-16 font-rubik">
+    <motion.section
+      id="toppicks"
+      className="bg-[#eef8fd] py-16 font-rubik"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.15 }}
+      variants={sectionVariant}
+    >
       <div className="max-w-7xl mx-auto px-5">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-2">Ajani's Top Picks for You</h2>
-          <p className="text-slate-600 text-sm">
+        <motion.div className="text-center mb-12">
+          <motion.h2
+            className="text-3xl font-bold mb-2"
+            custom={0}
+            variants={titleVariant}
+          >
+            Ajani's Top Picks for You
+          </motion.h2>
+          <motion.p
+            className="text-slate-600 text-sm"
+            custom={1}
+            variants={titleVariant}
+          >
             Verified recommendations based on popular queries
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={cardsContainer}
+        >
           {topPicks.map((card, i) => (
-            <div
+            <motion.article
               key={card.id || i}
-              className="bg-white rounded-xl p-6 border border-slate-200 shadow hover:shadow-md hover:-translate-y-1 transition"
+              className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
+              variants={cardVariant}
+              whileHover={{
+                y: -6,
+                boxShadow: "0 12px 30px rgba(8,22,63,0.12)",
+              }}
+              transition={{ type: "spring", stiffness: 250, damping: 28 }}
+              viewport={{ once: true }}
             >
-              <div className="flex items-center gap-3 mb-4">
-                {/* <img
-                  src={getIconImage(card)}
-                  alt={`${card.name} icon`}
-                  className="w-10 h-10 rounded-full bg-gray-100 object-cover"
+              <h3 className="font-bold text-lg mb-2 text-slate-800">
+                {card.name}
+              </h3>
+
+              <motion.div
+                className="w-full h-40 overflow-hidden rounded mb-3"
+                whileHover={{ scale: 1.03 }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
+              >
+                <img
+                  src={getCardImage(card)}
+                  alt={card.name}
+                  className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.src = "https://via.placeholder.com/40?text=⚡";
+                    e.currentTarget.src =
+                      "https://via.placeholder.com/300x200?text=No+Image";
                   }}
-                /> */}
-                <h3 className="font-bold text-lg">{card.name}</h3>
-              </div>
+                />
+              </motion.div>
 
-              <img
-                src={getCardImage(card)}
-                alt={card.name}
-                className="w-full h-40 object-cover rounded mb-3"
-                onError={(e) => {
-                  e.target.src =
-                    "https://via.placeholder.com/300x200?text=No+Image";
-                }}
-              />
-
-              {/* ✅ Replace the plain <p> with the TruncatedText component */}
               <TruncatedText text={card.short_desc} maxLines={4} />
 
               <div className="flex flex-wrap gap-2 mb-6">
@@ -186,30 +228,22 @@ const AiTopPicks = () => {
                 ))}
               </div>
 
-              <div className="flex items-center gap-2 text-slate-600 text-sm mb-4">
-                <i className="fas fa-check-circle text-green-500"></i>
-                Verified today by Ajani's team
-              </div>
-
-              <div className="">
-                <a
-                  href={`https://wa.me/${(card.whatsapp || "").replace(
-                    /\D/g,
-                    ""
-                  )}?text=Hi%20Ajani%20👋`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 justify-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-lg transition shadow hover:shadow-md hover:-translate-y-0.5"
-                >
-                  <i className="fab fa-whatsapp "></i>
-                  Ask Ajani
-                </a>
-              </div>
-            </div>
+              <a
+                href={`https://wa.me/${(card.whatsapp || "").replace(
+                  /\D/g,
+                  ""
+                )}?text=Hi%20Ajani%20👋`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-lg transition"
+              >
+                Ask Ajani
+              </a>
+            </motion.article>
           ))}
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

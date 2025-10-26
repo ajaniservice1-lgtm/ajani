@@ -1,4 +1,4 @@
-// import CategoryDropdown from "./CategoryDropdown";
+// Dashboard.jsx
 import React, { useState, useEffect, useRef } from "react";
 import NoDataMessage from "./NoDataMessage";
 import { LabelList } from "recharts";
@@ -23,7 +23,14 @@ import {
   faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
-// ✅ Custom Hook: Fetch Data from Google Sheet
+import { motion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
+
+/* -----------------------------
+   Hooks / helpers
+   ----------------------------- */
+
+// Fetch data from Google Sheets
 const useGoogleSheet = (sheetId, apiKey) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +42,6 @@ const useGoogleSheet = (sheetId, apiKey) => {
       setLoading(true);
       setError(null);
       try {
-        // ✅ Fixed URL: removed extra spaces
         const response = await fetch(
           `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`
         );
@@ -62,7 +68,7 @@ const useGoogleSheet = (sheetId, apiKey) => {
       } catch (err) {
         console.error("Fetch error:", err);
         setError(
-          "Failed to load Dashboard data,Try reloading the page and have a good internet connection"
+          "Failed to load Dashboard data. Try reloading the page and check your internet connection"
         );
         setData([]);
       } finally {
@@ -78,7 +84,7 @@ const useGoogleSheet = (sheetId, apiKey) => {
   return { data, loading, error, refetch };
 };
 
-// ✅ Dark Mode Hook — defaults to LIGHT on first load
+// Dark mode hook
 const useDarkMode = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem("darkMode");
@@ -94,12 +100,12 @@ const useDarkMode = () => {
     }
   }, [isDarkMode]);
 
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+  const toggleDarkMode = () => setIsDarkMode((s) => !s);
 
   return { isDarkMode, toggleDarkMode };
 };
 
-// ✅ Custom Hook: Count Up Animation
+// Count up animation (safe)
 const useCountUp = (target, duration = 1000) => {
   const [count, setCount] = useState(0);
   const requestRef = useRef();
@@ -138,9 +144,13 @@ const useCountUp = (target, duration = 1000) => {
   return count;
 };
 
-// ✅ Custom Animated Label for BarChart
-const AnimatedBarLabel = ({ x, y, width, height, value, index }) => {
-  const animatedValue = useCountUp(value, 1200);
+/* -----------------------------
+   Small presentational components
+   (accept `start` prop so hooks inside them don't run until needed)
+   ----------------------------- */
+
+const AnimatedBarLabel = ({ x, y, width, value, start = false }) => {
+  const animatedValue = useCountUp(start ? value : 0, 1200);
 
   return (
     <text
@@ -159,7 +169,6 @@ const AnimatedBarLabel = ({ x, y, width, height, value, index }) => {
   );
 };
 
-// ✅ Child Component: Price Card (to safely use hooks)
 const PriceCard = ({
   title,
   value,
@@ -168,9 +177,10 @@ const PriceCard = ({
   color,
   isPrice,
   hideValue,
-  isDarkMode, // ✅ Now receiving isDarkMode as prop
+  isDarkMode,
+  start = false,
 }) => {
-  const animatedValue = useCountUp(value, 1200);
+  const animatedValue = useCountUp(start ? value : 0, 1200);
   const displayValue = hideValue
     ? "—"
     : isPrice
@@ -198,9 +208,8 @@ const PriceCard = ({
   );
 };
 
-// ✅ Animated Y-Axis Numbers
-const AnimatedYAxisTick = ({ x, y, payload, isDarkMode }) => {
-  const animatedValue = useCountUp(payload.value, 800); // animate each tick
+const AnimatedYAxisTick = ({ x, y, payload, isDarkMode, start = false }) => {
+  const animatedValue = useCountUp(start ? payload.value : 0, 800);
   return (
     <text
       x={x}
@@ -216,10 +225,15 @@ const AnimatedYAxisTick = ({ x, y, payload, isDarkMode }) => {
   );
 };
 
-const Dashboard = () => {
-  const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
-  const API_KEY = "AIzaSyCELfgRKcAaUeLnInsvenpXJRi2kSSwS3E";
+/* -----------------------------
+   Main Dashboard component
+   ----------------------------- */
 
+const Dashboard = () => {
+  const SHEET_ID = import.meta.env.VITE_SHEET_ID;
+  const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+
+  // DATA + UI hooks (these must be declared before any early returns)
   const {
     data: vendors,
     loading: dataLoading,
@@ -228,9 +242,46 @@ const Dashboard = () => {
   } = useGoogleSheet(SHEET_ID, API_KEY);
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
-  // ✅ Delay content display by 3 seconds
-  const [showContent, setShowContent] = useState(false);
+  // Intersection observers (must be at top-level)
+  const [sectionRef, sectionInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.15,
+  });
+  const [headerRef, headerInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.2,
+  });
+  const [cardsRef, cardsInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.2,
+  });
+  const [barRef, barInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.25,
+  });
+  const [lineRef, lineInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.25,
+  });
+  const [footerRef, footerInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.15,
+  });
 
+  // UI state
+  const [showContent, setShowContent] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(
+    "accommodation.hotel"
+  );
+  const [selectedArea, setSelectedArea] = useState("");
+  const [pulling, setPulling] = useState(false);
+  const [pullStartY, setPullStartY] = useState(0);
+
+  // Autocomplete state
+  const [areaSuggestions, setAreaSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Show content delay (keeps your original logic)
   useEffect(() => {
     if (error) {
       setShowContent(true);
@@ -240,25 +291,14 @@ const Dashboard = () => {
     return () => clearTimeout(timer);
   }, [error]);
 
-  const [selectedCategory, setSelectedCategory] = useState(
-    "accommodation.hotel"
-  );
-  const [selectedArea, setSelectedArea] = useState("");
-  const [pulling, setPulling] = useState(false);
-  const [pullStartY, setPullStartY] = useState(0);
-
-  // ✅ Autocomplete state
-  const [areaSuggestions, setAreaSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
   const safeVendors = Array.isArray(vendors) ? vendors : [];
 
-  // ✅ Get unique areas for suggestions
+  // Unique areas
   const allAreas = Array.from(
     new Set(safeVendors.map((v) => v.area?.trim()).filter(Boolean))
   ).sort();
 
-  // ✅ Filter vendors (case-insensitive area match)
+  // Filter logic
   const filteredVendors = safeVendors.filter((vendor) => {
     const matchesCategory =
       selectedCategory === "All" || vendor.category === selectedCategory;
@@ -268,16 +308,13 @@ const Dashboard = () => {
     return matchesCategory && matchesArea;
   });
 
-  // ✅ Calculate monthly price index
+  // Monthly price index
   const monthlyPriceIndex = {};
-
   filteredVendors.forEach((vendor) => {
-    const dateStr = vendor.updated_at; // e.g., "2025-09-13"
+    const dateStr = vendor.updated_at;
     if (!dateStr) return;
-
     const [year, month] = dateStr.split("-").slice(0, 2);
-    const monthKey = `${year}-${month}`; // e.g., "2025-09"
-
+    const monthKey = `${year}-${month}`;
     const price = parseFloat(vendor.price_from) || 0;
     if (!monthlyPriceIndex[monthKey]) {
       monthlyPriceIndex[monthKey] = { total: 0, count: 0 };
@@ -286,7 +323,6 @@ const Dashboard = () => {
     monthlyPriceIndex[monthKey].count += 1;
   });
 
-  // ✅ Convert to array and sort by month
   const monthlyAverages = Object.keys(monthlyPriceIndex)
     .map((key) => ({
       month: key,
@@ -296,18 +332,15 @@ const Dashboard = () => {
     }))
     .sort((a, b) => a.month.localeCompare(b.month));
 
-  // ✅ Get current and previous month
   const currentMonthAvg = monthlyAverages[monthlyAverages.length - 1]?.avg || 0;
   const previousMonthAvg =
     monthlyAverages[monthlyAverages.length - 2]?.avg || 0;
 
-  // ✅ Calculate percentage change
   const changePercent =
     previousMonthAvg > 0
       ? ((currentMonthAvg - previousMonthAvg) / previousMonthAvg) * 100
       : 0;
 
-  // ✅ Format for display
   const changeText =
     changePercent > 0
       ? `+${changePercent.toFixed(1)}% from last month`
@@ -315,7 +348,7 @@ const Dashboard = () => {
       ? `${changePercent.toFixed(1)}% from last month`
       : "No change";
 
-  // === CHART DATA ===
+  // Chart data
   const averagePricesByArea = filteredVendors.reduce((acc, vendor) => {
     const area = vendor.area;
     const price = parseFloat(vendor.price_from) || 0;
@@ -358,21 +391,19 @@ const Dashboard = () => {
         )
       : { area: "—", price: 0 };
 
-  // ✅ Define categories structure
   const categories = {
     accommodation: ["hotel", "shortlet", "guesthouse", "resorts", "airbnb"],
     transport: ["taxi", "bus", "bike", "carrental", "dispatch"],
     event: ["cinema", "club", "park", "weekend", "concert", "art", "tech"],
   };
 
-  // ✅ Helper functions
   const getMainCategory = (cat) => cat.split(".")[0] || "accommodation";
   const getSubCategory = (cat) => cat.split(".")[1] || "hotel";
   const updateSelectedCategory = (newMain, newSub) => {
     setSelectedCategory(`${newMain}.${newSub}`);
   };
 
-  // Auto-refetch every 90 seconds
+  // Auto-refetch
   useEffect(() => {
     const interval = setInterval(() => {
       refetch();
@@ -380,11 +411,7 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [refetch]);
 
-  const handleBarClick = (data) => {
-    setSelectedArea(data.area);
-  };
-
-  // ✅ Pull-to-refresh
+  // Pull-to-refresh handlers
   const handleTouchStart = (e) => {
     if (window.scrollY === 0) {
       setPullStartY(e.touches[0].clientY);
@@ -409,6 +436,11 @@ const Dashboard = () => {
     setPullStartY(0);
   };
 
+  const handleBarClick = (data) => {
+    setSelectedArea(data.area);
+  };
+
+  // Early returns (hooks already declared above)
   if (error) {
     return (
       <div
@@ -439,7 +471,6 @@ const Dashboard = () => {
     );
   }
 
-  // After calculating sortedAvgPricesArray
   const sortedAvgPricesArray = [...avgPricesArray].sort((a, b) =>
     a.area.localeCompare(b.area)
   );
@@ -447,6 +478,7 @@ const Dashboard = () => {
   return (
     <section
       id="priceinsight"
+      ref={sectionRef}
       className={`min-h-screen transition-colors duration-300 ${
         isDarkMode ? "bg-gray-900 text-white" : "bg-[#eef8fd] text-gray-900"
       }`}
@@ -459,7 +491,13 @@ const Dashboard = () => {
       >
         <div className="p-4 md:p-6 font-rubik">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          <motion.div
+            ref={headerRef}
+            initial={{ opacity: 0, y: 18 }}
+            animate={headerInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex justify-between items-center mb-6"
+          >
             <h1
               className={`text-xl md:text-2xl font-bold ${
                 isDarkMode ? "text-white" : "text-[#101828]"
@@ -480,10 +518,13 @@ const Dashboard = () => {
             >
               <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} />
             </button>
-          </div>
+          </motion.div>
 
-          {/* ✅ Instruction Banner */}
-          <div
+          {/* Instruction Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={headerInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.08 }}
             className={`mb-6 p-4 rounded-lg border-l-4 border-blue-500 bg-blue-50 ${
               isDarkMode ? "bg-blue-900/20 text-blue-100" : "text-blue-800"
             }`}
@@ -505,10 +546,15 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* ✅ Filters with Labeled Dropdowns */}
-          <div className="flex flex-col gap-3 mb-6">
+          {/* Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={headerInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.16 }}
+            className="flex flex-col gap-3 mb-6"
+          >
             <div className="flex flex-row gap-3">
               {/* Main Category */}
               <div className="flex flex-col flex-1">
@@ -580,7 +626,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Area Input with Autocomplete */}
+            {/* Area Input */}
             <div className="relative min-w-[120px] flex-1">
               <input
                 type="text"
@@ -620,7 +666,6 @@ const Dashboard = () => {
                     : "bg-white text-gray-900 border-gray-300"
                 }`}
               />
-              {/* Suggestions Dropdown */}
               {showSuggestions && areaSuggestions.length > 0 && (
                 <ul
                   className={`absolute z-10 w-full mt-1 rounded-lg shadow-lg max-h-60 overflow-auto ${
@@ -646,10 +691,16 @@ const Dashboard = () => {
                 </ul>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+          <motion.div
+            ref={cardsRef}
+            initial="hidden"
+            animate={cardsInView ? "visible" : "hidden"}
+            variants={{ hidden: {}, visible: {} }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8"
+          >
             {[
               {
                 title: "Price Index",
@@ -687,14 +738,32 @@ const Dashboard = () => {
                 isPrice: true,
               },
             ].map((card, i) => (
-              <PriceCard key={i} {...card} isDarkMode={isDarkMode} /> // ✅ Pass isDarkMode here
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 18 }}
+                animate={cardsInView ? { opacity: 1, y: 0 } : {}}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.12 + i * 0.12,
+                  ease: "easeOut",
+                }}
+              >
+                <PriceCard
+                  {...card}
+                  isDarkMode={isDarkMode}
+                  start={cardsInView}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Bar Chart — Average Prices by Area */}
-            <div
+            <motion.div
+              ref={barRef}
+              initial={{ opacity: 0, y: 18 }}
+              animate={barInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7, ease: "easeOut", delay: 0.08 }}
               className={`p-4 rounded-lg shadow border ${
                 isDarkMode
                   ? "bg-gray-800 border-gray-700"
@@ -743,7 +812,11 @@ const Dashboard = () => {
                     />
                     <YAxis
                       tick={(props) => (
-                        <AnimatedYAxisTick {...props} isDarkMode={isDarkMode} />
+                        <AnimatedYAxisTick
+                          {...props}
+                          isDarkMode={isDarkMode}
+                          start={barInView}
+                        />
                       )}
                       domain={[0, "auto"]}
                     />
@@ -769,16 +842,21 @@ const Dashboard = () => {
                     >
                       <LabelList
                         dataKey="price"
-                        content={(props) => <AnimatedBarLabel {...props} />}
+                        content={(props) => (
+                          <AnimatedBarLabel {...props} start={barInView} />
+                        )}
                       />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </motion.div>
 
-            {/* Line Chart - Monthly Price Trends */}
-            <div
+            <motion.div
+              ref={lineRef}
+              initial={{ opacity: 0, y: 18 }}
+              animate={lineInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7, ease: "easeOut", delay: 0.12 }}
               className={`p-4 rounded-lg shadow border ${
                 isDarkMode
                   ? "bg-gray-800 border-gray-700"
@@ -840,6 +918,7 @@ const Dashboard = () => {
                           <AnimatedYAxisTick
                             {...props}
                             isDarkMode={isDarkMode}
+                            start={lineInView}
                           />
                         )}
                         domain={[0, "auto"]}
@@ -884,18 +963,22 @@ const Dashboard = () => {
                   </ResponsiveContainer>
                 </div>
               )}
-            </div>
+            </motion.div>
           </div>
 
           {/* Footer */}
-          <div
+          <motion.div
+            ref={footerRef}
+            initial={{ opacity: 0, y: 18 }}
+            animate={footerInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.08 }}
             className={`text-xs text-center ${
               isDarkMode ? "text-gray-500" : "text-gray-600"
             }`}
           >
             Results: {filteredVendors.length} places • Data source: Google
             Sheets • Prices indicative.
-          </div>
+          </motion.div>
         </div>
 
         {/* Pull-to-refresh indicator */}

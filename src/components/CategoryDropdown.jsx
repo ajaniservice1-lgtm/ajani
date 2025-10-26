@@ -1,4 +1,3 @@
-
 // src/components/CategoryDropdown.jsx
 
 import React, { useState } from "react";

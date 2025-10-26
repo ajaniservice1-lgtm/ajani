@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 
 const FeaturedBanner = () => {
   const [showModal, setShowModal] = useState(null);
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
   const ads = [
     {
@@ -159,21 +161,128 @@ const FeaturedBanner = () => {
     },
   ];
 
-  return (
-    <section className="py-16 bg-gray-900  shadow-xl p-6   text-white font-rubik my-5">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="text-left mb-8">
-          <h2 className="text-2xl font-bold mb-2">Featured Businesses</h2>
-          <p className="text-gray-300 lg:text-[17px] text-sm">
-            Discover these sponsored listings from local businesses
-          </p>
-        </div>
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  const itemVariants = {
+    hidden: {
+      y: 50,
+      opacity: 0,
+      scale: 0.95,
+    },
+    visible: {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+      },
+    },
+  };
+
+  const titleVariants = {
+    hidden: { opacity: 0, y: -30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const subtitleVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        delay: 0.2,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const cardVariants = {
+    hidden: {
+      y: 30,
+      opacity: 0,
+      scale: 0.98,
+    },
+    visible: {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+      },
+    },
+    hover: {
+      y: -8,
+      scale: 1.02,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 15,
+      },
+    },
+  };
+
+  return (
+    <section
+      ref={sectionRef}
+      className="py-16 bg-gray-900 shadow-xl p-6 text-white font-rubik my-5"
+    >
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Title Section with Stagger Animation */}
+        <motion.div
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={containerVariants}
+          className="text-left mb-8"
+        >
+          <motion.h2
+            variants={titleVariants}
+            className="text-2xl font-bold mb-2"
+          >
+            Featured Businesses
+          </motion.h2>
+          <motion.p
+            variants={subtitleVariants}
+            className="text-gray-300 lg:text-[17px] text-sm"
+          >
+            Discover these sponsored listings from local businesses
+          </motion.p>
+        </motion.div>
+
+        {/* Cards Grid with Stagger Reveal */}
+        <motion.div
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={containerVariants}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        >
           {ads.map((ad) => (
-            <div
+            <motion.div
               key={ad.id}
-              className={`relative rounded-lg shadow-lg p-6 cursor-pointer transition-transform hover:-translate-y-1 ${ad.bgColor}`}
+              variants={itemVariants}
+              whileHover="hover"
+              className={`relative rounded-lg shadow-lg p-6 cursor-pointer transition-all ${ad.bgColor}`}
               onClick={() => setShowModal(ad.id)}
               role="button"
               tabIndex={0}
@@ -186,7 +295,7 @@ const FeaturedBanner = () => {
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
                 {ad.subtitle}
               </h3>
-              <p className=" text-gray-600 mb-4 text-sm">{ad.description}</p>
+              <p className="text-gray-600 mb-4 text-sm">{ad.description}</p>
               <button
                 className={`px-4 py-2 rounded-lg font-semibold text-white transition ${ad.buttonColor}`}
                 onClick={(e) => {
@@ -197,9 +306,9 @@ const FeaturedBanner = () => {
               >
                 {ad.button}
               </button>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Modal with Framer Motion */}
@@ -213,9 +322,9 @@ const FeaturedBanner = () => {
             onClick={() => setShowModal(null)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.95, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 50 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
               className={`relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg shadow-xl p-6 text-center ${
                 ads.find((a) => a.id === showModal)?.bgColor || "bg-white"

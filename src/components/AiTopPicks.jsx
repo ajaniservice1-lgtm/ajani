@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 import { useDirectoryData } from "../hook/useDirectoryData";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faComment } from "@fortawesome/free-solid-svg-icons";
+// import React from "react";
 
 // Fallback images and helpers (same as before)
 const FALLBACK_IMAGES = {
@@ -138,9 +141,9 @@ const Card = ({ card, index }) => {
         )}?text=Hi%20Ajani%20👋`}
         target="_blank"
         rel="noopener noreferrer"
-        className="block text-center bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-4 py-2 rounded-lg font-semibold text-lg transition"
-      >
-        💬 Ask Ajani
+        className="flex items-center justify-center gap-2 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-4 py-2 rounded-lg font-semibold text-lg transition"
+      >  <FontAwesomeIcon icon={faComment} />
+        Show Contact
       </a>
     </motion.article>
   );

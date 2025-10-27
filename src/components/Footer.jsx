@@ -1,20 +1,40 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import Logo from "../assets/Logos/logo6.png";
 
 const Footer = () => {
   const year = new Date().getFullYear();
 
+  // Framer Motion variants
+  const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const staggerContainer = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.2 } },
+  };
+
   return (
-    <footer className="border-t border-slate-700 text-slate-200 text-sm py-10 font-rubik bg-[rgb(0,6,90)]">
+    <motion.footer
+      className="border-t border-slate-700 text-slate-200 text-sm py-10 font-rubik bg-[rgb(0,6,90)]"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: false, amount: 0.2 }}
+      variants={staggerContainer} // Apply stagger on the parent
+    >
       <div className="max-w-7xl mx-auto px-5">
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8"
+          variants={staggerContainer}
+        >
           {/* Left: Logo, Tagline & Summary */}
-          <div>
+          <motion.div variants={fadeUp}>
             <div className="flex items-center gap-3 mb-4">
               <img src={Logo} alt="Ajani Logo" className="h-8 w-auto" />
-              <span className="text-slate-300 text-sm md:text-base"></span>
             </div>
 
             <p className="mb-4 leading-relaxed max-w-md">
@@ -59,13 +79,16 @@ const Footer = () => {
                 <i className="fab fa-tiktok"></i>
               </a>
             </div>
-          </div>
+          </motion.div>
 
           {/* Center: Spacer */}
-          <div></div>
+          <motion.div variants={fadeUp}></motion.div>
 
-          {/* Right: Links + WhatsApp */}
-          <div className="flex flex-col justify-between">
+          {/* Right: Links */}
+          <motion.div
+            variants={fadeUp}
+            className="flex flex-col justify-between"
+          >
             <div className="flex flex-col gap-3">
               <Link to="/privacypage">Privacy Policy</Link>
               <Link to="/termspage">Terms</Link>
@@ -76,27 +99,21 @@ const Footer = () => {
                 blogpage
               </Link>
             </div>
-
-            {/* <a
-              href="https://wa.me/2348123456789?text=Hi%20Ajani%20👋"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition"
-            >
-              <i className="fab fa-whatsapp"></i> Chat with Ajani
-            </a> */}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Bottom Copyright Line */}
-        <div className="pt-6 border-t border-slate-700 text-center md:text-left">
+        <motion.div
+          variants={fadeUp}
+          className="pt-6 border-t border-slate-700 text-center md:text-left"
+        >
           <p>
             © {year} <span className="font-medium text-blue-400">Ajani</span> •
             Ibadan Price Insights. All rights reserved.
           </p>
-        </div>
+        </motion.div>
       </div>
-    </footer>
+    </motion.footer>
   );
 };
 

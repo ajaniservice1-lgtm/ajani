@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { motion, useInView } from "framer-motion";
 import { useDirectoryData } from "../hook/useDirectoryData";
-import { motion } from "framer-motion";
 
+// Fallback images and helpers (same as before)
 const FALLBACK_IMAGES = {
   "food-default":
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
@@ -25,19 +26,15 @@ const formatTags = (tagString) => {
   if (!tagString) return [];
   return tagString.split(",").map((tag) => {
     const [name, price] = tag.trim().split(":");
-    if (price) {
-      const num = parseInt(price);
-      return `${name}: ₦${num.toLocaleString()}`;
-    }
+    if (price) return `${name}: ₦${parseInt(price).toLocaleString()}`;
     return name;
   });
 };
 
 const TruncatedText = ({ text, maxLines = 4 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  if (!text || text.length < 200) {
+  if (!text || text.length < 200)
     return <p className="text-slate-700 text-sm mb-3">{text}</p>;
-  }
   return (
     <div className="relative">
       <p
@@ -54,25 +51,17 @@ const TruncatedText = ({ text, maxLines = 4 }) => {
       >
         {text}
       </p>
-      {!isExpanded ? (
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="text-[#3276ee] text-sm font-medium hover:underline mt-1 block"
-        >
-          See More...
-        </button>
-      ) : (
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="text-blue-600 text-sm font-medium hover:underline mt-1 block"
-        >
-          See Less
-        </button>
-      )}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="text-blue-600 text-sm font-medium hover:underline mt-1 block"
+      >
+        {isExpanded ? "See Less" : "See More..."}
+      </button>
     </div>
   );
 };
 
+// Animation variants
 const sectionVariant = {
   hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
   visible: {
@@ -97,21 +86,64 @@ const titleVariant = {
   }),
 };
 
-const cardsContainer = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.14, delayChildren: 0.18 },
-  },
-};
+// Single Card component fixes hooks issue
+const Card = ({ card, index }) => {
+  const ref = React.useRef(null);
+  const inView = useInView(ref, { once: false, margin: "-100px" });
 
-const cardVariant = {
-  hidden: { opacity: 0, y: 30, filter: "blur(6px)" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.7, ease: "easeOut" },
-  },
+  return (
+    <motion.article
+      ref={ref}
+      initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+      animate={
+        inView
+          ? { opacity: 1, y: 0, filter: "blur(0px)" }
+          : { opacity: 0, y: 30, filter: "blur(6px)" }
+      }
+      transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.15 }}
+      whileHover={{ y: -6, boxShadow: "0 12px 30px rgba(8,22,63,0.12)" }}
+      className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
+    >
+      <h3 className="font-bold text-lg mb-2 text-slate-800">{card.name}</h3>
+      <motion.div
+        className="w-full h-40 overflow-hidden rounded mb-3"
+        whileHover={{ scale: 1.03 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+      >
+        <img
+          src={getCardImage(card)}
+          alt={card.name}
+          className="w-full h-full object-cover"
+          onError={(e) =>
+            (e.currentTarget.src =
+              "https://via.placeholder.com/300x200?text=No+Image")
+          }
+        />
+      </motion.div>
+      <TruncatedText text={card.short_desc} maxLines={4} />
+      <div className="flex flex-wrap gap-2 mb-6">
+        {formatTags(card.tags).map((tag, j) => (
+          <span
+            key={j}
+            className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+      <a
+        href={`https://wa.me/${(card.whatsapp || "").replace(
+          /\D/g,
+          ""
+        )}?text=Hi%20Ajani%20👋`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block text-center bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-4 py-2 rounded-lg font-semibold text-lg transition"
+      >
+        💬 Ask Ajani
+      </a>
+    </motion.article>
+  );
 };
 
 const AiTopPicks = () => {
@@ -129,7 +161,7 @@ const AiTopPicks = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading || !showContent) {
+  if (loading || !showContent)
     return (
       <section className="bg-slate-100 py-16 font-rubik">
         <div className="max-w-7xl mx-auto px-5 text-center">
@@ -138,9 +170,8 @@ const AiTopPicks = () => {
         </div>
       </section>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
       <section className="bg-slate-100 py-16 font-rubik">
         <div className="max-w-7xl mx-auto px-5 text-center text-red-500">
@@ -148,7 +179,6 @@ const AiTopPicks = () => {
         </div>
       </section>
     );
-  }
 
   if (topPicks.length === 0) return null;
 
@@ -158,7 +188,7 @@ const AiTopPicks = () => {
       className="bg-[#eef8fd] py-16 font-rubik"
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.15 }}
+      viewport={{ once: false, amount: 0.15 }}
       variants={sectionVariant}
     >
       <div className="max-w-7xl mx-auto px-5">
@@ -179,69 +209,11 @@ const AiTopPicks = () => {
           </motion.p>
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          variants={cardsContainer}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {topPicks.map((card, i) => (
-            <motion.article
-              key={card.id || i}
-              className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
-              variants={cardVariant}
-              whileHover={{
-                y: -6,
-                boxShadow: "0 12px 30px rgba(8,22,63,0.12)",
-              }}
-              transition={{ type: "spring", stiffness: 250, damping: 28 }}
-              viewport={{ once: true }}
-            >
-              <h3 className="font-bold text-lg mb-2 text-slate-800">
-                {card.name}
-              </h3>
-
-              <motion.div
-                className="w-full h-40 overflow-hidden rounded mb-3"
-                whileHover={{ scale: 1.03 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-              >
-                <img
-                  src={getCardImage(card)}
-                  alt={card.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src =
-                      "https://via.placeholder.com/300x200?text=No+Image";
-                  }}
-                />
-              </motion.div>
-
-              <TruncatedText text={card.short_desc} maxLines={4} />
-
-              <div className="flex flex-wrap gap-2 mb-6">
-                {formatTags(card.tags).map((tag, j) => (
-                  <span
-                    key={j}
-                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <a
-                href={`https://wa.me/${(card.whatsapp || "").replace(
-                  /\D/g,
-                  ""
-                )}?text=Hi%20Ajani%20👋`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-lg transition"
-              >
-                Ask Ajani
-              </a>
-            </motion.article>
+            <Card key={card.id || i} card={card} index={i} />
           ))}
-        </motion.div>
+        </div>
       </div>
     </motion.section>
   );

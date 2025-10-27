@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const FAQ = () => {
   const faqs = [
@@ -43,9 +44,12 @@ const FAQ = () => {
 
       <div className="space-y-4">
         {faqs.map((faq, i) => (
-          <div
+          <motion.div
             key={i}
             className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.2 }}
           >
             <button
               onClick={() => toggle(i)}
@@ -60,14 +64,19 @@ const FAQ = () => {
               ></i>
             </button>
 
-            <div
-              className={`px-6 pb-5 text-slate-600 overflow-hidden transition-all duration-300 ease-in-out ${
-                openIndex === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-              }`}
+            <motion.div
+              initial={{ opacity: 0, height: 20 }} // very small initial height
+              animate={{
+                opacity: 1,
+                height: openIndex === i ? "auto" : 20, // expands only when clicked
+              }}
+              exit={{ opacity: 0, height: 20 }}
+              transition={{ duration: 0.3 }}
+              className="px-6 overflow-hidden text-slate-600"
             >
-              <p className=" text-sm">{faq.a}</p>
-            </div>
-          </div>
+              {openIndex === i && <p className="pb-5 text-sm">{faq.a}</p>}
+            </motion.div>
+          </motion.div>
         ))}
       </div>
     </section>

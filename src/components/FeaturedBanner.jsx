@@ -1,11 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 
 const FeaturedBanner = () => {
   const [showModal, setShowModal] = useState(null);
-  const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
-
   const ads = [
     {
       id: "sponsored",
@@ -16,16 +13,12 @@ const FeaturedBanner = () => {
       button: "Learn More",
       bgColor: "bg-blue-50",
       buttonColor: "bg-blue-600 hover:bg-blue-700",
-      image:
-        "https://media.istockphoto.com/id/2207324198/photo/buffet-style-serving-in-chafing-dish.jpg?s=1024x1024&w=is&k=20&c=ORtP-Vc-AmtBXMme8v3pjULWpZ8FcAugXuPbOFtO_Tc=",
       adContent: (
         <div className="text-center font-rubik">
           <img
             src="https://media.istockphoto.com/id/2207324198/photo/buffet-style-serving-in-chafing-dish.jpg?s=1024x1024&w=is&k=20&c=ORtP-Vc-AmtBXMme8v3pjULWpZ8FcAugXuPbOFtO_Tc="
             alt="Amala Skye"
-            width={"100%"}
-            height={250}
-            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover"
+            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover w-full"
           />
           <h3 className="text-xl font-bold text-gray-800">
             🔥 Amala Skye — Ibadan’s #1 Amala Spot!
@@ -64,16 +57,12 @@ const FeaturedBanner = () => {
       button: "Get Details",
       bgColor: "bg-gray-200",
       buttonColor: "bg-blue-600 hover:bg-blue-700",
-      image:
-        "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
       adContent: (
         <div className="text-center font-rubik">
           <img
             src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80"
             alt="Food Festival"
-            width={"100%"}
-            height={250}
-            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover"
+            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover w-full"
           />
           <h3 className="text-xl font-bold text-gray-800">
             🎉 Taste of Ibadan — This Weekend Only!
@@ -116,18 +105,14 @@ const FeaturedBanner = () => {
       description:
         "Fresh produce, spices, and local delicacies. Open daily from 8AM to 6PM.",
       button: "Contact",
-      bgColor: "bg-[#ffff]",
+      bgColor: "bg-white",
       buttonColor: "bg-blue-600 hover:bg-blue-700",
-      image:
-        "https://images.unsplash.com/photo-1694825588875-190db201a997?q=80&w=1630&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       adContent: (
         <div className="text-center font-rubik">
           <img
             src="https://images.unsplash.com/photo-1694825588875-190db201a997?q=80&w=1630&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Dugbe Market"
-            width={"100%"}
-            height={250}
-            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover"
+            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover w-full"
           />
           <h3 className="text-xl font-bold text-gray-800">
             🌶️ Dugbe Market — Fresh Spices & Local Delicacies!
@@ -161,157 +146,78 @@ const FeaturedBanner = () => {
     },
   ];
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: {
-      y: 50,
-      opacity: 0,
-      scale: 0.95,
-    },
-    visible: {
-      y: 0,
-      opacity: 1,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-      },
-    },
-  };
-
-  const titleVariants = {
-    hidden: { opacity: 0, y: -30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-      },
-    },
-  };
-
-  const subtitleVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        delay: 0.2,
-        ease: "easeOut",
-      },
-    },
-  };
-
   const cardVariants = {
-    hidden: {
-      y: 30,
-      opacity: 0,
-      scale: 0.98,
-    },
+    hidden: { opacity: 0, x: -50 },
     visible: {
-      y: 0,
       opacity: 1,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 20,
-      },
-    },
-    hover: {
-      y: -8,
-      scale: 1.02,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 15,
-      },
+      x: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
     },
   };
 
   return (
-    <section
-      ref={sectionRef}
-      className="py-16 bg-gray-900 shadow-xl p-6 text-white font-rubik my-5"
-    >
+    <section className="py-16 bg-gray-900 shadow-xl p-6 text-white font-rubik my-5">
       <div className="max-w-6xl mx-auto px-4">
-        {/* Title Section with Stagger Animation */}
-        <motion.div
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          variants={containerVariants}
-          className="text-left mb-8"
-        >
+        <div className="text-left mb-8">
           <motion.h2
-            variants={titleVariants}
+            initial={{ opacity: 0, y: -20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
             className="text-2xl font-bold mb-2"
           >
             Featured Businesses
           </motion.h2>
           <motion.p
-            variants={subtitleVariants}
+            initial={{ opacity: 0, y: -10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
             className="text-gray-300 lg:text-[17px] text-sm"
           >
             Discover these sponsored listings from local businesses
           </motion.p>
-        </motion.div>
+        </div>
 
-        {/* Cards Grid with Stagger Reveal */}
-        <motion.div
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-        >
-          {ads.map((ad) => (
-            <motion.div
-              key={ad.id}
-              variants={itemVariants}
-              whileHover="hover"
-              className={`relative rounded-lg shadow-lg p-6 cursor-pointer transition-all ${ad.bgColor}`}
-              onClick={() => setShowModal(ad.id)}
-              role="button"
-              tabIndex={0}
-              onKeyPress={(e) => {
-                if (e.key === "Enter" || e.key === " ") setShowModal(ad.id);
-              }}
-              aria-label={`View details for ${ad.subtitle}`}
-            >
-              <div className="font-medium text-gray-500 mb-2">{ad.title}</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                {ad.subtitle}
-              </h3>
-              <p className="text-gray-600 mb-4 text-sm">{ad.description}</p>
-              <button
-                className={`px-4 py-2 rounded-lg font-semibold text-white transition ${ad.buttonColor}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowModal(ad.id);
-                }}
-                aria-label={`Learn more about ${ad.subtitle}`}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {ads.map((ad, index) => {
+            const cardRef = useRef(null);
+            const cardInView = useInView(cardRef, {
+              once: false,
+              margin: "-100px",
+            });
+
+            return (
+              <motion.div
+                key={ad.id}
+                ref={cardRef}
+                variants={cardVariants}
+                initial="hidden"
+                animate={cardInView ? "visible" : "hidden"}
+                className={`relative rounded-lg shadow-lg p-6 cursor-pointer transition-colors ${ad.bgColor}`}
+                onClick={() => setShowModal(ad.id)}
               >
-                {ad.button}
-              </button>
-            </motion.div>
-          ))}
-        </motion.div>
+                <div className="font-medium text-gray-500 mb-2">{ad.title}</div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  {ad.subtitle}
+                </h3>
+                <p className="text-gray-600 mb-4 text-sm">{ad.description}</p>
+                <button
+                  className={`px-4 py-2 rounded-lg font-semibold text-white transition ${ad.buttonColor}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowModal(ad.id);
+                  }}
+                >
+                  {ad.button}
+                </button>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Modal with Framer Motion */}
+      {/* Modal (same as before) */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -322,28 +228,22 @@ const FeaturedBanner = () => {
             onClick={() => setShowModal(null)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 50 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 50 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
               className={`relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg shadow-xl p-6 text-center ${
                 ads.find((a) => a.id === showModal)?.bgColor || "bg-white"
               }`}
               onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby={`modal-title-${showModal}`}
             >
               <button
                 onClick={() => setShowModal(null)}
                 className="absolute top-3 right-3 text-gray-600 hover:text-gray-800 text-xl font-bold"
-                aria-label="Close modal"
               >
                 &times;
               </button>
-
               {ads.find((a) => a.id === showModal)?.adContent}
-
               <div className="mt-6">
                 <button
                   onClick={() => setShowModal(null)}

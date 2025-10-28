@@ -30,6 +30,37 @@ const getFallbackImage = (item) => {
   return "https://via.placeholder.com/300x200?text=No+Image";
 };
 
+// Format WhatsApp numbers neatly
+const formatWhatsapp = (number) => {
+  if (!number) return "";
+  const digits = number.replace(/\D/g, "");
+  let formatted = digits;
+  if (digits.length === 10) {
+    formatted = `+234 ${digits.slice(1, 4)} ${digits.slice(
+      4,
+      7
+    )} ${digits.slice(7, 11)}`;
+  } else if (digits.length === 11 && digits.startsWith("0")) {
+    formatted = `+234 ${digits.slice(1, 4)} ${digits.slice(
+      4,
+      7
+    )} ${digits.slice(7, 11)}`;
+  } else if (digits.length === 13 && digits.startsWith("234")) {
+    formatted = `+234 ${digits.slice(3, 6)} ${digits.slice(
+      6,
+      9
+    )} ${digits.slice(9, 13)}`;
+  } else if (digits.length === 14 && digits.startsWith("2340")) {
+    formatted = `+234 ${digits.slice(4, 7)} ${digits.slice(
+      7,
+      10
+    )} ${digits.slice(10, 14)}`;
+  } else {
+    formatted = `+${digits}`;
+  }
+  return formatted;
+};
+
 // ---------------- Custom Hook ----------------
 const useGoogleSheet = (sheetId, apiKey) => {
   const [data, setData] = useState([]);
@@ -136,9 +167,7 @@ const Directory = () => {
   const { data: listings, loading, error } = useGoogleSheet(SHEET_ID, API_KEY);
   const directoryRef = useRef(null);
 
-  // ✅ NEW STATE: which cards are showing contact
   const [showContact, setShowContact] = useState({});
-
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
   const [mainCategory, setMainCategory] = useState("");
@@ -370,7 +399,8 @@ const Directory = () => {
                         );
                       })}
                     </div>
-                    {/* ✅ Show Contact with Copy and auto-hide after 20s */}
+
+                    {/* Show Contact */}
                     <div className="mt-auto flex gap-2">
                       {!showContact[item.name] ? (
                         <button
@@ -384,25 +414,27 @@ const Directory = () => {
                                 ...prev,
                                 [item.name]: false,
                               }));
-                            }, 20000); // 20 seconds
+                            }, 20000);
                           }}
                           className="flex items-center gap-1 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         >
                           <FontAwesomeIcon icon={faComment} /> Show Contact
                         </button>
                       ) : (
-                        <div className="flex flex-1 items-center justify-between bg-[rgb(0,6,90)] text-white px-3 py-2 rounded text-sm font-medium">
+                        <div className="flex flex-1 items-center justify-between bg-green-100 px-3 py-2 rounded text-sm font-medium">
                           <span>
-                            📞 {item.whatsapp || "No number available"}
+                            📞{" "}
+                            {formatWhatsapp(item.whatsapp) ||
+                              "No number available"}
                           </span>
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(
-                                item.whatsapp || ""
+                                formatWhatsapp(item.whatsapp) || ""
                               );
                               alert("Number copied to clipboard!");
                             }}
-                            className="ml-2 px-2 py-1 bg-slate-200 text-[#0e1f45] rounded text-xs"
+                            className="ml-2 px-2 py-1 bg-green-700 text-white rounded text-xs"
                           >
                             <FontAwesomeIcon icon={faCopy} /> Copy
                           </button>

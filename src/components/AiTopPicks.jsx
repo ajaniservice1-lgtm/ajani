@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 import { useDirectoryData } from "../hook/useDirectoryData";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment } from "@fortawesome/free-solid-svg-icons";
-// import React from "react";
+import { faComment, faCopy } from "@fortawesome/free-solid-svg-icons";
 
-// Fallback images and helpers (same as before)
+// Fallback images and helpers
 const FALLBACK_IMAGES = {
   "food-default":
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
@@ -32,6 +31,31 @@ const formatTags = (tagString) => {
     if (price) return `${name}: ₦${parseInt(price).toLocaleString()}`;
     return name;
   });
+};
+
+// ---------------- Phone formatting ----------------
+const formatPhoneNumber = (number) => {
+  if (!number) return "";
+  const digits = number.replace(/\D/g, "");
+  let formatted = digits;
+  if (digits.startsWith("0") && digits.length === 11) {
+    formatted =
+      "+234 " +
+      digits.slice(1, 4) +
+      " " +
+      digits.slice(4, 7) +
+      " " +
+      digits.slice(7);
+  } else if (digits.startsWith("234") && digits.length === 13) {
+    formatted =
+      "+234 " +
+      digits.slice(3, 6) +
+      " " +
+      digits.slice(6, 9) +
+      " " +
+      digits.slice(9);
+  }
+  return formatted;
 };
 
 const TruncatedText = ({ text, maxLines = 4 }) => {
@@ -89,10 +113,17 @@ const titleVariant = {
   }),
 };
 
-// Single Card component fixes hooks issue
+// ---------------- Card Component ----------------
 const Card = ({ card, index }) => {
   const ref = React.useRef(null);
   const inView = useInView(ref, { once: false, margin: "-100px" });
+
+  const [showContact, setShowContact] = useState(false);
+
+  const handleShowContact = () => {
+    setShowContact(true);
+    setTimeout(() => setShowContact(false), 20000); // auto-hide after 20s
+  };
 
   return (
     <motion.article
@@ -134,21 +165,38 @@ const Card = ({ card, index }) => {
           </span>
         ))}
       </div>
-      <a
-        href={`https://wa.me/${(card.whatsapp || "").replace(
-          /\D/g,
-          ""
-        )}?text=Hi%20Ajani%20👋`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-4 py-2 rounded-lg font-semibold text-lg transition"
-      >  <FontAwesomeIcon icon={faComment} />
-        Show Contact
-      </a>
+
+      {/* Show Contact with formatted number */}
+      <div className="flex gap-2">
+        {!showContact ? (
+          <button
+            onClick={handleShowContact}
+            className="flex items-center justify-center gap-2 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-4 py-2 rounded-lg font-semibold text-lg transition flex-1"
+          >
+            <FontAwesomeIcon icon={faComment} /> Show Contact
+          </button>
+        ) : (
+          <div className="flex flex-1 items-center justify-between bg-green-100 px-3 py-2 rounded text-sm font-medium">
+            <span>
+              📞 {formatPhoneNumber(card.whatsapp) || "No number available"}
+            </span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(card.whatsapp || "");
+                alert("Number copied to clipboard!");
+              }}
+              className="ml-2 px-2 py-1 bg-green-700 text-white rounded text-xs flex items-center gap-1"
+            >
+              <FontAwesomeIcon icon={faCopy} /> Copy
+            </button>
+          </div>
+        )}
+      </div>
     </motion.article>
   );
 };
 
+// ---------------- AiTopPicks Component ----------------
 const AiTopPicks = () => {
   const SHEET_ID = import.meta.env.VITE_SHEET_ID;
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;

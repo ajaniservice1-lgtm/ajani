@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment, faStore } from "@fortawesome/free-solid-svg-icons";
+import { faComment, faStore, faCopy } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 
 // ---------------- Helpers ----------------
@@ -90,15 +90,14 @@ const TruncatedText = ({ text, maxLines = 4 }) => {
       >
         {text}
       </p>
-      {!isExpanded && (
+      {!isExpanded ? (
         <button
           onClick={() => setIsExpanded(true)}
           className="text-[#3276ee] text-sm font-medium hover:underline mt-1 block"
         >
           See More...
         </button>
-      )}
-      {isExpanded && (
+      ) : (
         <button
           onClick={() => setIsExpanded(false)}
           className="text-blue-600 text-sm font-medium hover:underline mt-1 block"
@@ -136,6 +135,9 @@ const Directory = () => {
   const API_KEY = "AIzaSyCELfgRKcAaUeLnInsvenpXJRi2kSSwS3E";
   const { data: listings, loading, error } = useGoogleSheet(SHEET_ID, API_KEY);
   const directoryRef = useRef(null);
+
+  // ✅ NEW STATE: which cards are showing contact
+  const [showContact, setShowContact] = useState({});
 
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
@@ -232,10 +234,10 @@ const Directory = () => {
             variants={headerItem}
           >
             <motion.h2 className="text-3xl font-bold">
-              {"Full Business Directory"}
+              Full Business Directory
             </motion.h2>
             <motion.p className="text-slate-600 mt-1">
-              {"Browse all verified businesses in Ibadan"}
+              Browse all verified businesses in Ibadan
             </motion.p>
           </motion.div>
           <div className="relative w-full md:w-80">
@@ -252,8 +254,8 @@ const Directory = () => {
 
         {/* Filters + Cards + Pagination */}
         <div className="bg-white p-6 rounded-xl border border-slate-200">
+          {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {/* Main */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Main Category
@@ -274,7 +276,6 @@ const Directory = () => {
                 ))}
               </select>
             </div>
-            {/* Sub */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Subcategory
@@ -293,7 +294,6 @@ const Directory = () => {
                 ))}
               </select>
             </div>
-            {/* Area */}
             <div>
               <label className="block text-sm font-medium mb-1">Area</label>
               <select
@@ -348,11 +348,8 @@ const Directory = () => {
                     <div className="font-bold mb-2">
                       From ₦{formatPrice(item.price_from)}
                     </div>
-                    {item.rating && (
-                      <div className="text-yellow-500 text-sm mb-2">
-                        ⭐ {item.rating}
-                      </div>
-                    )}
+
+                    {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
                       {(item.tags ? item.tags.split(",") : []).map((tag, i) => {
                         const [name, price] = tag.trim().split(":");
@@ -373,20 +370,45 @@ const Directory = () => {
                         );
                       })}
                     </div>
+                    {/* ✅ Show Contact with Copy and auto-hide after 20s */}
                     <div className="mt-auto flex gap-2">
-                      <a
-                        href={`https://wa.me/${(item.whatsapp || "").replace(
-                          /\D/g,
-                          ""
-                        )}?text=${encodeURIComponent(
-                          "Tell me more about " + item.name
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      >
-                        <FontAwesomeIcon icon={faComment} /> Show Contact
-                      </a>
+                      {!showContact[item.name] ? (
+                        <button
+                          onClick={() => {
+                            setShowContact((prev) => ({
+                              ...prev,
+                              [item.name]: true,
+                            }));
+                            setTimeout(() => {
+                              setShowContact((prev) => ({
+                                ...prev,
+                                [item.name]: false,
+                              }));
+                            }, 20000); // 20 seconds
+                          }}
+                          className="flex items-center gap-1 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        >
+                          <FontAwesomeIcon icon={faComment} /> Show Contact
+                        </button>
+                      ) : (
+                        <div className="flex flex-1 items-center justify-between bg-[rgb(0,6,90)] text-white px-3 py-2 rounded text-sm font-medium">
+                          <span>
+                            📞 {item.whatsapp || "No number available"}
+                          </span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(
+                                item.whatsapp || ""
+                              );
+                              alert("Number copied to clipboard!");
+                            }}
+                            className="ml-2 px-2 py-1 bg-slate-200 text-[#0e1f45] rounded text-xs"
+                          >
+                            <FontAwesomeIcon icon={faCopy} /> Copy
+                          </button>
+                        </div>
+                      )}
+
                       <a
                         href="#vendors"
                         className="flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-800 px-3 py-2 rounded text-sm font-medium justify-center"

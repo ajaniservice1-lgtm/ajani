@@ -3,6 +3,9 @@ import { motion, useInView } from "framer-motion";
 import { useDirectoryData } from "../hook/useDirectoryData";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faCopy } from "@fortawesome/free-solid-svg-icons";
+// Add these near your other imports
+import AuthModal from "./ui/AuthModal"; // ✅ Adjust path as needed
+import { useAuth } from "../hook/useAuth";
 
 // Fallback images and helpers
 const FALLBACK_IMAGES = {
@@ -114,85 +117,126 @@ const titleVariant = {
 };
 
 // ---------------- Card Component ----------------
+
 const Card = ({ card, index }) => {
+  const { user, loading: authLoading } = useAuth(); // ✅ Get auth state
   const ref = React.useRef(null);
   const inView = useInView(ref, { once: false, margin: "-100px" });
 
   const [showContact, setShowContact] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // ✅ For guest login modal
 
   const handleShowContact = () => {
+    if (authLoading) return;
+
+    if (!user) {
+      // Guest → open login modal
+      setIsModalOpen(true);
+      return;
+    }
+
+    // Logged-in user → show contact
     setShowContact(true);
-    setTimeout(() => setShowContact(false), 20000); // auto-hide after 20s
+    setTimeout(() => setShowContact(false), 20000);
   };
 
-  return (
-    <motion.article
-      ref={ref}
-      initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
-      animate={
-        inView
-          ? { opacity: 1, y: 0, filter: "blur(0px)" }
-          : { opacity: 0, y: 30, filter: "blur(6px)" }
-      }
-      transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.15 }}
-      whileHover={{ y: -6, boxShadow: "0 12px 30px rgba(8,22,63,0.12)" }}
-      className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
-    >
-      <h3 className="font-bold text-lg mb-2 text-slate-800">{card.name}</h3>
-      <motion.div
-        className="w-full h-40 overflow-hidden rounded mb-3"
-        whileHover={{ scale: 1.03 }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
-      >
-        <img
-          src={getCardImage(card)}
-          alt={card.name}
-          className="w-full h-full object-cover"
-          onError={(e) =>
-            (e.currentTarget.src =
-              "https://via.placeholder.com/300x200?text=No+Image")
-          }
-        />
-      </motion.div>
-      <TruncatedText text={card.short_desc} maxLines={4} />
-      <div className="flex flex-wrap gap-2 mb-6">
-        {formatTags(card.tags).map((tag, j) => (
-          <span
-            key={j}
-            className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
-      {/* Show Contact with formatted number */}
-      <div className="flex gap-2">
-        {!showContact ? (
-          <button
-            onClick={handleShowContact}
-            className="flex items-center justify-center gap-2 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-4 py-2 rounded-lg font-semibold text-lg transition flex-1"
-          >
-            <FontAwesomeIcon icon={faComment} /> Show Contact
-          </button>
-        ) : (
-          <div className="flex flex-1 items-center justify-between bg-green-100 px-3 py-2 rounded text-sm font-medium">
-            <span>
-              📞 {formatPhoneNumber(card.whatsapp) || "No number available"}
-            </span>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(card.whatsapp || "");
-                alert("Number copied to clipboard!");
-              }}
-              className="ml-2 px-2 py-1 bg-green-700 text-white rounded text-xs flex items-center gap-1"
+  // Optional: After login, auto-show contact
+  useEffect(() => {
+    if (user && isModalOpen) {
+      setShowContact(true);
+      setTimeout(() => setShowContact(false), 20000);
+      closeModal();
+    }
+  }, [user, isModalOpen]);
+
+  return (
+    <>
+      <motion.article
+        ref={ref}
+        initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+        animate={
+          inView
+            ? { opacity: 1, y: 0, filter: "blur(0px)" }
+            : { opacity: 0, y: 30, filter: "blur(6px)" }
+        }
+        transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.15 }}
+        whileHover={{ y: -6, boxShadow: "0 12px 30px rgba(8,22,63,0.12)" }}
+        className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
+      >
+        <h3 className="font-bold text-lg mb-2 text-slate-800">{card.name}</h3>
+        <motion.div
+          className="w-full h-40 overflow-hidden rounded mb-3"
+          whileHover={{ scale: 1.03 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+        >
+          <img
+            src={getCardImage(card)}
+            alt={card.name}
+            className="w-full h-full object-cover"
+            onError={(e) =>
+              (e.currentTarget.src =
+                "https://via.placeholder.com/300x200?text=No+Image")
+            }
+          />
+        </motion.div>
+        <TruncatedText text={card.short_desc} maxLines={4} />
+        <div className="flex flex-wrap gap-2 mb-6">
+          {formatTags(card.tags).map((tag, j) => (
+            <span
+              key={j}
+              className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium"
             >
-              <FontAwesomeIcon icon={faCopy} /> Copy
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Show Contact or Login Prompt */}
+        <div className="flex gap-2">
+          {authLoading ? (
+            <div className="flex-1 bg-gray-200 animate-pulse h-10 rounded-lg"></div>
+          ) : !showContact ? (
+            <button
+              onClick={handleShowContact}
+              className="flex items-center justify-center gap-2 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-4 py-2 rounded-lg font-semibold text-lg transition flex-1"
+            >
+              <FontAwesomeIcon icon={faComment} /> Show Contact
             </button>
-          </div>
-        )}
-      </div>
-    </motion.article>
+          ) : (
+            <div className="flex flex-1 items-center justify-between bg-green-100 px-3 py-2 rounded text-sm font-medium">
+              <span>
+                📞 {formatPhoneNumber(card.whatsapp) || "No number available"}
+              </span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(card.whatsapp || "");
+                  alert("Number copied to clipboard!");
+                }}
+                className="ml-2 px-2 py-1 bg-green-700 text-white rounded text-xs flex items-center gap-1"
+              >
+                <FontAwesomeIcon icon={faCopy} /> Copy
+              </button>
+            </div>
+          )}
+        </div>
+      </motion.article>
+
+      {/* Auth Modal for Guests */}
+      {isModalOpen && (
+        <AuthModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onAuthToast={(msg) => {
+            console.log("Auth toast:", msg);
+            // Optional: auto-show contact after login
+          }}
+        />
+      )}
+    </>
   );
 };
 

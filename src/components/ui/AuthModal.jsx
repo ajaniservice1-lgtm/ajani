@@ -1,5 +1,5 @@
 // src/components/ui/AuthModal.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiUserPlus, FiEye, FiEyeOff } from "react-icons/fi";
 import { CiLogin, CiMail, CiLock } from "react-icons/ci";
 import { FaGoogle } from "react-icons/fa";
@@ -11,11 +11,11 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 
-export default function AuthModal({ isOpen, onClose }) {
+export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
   const [activeTab, setActiveTab] = useState("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // 👁️ Toggle state
+  const [showPassword, setShowPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -50,11 +50,13 @@ export default function AuthModal({ isOpen, onClose }) {
     try {
       if (activeTab === "signup") {
         await createUserWithEmailAndPassword(auth, email, password);
-        setSuccess("Account created! Redirecting...");
-        setTimeout(onClose, 1500);
+        setSuccess("Account created!");
+        onLoginSuccess?.("Welcome to Ajani AI!");
+        setTimeout(onClose, 1000);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         setSuccess("Signed in successfully!");
+        onLoginSuccess?.("Welcome to Ajani AI!");
         setTimeout(onClose, 1000);
       }
     } catch (err) {
@@ -83,10 +85,16 @@ export default function AuthModal({ isOpen, onClose }) {
     try {
       await signInWithPopup(auth, googleProvider);
       setSuccess("Signed in with Google!");
+      onLoginSuccess?.("Welcome to Ajani AI!");
       setTimeout(onClose, 1000);
     } catch (err) {
       console.error(err);
-      setError("Failed to sign in with Google. Please try again.");
+      // Handle Vercel domain errors gracefully
+      if (err.code === "auth/unauthorized-domain" || err.code === "auth/invalid-continue-uri") {
+        setError("Google Sign-In is not configured for this domain. Please use email login or contact support.");
+      } else {
+        setError("Failed to sign in with Google. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -108,6 +116,16 @@ export default function AuthModal({ isOpen, onClose }) {
     }
   };
 
+  // Reset form when switching tabs
+  useEffect(() => {
+    if (!isOpen) return;
+    setEmail("");
+    setPassword("");
+    setAgreeToTerms(false);
+    setError("");
+    setSuccess("");
+  }, [isOpen, activeTab]);
+
   if (!isOpen) return null;
 
   return (
@@ -122,11 +140,7 @@ export default function AuthModal({ isOpen, onClose }) {
         {/* Tabs */}
         <div className="flex rounded-full overflow-hidden border border-blue-200 mb-6">
           <button
-            onClick={() => {
-              setActiveTab("signup");
-              setError("");
-              setSuccess("");
-            }}
+            onClick={() => setActiveTab("signup")}
             className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
               activeTab === "signup"
                 ? "bg-white text-blue-600 shadow-sm"
@@ -136,11 +150,7 @@ export default function AuthModal({ isOpen, onClose }) {
             Sign Up
           </button>
           <button
-            onClick={() => {
-              setActiveTab("login");
-              setError("");
-              setSuccess("");
-            }}
+            onClick={() => setActiveTab("login")}
             className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
               activeTab === "login"
                 ? "bg-white text-blue-600 shadow-sm"
@@ -160,12 +170,8 @@ export default function AuthModal({ isOpen, onClose }) {
             : "Sign in to your existing account."}
         </p>
 
-        {error && (
-          <p className="text-red-500 text-sm mb-3 font-medium">{error}</p>
-        )}
-        {success && (
-          <p className="text-green-500 text-sm mb-3 font-medium">{success}</p>
-        )}
+        {error && <p className="text-red-500 text-sm mb-3 font-medium">{error}</p>}
+        {success && <p className="text-green-500 text-sm mb-3 font-medium">{success}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -178,41 +184,29 @@ export default function AuthModal({ isOpen, onClose }) {
               value={email}
               onChange={handleEmailChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              placeholder={
-                activeTab === "signup"
-                  ? "johndoe@gmail.com"
-                  : "Enter your email"
-              }
+              placeholder={activeTab === "signup" ? "johndoe@gmail.com" : "Enter your email"}
             />
           </div>
 
-          {/* Password Field with Eye Toggle */}
           <div className="relative">
-            <label className=" text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
               <CiLock className="text-xs" />
               Password
             </label>
             <input
-              type={showPassword ? "text" : "password"} // 🔑 Toggle visibility
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              placeholder={
-                activeTab === "signup" ? "Password" : "Enter your password"
-              }
+              placeholder={activeTab === "signup" ? "Password" : "Enter your password"}
             />
-            {/* Eye Toggle Button */}
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 mt-5 right-3 flex items-center text-gray-500 hover:text-gray-700"
+              className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? (
-                <FiEyeOff className="text-lg" />
-              ) : (
-                <FiEye className="text-lg" />
-              )}
+              {showPassword ? <FiEyeOff className="text-lg" /> : <FiEye className="text-lg" />}
             </button>
           </div>
 
@@ -227,17 +221,11 @@ export default function AuthModal({ isOpen, onClose }) {
               />
               <label htmlFor="terms" className="text-xs text-gray-700">
                 I agree to the{" "}
-                <a
-                  href="#"
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
+                <a href="#" className="text-blue-600 hover:text-blue-800 underline">
                   Terms & Conditions
                 </a>{" "}
                 and{" "}
-                <a
-                  href="#"
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
+                <a href="#" className="text-blue-600 hover:text-blue-800 underline">
                   Privacy Policy
                 </a>
               </label>

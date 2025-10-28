@@ -30,7 +30,7 @@ const ChatWidget = () => {
 
       const botMessage = {
         sender: "bot",
-        text: data.response || "Sorry, I couldn't find an answer.",
+        text: data.response || "Ajani is on training!!! Coming soon.",
       };
 
       setMessages((prev) => [...prev, botMessage]);
@@ -38,9 +38,9 @@ const ChatWidget = () => {
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: "Oops! Something went wrong. Try again." },
+        { sender: "bot", text: "Ajani is on training!!! Coming soon." },
       ]);
-      toast.error("Network error. Please try again.");
+      toast.error("Ajani is on training!!! Coming soon.");
     } finally {
       setIsTyping(false);
     }

@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
+  apiKey: "AIzaSyDMqT1pIAhSaP1e8Oz4cJCJBXFmmCX6cbw",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
   projectId: "YOUR_PROJECT",
   storageBucket: "ajani--verification.firebasestorage.app",

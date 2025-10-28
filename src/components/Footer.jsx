@@ -105,7 +105,7 @@ const Footer = () => {
           className="pt-6 border-t border-slate-700 text-center md:text-left"
         >
           <p>
-            © {year} <span className="font-medium text-blue-400">Ajani</span> •
+            © {year} <span className="font-medium text-blue-400">Ajani</span> ••
             Ibadan Price Insights. All rights reserved.
           </p>
         </motion.div>

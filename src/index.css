@@ -117,3 +117,29 @@ section[id] {
     transform: rotate(360deg);
   }
 }
+
+
+.toast {
+  z-index: 10000;
+  background-color: #3b82f6; /* blue-500 */
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Fade in + slide up animation */
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInSlideUp {
+  animation: fadeInSlideUp 0.2s ease-out forwards;
+}

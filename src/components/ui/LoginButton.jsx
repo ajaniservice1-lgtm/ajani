@@ -1,5 +1,6 @@
 // src/components/ui/LoginButton.jsx
 import { useState, useRef, useEffect } from "react";
+
 import {
   FiUser,
   FiSettings,
@@ -11,7 +12,7 @@ import { useAuth } from "../../hook/useAuth";
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 
-export default function LoginButton() {
+export default function LoginButton({ onAuthToast }) {
   const { user, loading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -29,14 +30,15 @@ export default function LoginButton() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      setIsDropdownOpen(false);
-    } catch (error) {
-      console.error("Sign out error:", error);
-    }
-  };
+const handleSignOut = async () => {
+  try {
+    await signOut(auth);
+    onAuthToast?.("Thanks for visiting Ajani AI!"); // ✅ Add this
+    setIsDropdownOpen(false);
+  } catch (error) {
+    console.error("Sign out error:", error);
+  }
+};
 
   // While loading
   if (loading) {
@@ -125,7 +127,11 @@ export default function LoginButton() {
         <FiUser className="text-base" />
         <span>Login</span>
       </button>
-      <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AuthModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAuthToast={onAuthToast}
+      />
     </>
   );
 }

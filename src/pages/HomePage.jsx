@@ -8,12 +8,25 @@ import VendorForm from "../components/VendorForm";
 import FAQ from "../components/FAQ";
 import Footer from "../components/Footer";
 import ChatWidget from "../components/ChatWidget";
+import Toast from "../components/Toast";
+import { useState } from "react";
 
 export default function HomePage() {
+   const [toastMessage, setToastMessage] = useState("");
+
+   // This function will be called on login OR logout
+   const showAuthToast = (message) => {
+     setToastMessage(message);
+   };
+
+   const closeToast = () => {
+     setToastMessage("");
+   };
   return (
-    <section className="">
+    <section className="relative">
+      {toastMessage && <Toast message={toastMessage} onClose={closeToast} />}
       <ChatWidget />
-      <Header />
+      <Header onAuthToast={showAuthToast} />
       <Hero />
       <Dashboard />
       <AiTopPicks />

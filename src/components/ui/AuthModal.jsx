@@ -4,6 +4,8 @@ import { FiUserPlus, FiEye, FiEyeOff } from "react-icons/fi";
 import { CiLogin, CiMail, CiLock } from "react-icons/ci";
 import { FaGoogle } from "react-icons/fa";
 import { auth, googleProvider } from "../../lib/firebase";
+import { Link } from "react-router-dom";
+
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -11,7 +13,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 
-export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
+export default function AuthModal({ isOpen, onClose, onAuthToast }) {
   const [activeTab, setActiveTab] = useState("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,12 +53,12 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
       if (activeTab === "signup") {
         await createUserWithEmailAndPassword(auth, email, password);
         setSuccess("Account created!");
-        onLoginSuccess?.("Welcome to Ajani AI!");
+        onAuthToast?.("Welcome to Ajani AI!");
         setTimeout(onClose, 1000);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         setSuccess("Signed in successfully!");
-        onLoginSuccess?.("Welcome to Ajani AI!");
+        onAuthToast?.("Welcome to Ajani AI!");
         setTimeout(onClose, 1000);
       }
     } catch (err) {
@@ -85,13 +87,18 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
     try {
       await signInWithPopup(auth, googleProvider);
       setSuccess("Signed in with Google!");
-      onLoginSuccess?.("Welcome to Ajani AI!");
+      onAuthToast?.("Welcome to Ajani AI!");
       setTimeout(onClose, 1000);
     } catch (err) {
       console.error(err);
       // Handle Vercel domain errors gracefully
-      if (err.code === "auth/unauthorized-domain" || err.code === "auth/invalid-continue-uri") {
-        setError("Google Sign-In is not configured for this domain. Please use email login or contact support.");
+      if (
+        err.code === "auth/unauthorized-domain" ||
+        err.code === "auth/invalid-continue-uri"
+      ) {
+        setError(
+          "Google Sign-In is not configured for this domain. Please use email login or contact support."
+        );
       } else {
         setError("Failed to sign in with Google. Please try again.");
       }
@@ -170,12 +177,16 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
             : "Sign in to your existing account."}
         </p>
 
-        {error && <p className="text-red-500 text-sm mb-3 font-medium">{error}</p>}
-        {success && <p className="text-green-500 text-sm mb-3 font-medium">{success}</p>}
+        {error && (
+          <p className="text-red-500 text-sm mb-3 font-medium">{error}</p>
+        )}
+        {success && (
+          <p className="text-green-500 text-sm mb-3 font-medium">{success}</p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1  items-center gap-1">
               <CiMail className="text-xs" />
               Email
             </label>
@@ -184,12 +195,16 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
               value={email}
               onChange={handleEmailChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              placeholder={activeTab === "signup" ? "johndoe@gmail.com" : "Enter your email"}
+              placeholder={
+                activeTab === "signup"
+                  ? "johndoe@gmail.com"
+                  : "Enter your email"
+              }
             />
           </div>
 
           <div className="relative">
-            <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1  items-center gap-1">
               <CiLock className="text-xs" />
               Password
             </label>
@@ -198,7 +213,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              placeholder={activeTab === "signup" ? "Password" : "Enter your password"}
+              placeholder={
+                activeTab === "signup" ? "Password" : "Enter your password"
+              }
             />
             <button
               type="button"
@@ -206,7 +223,11 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
               className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <FiEyeOff className="text-lg" /> : <FiEye className="text-lg" />}
+              {showPassword ? (
+                <FiEyeOff className="text-lg" />
+              ) : (
+                <FiEye className="text-lg" />
+              )}
             </button>
           </div>
 
@@ -221,13 +242,19 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
               />
               <label htmlFor="terms" className="text-xs text-gray-700">
                 I agree to the{" "}
-                <a href="#" className="text-blue-600 hover:text-blue-800 underline">
+                <Link
+                  to="/privacypage"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
                   Terms & Conditions
-                </a>{" "}
+                </Link>{" "}
                 and{" "}
-                <a href="#" className="text-blue-600 hover:text-blue-800 underline">
+                <Link
+                  to="/privacypage"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
                   Privacy Policy
-                </a>
+                </Link>
               </label>
             </div>
           )}

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../assets/Logos/logo5.png";
 import LoginButton from "../components/ui/LoginButton";
 
-const Header = () => {
+const Header = ({ onAuthToast }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -88,7 +88,7 @@ const Header = () => {
             >
               <i className="fab fa-whatsapp"></i> Chat with Ajani
             </a>
-            <LoginButton />
+            <LoginButton onAuthToast={onAuthToast} />
 
             {/* Mobile Hamburger (still on far right on mobile) */}
             <button

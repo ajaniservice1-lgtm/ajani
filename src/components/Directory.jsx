@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faStore, faCopy } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
-
+import { useAuth } from "../hook/useAuth";
+import AuthModal from "../components/ui/AuthModal"; // ✅ Adjust path if needed
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
@@ -163,6 +164,8 @@ const paginationVariants = {
 
 // ---------------- Directory Component ----------------
 const Directory = () => {
+  const { user, loading: authLoading } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = "AIzaSyCELfgRKcAaUeLnInsvenpXJRi2kSSwS3E";
   const { data: listings, loading, error } = useGoogleSheet(SHEET_ID, API_KEY);
@@ -176,6 +179,30 @@ const Directory = () => {
   const [area, setArea] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
+
+  // ✅ Handle "Show Contact" click
+  const handleShowContact = (itemName) => {
+    if (authLoading) return;
+
+    if (!user) {
+      setIsModalOpen(true); // Open login modal for guests
+      return;
+    }
+
+    // For logged-in users: show contact
+    setShowContact((prev) => ({ ...prev, [itemName]: true }));
+    setTimeout(() => {
+      setShowContact((prev) => ({ ...prev, [itemName]: false }));
+    }, 20000);
+  };
+
+  // ✅ Auto-show contact after login (optional but smooth)
+  useEffect(() => {
+    if (user && isModalOpen) {
+      setIsModalOpen(false);
+      // Optionally show a toast: onAuthToast("Now you can view contact details!");
+    }
+  }, [user, isModalOpen]);
 
   const areas = [
     ...new Set(listings.map((i) => i.area).filter(Boolean)),
@@ -254,7 +281,6 @@ const Directory = () => {
 
   return (
     <section ref={directoryRef} id="directory" className="bg-[#eef8fd]">
-
       <div className="max-w-7xl mx-auto px-5 py-12 font-rubik">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -406,21 +432,17 @@ const Directory = () => {
                     <div className="mt-auto flex gap-2">
                       {!showContact[item.name] ? (
                         <button
-                          onClick={() => {
-                            setShowContact((prev) => ({
-                              ...prev,
-                              [item.name]: true,
-                            }));
-                            setTimeout(() => {
-                              setShowContact((prev) => ({
-                                ...prev,
-                                [item.name]: false,
-                              }));
-                            }, 20000);
-                          }}
+                          onClick={() => handleShowContact(item.name)} // ✅ Updated handler
+                          disabled={authLoading}
                           className="flex items-center gap-1 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         >
-                          <FontAwesomeIcon icon={faComment} /> Show Contact
+                          {authLoading ? (
+                            <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <>
+                              <FontAwesomeIcon icon={faComment} /> Show Contact
+                            </>
+                          )}
                         </button>
                       ) : (
                         <div className="flex flex-1 items-center justify-between bg-green-100 px-3 py-2 rounded text-sm font-medium">
@@ -454,6 +476,14 @@ const Directory = () => {
                 </motion.div>
               ))}
             </motion.div>
+          )}
+
+          {isModalOpen && (
+            <AuthModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              // Optional: onAuthToast={onAuthToast}
+            />
           )}
 
           {/* Pagination */}

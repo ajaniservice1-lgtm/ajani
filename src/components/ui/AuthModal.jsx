@@ -13,6 +13,8 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 
+import { motion } from "framer-motion";
+
 export default function AuthModal({ isOpen, onClose, onAuthToast }) {
   const [activeTab, setActiveTab] = useState("signup");
   const [email, setEmail] = useState("");
@@ -91,7 +93,6 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
       setTimeout(onClose, 1000);
     } catch (err) {
       console.error(err);
-      // Handle Vercel domain errors gracefully
       if (
         err.code === "auth/unauthorized-domain" ||
         err.code === "auth/invalid-continue-uri"
@@ -135,172 +136,216 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
 
   if (!isOpen) return null;
 
+  // Determine if mobile (screen width < 768px)
+  const isMobile = window.innerWidth < 768;
+
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <div
-        className="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-xl font-rubik"
+      {/* Modal Container */}
+      <motion.div
+        initial={{ y: isMobile ? "100%" : 0, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: isMobile ? "100%" : 0, opacity: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className={`bg-white rounded-2xl w-full ${
+          isMobile
+            ? "max-w-full fixed bottom-0 left-0 right-0 h-[85vh]"
+            : "max-w-md"
+        } ${isMobile ? "rounded-t-2xl" : "p-6"} shadow-xl font-rubik`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Tabs */}
-        <div className="flex rounded-full overflow-hidden border border-blue-200 mb-6">
+        {/* Close Button (Mobile Only) */}
+        {isMobile && (
           <button
-            onClick={() => setActiveTab("signup")}
-            className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-              activeTab === "signup"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "bg-blue-50 text-blue-700 hover:bg-blue-100"
-            }`}
+            onClick={onClose}
+            className="absolute top-4 left-4 text-gray-500 hover:text-gray-700 text-xl"
+            aria-label="Close"
           >
-            Sign Up
+            ←
           </button>
-          <button
-            onClick={() => setActiveTab("login")}
-            className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-              activeTab === "login"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "bg-blue-50 text-blue-700 hover:bg-blue-100"
-            }`}
-          >
-            Log In
-          </button>
-        </div>
-
-        <h2 className="text-xl font-bold text-gray-800 mb-1">
-          {activeTab === "signup" ? "Create your account" : "Welcome back"}
-        </h2>
-        <p className="text-sm text-gray-500 mb-6">
-          {activeTab === "signup"
-            ? "Create a free account to continue on our platform."
-            : "Sign in to your existing account."}
-        </p>
-
-        {error && (
-          <p className="text-red-500 text-sm mb-3 font-medium">{error}</p>
-        )}
-        {success && (
-          <p className="text-green-500 text-sm mb-3 font-medium">{success}</p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1  items-center gap-1">
-              <CiMail className="text-xs" />
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={handleEmailChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              placeholder={
+        {/* Scrollable Content */}
+        <div
+          className={`overflow-y-auto ${isMobile ? "h-full pb-20" : "h-auto"}`}
+        >
+          {/* Tabs */}
+          <div className="flex rounded-full overflow-hidden border border-blue-200 mb-6">
+            <button
+              onClick={() => setActiveTab("signup")}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === "signup"
-                  ? "johndoe@gmail.com"
-                  : "Enter your email"
-              }
-            />
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+              }`}
+            >
+              Sign Up
+            </button>
+            <button
+              onClick={() => setActiveTab("login")}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                activeTab === "login"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+              }`}
+            >
+              Log In
+            </button>
           </div>
 
-          <div className="relative">
-            <label className="block text-xs font-medium text-gray-700 mb-1  items-center gap-1">
-              <CiLock className="text-xs" />
-              Password
-            </label>
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              placeholder={
-                activeTab === "signup" ? "Password" : "Enter your password"
-              }
-            />
+          <h2 className="text-xl font-bold text-gray-800 mb-1">
+            {activeTab === "signup" ? "Create your account" : "Welcome back"}
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            {activeTab === "signup"
+              ? "Create a free account to continue on our platform."
+              : "Sign in to your existing account."}
+          </p>
+
+          {error && (
+            <p className="text-red-500 text-sm mb-3 font-medium">{error}</p>
+          )}
+          {success && (
+            <p className="text-green-500 text-sm mb-3 font-medium">{success}</p>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4 px-4 pb-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+                <CiMail className="text-xs" />
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder={
+                  activeTab === "signup"
+                    ? "johndoe@gmail.com"
+                    : "Enter your email"
+                }
+              />
+            </div>
+
+            <div className="relative">
+              <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+                <CiLock className="text-xs" />
+                Password
+              </label>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder={
+                  activeTab === "signup" ? "Password" : "Enter your password"
+                }
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <FiEyeOff className="text-lg" />
+                ) : (
+                  <FiEye className="text-lg" />
+                )}
+              </button>
+            </div>
+
+            {activeTab === "signup" && (
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={agreeToTerms}
+                  onChange={(e) => setAgreeToTerms(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                />
+                <label htmlFor="terms" className="text-xs text-gray-700">
+                  I agree to the{" "}
+                  <Link
+                    to="/privacypage"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Terms & Conditions
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    to="/privacypage"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Privacy Policy
+                  </Link>
+                </label>
+              </div>
+            )}
+
+            {activeTab === "login" && (
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={loading}
+                className="text-blue-600 hover:text-blue-800 text-xs underline mb-2"
+              >
+                Forgot password?
+              </button>
+            )}
+
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-3 mt-8 flex items-center text-gray-500 hover:text-gray-700"
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
             >
-              {showPassword ? (
-                <FiEyeOff className="text-lg" />
+              {loading ? (
+                "Processing..."
+              ) : activeTab === "signup" ? (
+                <>
+                  <FiUserPlus className="text-base flex-shrink-0" />
+                  <span>SignUp</span>
+                </>
               ) : (
-                <FiEye className="text-lg" />
+                <>
+                  <CiLogin className="text-base flex-shrink-0" />
+                  <span>Log In</span>
+                </>
               )}
             </button>
-          </div>
 
-          {activeTab === "signup" && (
-            <div className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                id="terms"
-                checked={agreeToTerms}
-                onChange={(e) => setAgreeToTerms(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
-              />
-              <label htmlFor="terms" className="text-xs text-gray-700">
-                I agree to the{" "}
-                <Link
-                  to="/privacypage"
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  Terms & Conditions
-                </Link>{" "}
-                and{" "}
-                <Link
-                  to="/privacypage"
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  Privacy Policy
-                </Link>
-              </label>
-            </div>
-          )}
-
-          {activeTab === "login" && (
             <button
               type="button"
-              onClick={handleForgotPassword}
+              onClick={handleGoogleSignIn}
               disabled={loading}
-              className="text-blue-600 hover:text-blue-800 text-xs underline mb-2"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm transition-colors disabled:opacity-70"
             >
-              Forgot password?
+              <FaGoogle className="text-lg" />
+              <span>Continue with Google</span>
             </button>
-          )}
+          </form>
+        </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-          >
-            {loading ? (
-              "Processing..."
-            ) : activeTab === "signup" ? (
-              <>
-                <FiUserPlus className="text-base flex-shrink-0" />
-                <span>SignUp</span>
-              </>
-            ) : (
-              <>
-                <CiLogin className="text-base flex-shrink-0" />
-                <span>Log In</span>
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm transition-colors disabled:opacity-70"
-          >
-            <FaGoogle className="text-lg" />
-            <span>Continue with Google</span>
-          </button>
-        </form>
-      </div>
+        {/* Fixed Footer (Mobile Only) */}
+        {isMobile && (
+          <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+            <p className="text-xs text-gray-500 text-center">
+              By continuing, you agree to our{" "}
+              <Link to="/terms" className="text-blue-600 underline">
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="text-blue-600 underline">
+                Privacy Policy
+              </Link>
+            </p>
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 }

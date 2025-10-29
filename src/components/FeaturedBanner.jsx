@@ -1,159 +1,129 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+
+// 🔑 REPLACE THESE WITH YOUR ACTUAL VALUES
+const SHEET_ID = "YOUR_GOOGLE_SHEET_ID_HERE";
+const API_KEY = "YOUR_GOOGLE_API_KEY_HERE";
+const RANGE = "Ads!A1:O"; // Adjust if you have more/fewer columns
 
 const FeaturedBanner = () => {
   const [showModal, setShowModal] = useState(null);
-  const ads = [
-    {
-      id: "sponsored",
-      title: "Sponsored",
-      subtitle: "Promote your business on Ajani",
-      description:
-        "Get featured in area searches — reach local buyers actively looking for your services.",
-      button: "Learn More",
-      bgColor: "bg-blue-50",
-      buttonColor: "bg-blue-600 hover:bg-blue-700",
-      adContent: (
-        <div className="text-center font-rubik">
-          <img
-            src="https://media.istockphoto.com/id/2207324198/photo/buffet-style-serving-in-chafing-dish.jpg?s=1024x1024&w=is&k=20&c=ORtP-Vc-AmtBXMme8v3pjULWpZ8FcAugXuPbOFtO_Tc="
-            alt="Amala Skye"
-            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover w-full"
-          />
-          <h3 className="text-xl font-bold text-gray-800">
-            🔥 Amala Skye — Ibadan’s #1 Amala Spot!
-          </h3>
-          <p className="mt-2 text-gray-600">
-            Authentic amala with assorted meats, fresh efo, and hot pepper
-            sauce. Open 7AM–9PM daily.
-          </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
-            <span className="bg-green-100 px-2 py-1 rounded-full">₦1,200</span>
-            <span className="bg-yellow-100 px-2 py-1 rounded-full">⭐ 4.8</span>
-            <span className="bg-red-100 px-2 py-1 rounded-full">Bodija</span>
-          </div>
-          <p className="mt-4 text-sm text-gray-500">
-            *Limited slots available — get featured before the weekend rush!
-          </p>
-          <div className="mt-6">
-            <a
-              href="https://wa.me/2348123456789?text=Hi%20Ajani%20👋%20I%20want%20to%20advertise%20my%20business!"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition shadow"
-            >
-              <i className="fab fa-whatsapp"></i> WhatsApp Us to Advertise
-            </a>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "weekend-special",
-      title: "Weekend Special",
-      subtitle: "Taste of Ibadan Food Festival",
-      description:
-        "Experience the best of Ibadan cuisine this weekend at Agodi Gardens. 20+ vendors.",
-      button: "Get Details",
-      bgColor: "bg-gray-200",
-      buttonColor: "bg-blue-600 hover:bg-blue-700",
-      adContent: (
-        <div className="text-center font-rubik">
-          <img
-            src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80"
-            alt="Food Festival"
-            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover w-full"
-          />
-          <h3 className="text-xl font-bold text-gray-800">
-            🎉 Taste of Ibadan — This Weekend Only!
-          </h3>
-          <p className="mt-2 text-gray-600">
-            20+ vendors, live music, kids zone, and free parking. Don’t miss
-            out!
-          </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
-            <span className="bg-blue-100 px-2 py-1 rounded-full">
-              ₦1,000 Entry
-            </span>
-            <span className="bg-purple-100 px-2 py-1 rounded-full">
-              Agodi Gardens
-            </span>
-            <span className="bg-orange-100 px-2 py-1 rounded-full">
-              Sat & Sun
-            </span>
-          </div>
-          <p className="mt-4 text-sm text-gray-500">
-            *Bring your family — early birds get free jollof rice!
-          </p>
-          <div className="mt-6">
-            <a
-              href="https://wa.me/2348123456789?text=Hi%20Ajani%20👋%20I%20want%20to%20be%20a%20vendor%20at%20the%20Festival!"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition shadow"
-            >
-              <i className="fab fa-whatsapp"></i> WhatsApp Us to Join
-            </a>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "featured-vendor",
-      title: "Featured Vendor",
-      subtitle: "Dugbe Market Delicacies",
-      description:
-        "Fresh produce, spices, and local delicacies. Open daily from 8AM to 6PM.",
-      button: "Contact",
-      bgColor: "bg-white",
-      buttonColor: "bg-blue-600 hover:bg-blue-700",
-      adContent: (
-        <div className="text-center font-rubik">
-          <img
-            src="https://images.unsplash.com/photo-1694825588875-190db201a997?q=80&w=1630&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Dugbe Market"
-            className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover w-full"
-          />
-          <h3 className="text-xl font-bold text-gray-800">
-            🌶️ Dugbe Market — Fresh Spices & Local Delicacies!
-          </h3>
-          <p className="mt-2 text-gray-600">
-            Get the freshest ingredients for your kitchen — yam, pepper, ogbono,
-            and more. Bargain like a pro!
-          </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
-            <span className="bg-red-100 px-2 py-1 rounded-full">₦500/kg</span>
-            <span className="bg-indigo-100 px-2 py-1 rounded-full">Dugbe</span>
-            <span className="bg-teal-100 px-2 py-1 rounded-full">
-              Open 8AM–6PM
-            </span>
-          </div>
-          <p className="mt-4 text-sm text-gray-500">
-            *Ask for Mama Nkechi — she gives the best deals!
-          </p>
-          <div className="mt-6">
-            <a
-              href="https://wa.me/2348123456789?text=Hi%20Ajani%20👋%20I%20want%20to%20list%20my%20stall%20in%20Dugbe%20Market!"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition shadow"
-            >
-              <i className="fab fa-whatsapp"></i> WhatsApp Us to List
-            </a>
-          </div>
-        </div>
-      ),
-    },
-  ];
+  const [ads, setAds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+        const response = await fetch(url);
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        const rows = data.values;
+
+        if (!rows || rows.length < 2) throw new Error("No ad data found");
+
+        const headers = rows[0];
+        const adRows = rows.slice(1);
+
+        const parsedAds = adRows.map((row) => {
+          const obj = {};
+          headers.forEach((header, i) => {
+            obj[header] = row[i] || "";
+          });
+
+          return {
+            id: obj.id,
+            title: obj.title,
+            subtitle: obj.subtitle,
+            description: obj.description,
+            button: obj.button,
+            bgColor: obj.bgColor || "bg-white",
+            buttonColor: obj.buttonColor || "bg-blue-600 hover:bg-blue-700",
+            adContent: (
+              <div className="text-center font-rubik">
+                <img
+                  src={obj.image_url}
+                  alt={obj.modal_title || "Ad"}
+                  className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover w-full"
+                />
+                <h3 className="text-xl font-bold text-gray-800">
+                  {obj.modal_title}
+                </h3>
+                <p className="mt-2 text-gray-600">{obj.modal_description}</p>
+                <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
+                  {obj.tag1 && (
+                    <span className="bg-green-100 px-2 py-1 rounded-full">
+                      {obj.tag1}
+                    </span>
+                  )}
+                  {obj.tag2 && (
+                    <span className="bg-yellow-100 px-2 py-1 rounded-full">
+                      {obj.tag2}
+                    </span>
+                  )}
+                  {obj.tag3 && (
+                    <span className="bg-red-100 px-2 py-1 rounded-full">
+                      {obj.tag3}
+                    </span>
+                  )}
+                </div>
+                {obj.disclaimer && (
+                  <p className="mt-4 text-sm text-gray-500">{obj.disclaimer}</p>
+                )}
+                <div className="mt-6">
+                  <a
+                    href={obj.whatsapp_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition shadow"
+                  >
+                    <i className="fab fa-whatsapp"></i> WhatsApp Us
+                  </a>
+                </div>
+              </div>
+            ),
+          };
+        });
+
+        setAds(parsedAds);
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to load ads:", err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchAds();
+  }, []);
 
   const cardVariants = {
     hidden: { opacity: 0, x: -50 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.6 } },
   };
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-gray-900 p-6 text-white font-rubik my-5">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <p>Loading featured businesses...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-16 bg-gray-900 p-6 text-white font-rubik my-5">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <p className="text-red-400">Error: {error}</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 bg-gray-900 shadow-xl p-6 text-white font-rubik my-5">
@@ -180,7 +150,7 @@ const FeaturedBanner = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {ads.map((ad, index) => {
+          {ads.map((ad) => {
             const cardRef = useRef(null);
             const cardInView = useInView(cardRef, {
               once: false,
@@ -217,7 +187,6 @@ const FeaturedBanner = () => {
         </div>
       </div>
 
-      {/* Modal (same as before) */}
       <AnimatePresence>
         {showModal && (
           <motion.div

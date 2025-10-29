@@ -62,7 +62,7 @@ const Header = ({ onAuthToast }) => {
             </div>
 
             {/* Center: Navigation Links — now centered on lg+ */}
-            <div className="hidden lg:flex items-center mr-30 justify-center flex-1 gap-6 text-[#101828] text-sm">
+            <div className="hidden lg:flex items-center justify-center flex-1 gap-6 text-[#101828] text-sm">
               {[
                 { label: "Directory", id: "directory" },
                 { label: "For Businesses", id: "vendors" },
@@ -84,7 +84,7 @@ const Header = ({ onAuthToast }) => {
               href="https://wa.me/2348123456789?text=Hi%20Ajani%20👋"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold text-sm transition"
+              className="hidden md:flex items-center gap-2 mr-5 bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold text-sm transition"
             >
               <i className="fab fa-whatsapp"></i> Chat with Ajani
             </a>

@@ -152,7 +152,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className={`bg-white rounded-2xl w-full ${
           isMobile
-            ? "max-w-full fixed bottom-0 left-0 right-0 h-[85vh]"
+            ? "max-w-full fixed bottom-0 left-0 right-0 h-[60vh]"
             : "max-w-md"
         } ${isMobile ? "rounded-t-2xl" : "p-6"} shadow-xl font-rubik`}
         onClick={(e) => e.stopPropagation()}
@@ -170,10 +170,10 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
 
         {/* Scrollable Content */}
         <div
-          className={`overflow-y-auto ${isMobile ? "h-full pb-20" : "h-auto"}`}
+          className={`overflow-y-auto ${isMobile ? "h-full pb-2" : "h-auto"}`}
         >
           {/* Tabs */}
-          <div className="flex rounded-full overflow-hidden border border-blue-200 mb-6">
+          <div className="flex rounded-full overflow-hidden border border-blue-200 my-4">
             <button
               onClick={() => setActiveTab("signup")}
               className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
@@ -196,23 +196,27 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
             </button>
           </div>
 
-          <h2 className="text-xl font-bold text-gray-800 mb-1">
+          <h2 className="text-xl font-bold text-gray-800 mb-1 px-4">
             {activeTab === "signup" ? "Create your account" : "Welcome back"}
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-gray-500 mb-4 px-4">
             {activeTab === "signup"
               ? "Create a free account to continue on our platform."
               : "Sign in to your existing account."}
           </p>
 
           {error && (
-            <p className="text-red-500 text-sm mb-3 font-medium">{error}</p>
+            <p className="text-red-500 text-sm mb-2 px-4 font-medium">
+              {error}
+            </p>
           )}
           {success && (
-            <p className="text-green-500 text-sm mb-3 font-medium">{success}</p>
+            <p className="text-green-500 text-sm mb-2 px-4 font-medium">
+              {success}
+            </p>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 px-4 pb-4">
+          <form onSubmit={handleSubmit} className="space-y-3 px-4 pb-4">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
                 <CiMail className="text-xs" />
@@ -329,22 +333,6 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
             </button>
           </form>
         </div>
-
-        {/* Fixed Footer (Mobile Only) */}
-        {isMobile && (
-          <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-            <p className="text-xs text-gray-500 text-center">
-              By continuing, you agree to our{" "}
-              <Link to="/terms" className="text-blue-600 underline">
-                Terms
-              </Link>{" "}
-              and{" "}
-              <Link to="/privacy" className="text-blue-600 underline">
-                Privacy Policy
-              </Link>
-            </p>
-          </div>
-        )}
       </motion.div>
     </div>
   );

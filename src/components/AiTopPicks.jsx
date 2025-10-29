@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from "react";
+// src/components/AiTopPicks.jsx
+import React, { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { useDirectoryData } from "../hook/useDirectoryData";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faCopy } from "@fortawesome/free-solid-svg-icons";
-// Add these near your other imports
-import AuthModal from "./ui/AuthModal"; // ✅ Adjust path as needed
+import AuthModal from "./ui/AuthModal";
 import { useAuth } from "../hook/useAuth";
 
-// Fallback images and helpers
+// Fallback images
 const FALLBACK_IMAGES = {
   "food-default":
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
   "hotel-default":
-    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80",
+    "  https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80",
   "event-default":
-    "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&q=80",
-  default: "https://via.placeholder.com/300x200?text=No+Image",
+    "  https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&q=80",
+  default: "  https://via.placeholder.com/300x200?text=No+Image",
 };
 
 const getCardImage = (item) => {
@@ -36,29 +36,19 @@ const formatTags = (tagString) => {
   });
 };
 
-// ---------------- Phone formatting ----------------
 const formatPhoneNumber = (number) => {
   if (!number) return "";
   const digits = number.replace(/\D/g, "");
-  let formatted = digits;
   if (digits.startsWith("0") && digits.length === 11) {
-    formatted =
-      "+234 " +
-      digits.slice(1, 4) +
-      " " +
-      digits.slice(4, 7) +
-      " " +
-      digits.slice(7);
+    return `+234 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(
+      7
+    )}`;
   } else if (digits.startsWith("234") && digits.length === 13) {
-    formatted =
-      "+234 " +
-      digits.slice(3, 6) +
-      " " +
-      digits.slice(6, 9) +
-      " " +
-      digits.slice(9);
+    return `+234 ${digits.slice(3, 6)} ${digits.slice(6, 9)} ${digits.slice(
+      9
+    )}`;
   }
-  return formatted;
+  return digits;
 };
 
 const TruncatedText = ({ text, maxLines = 4 }) => {
@@ -117,127 +107,78 @@ const titleVariant = {
 };
 
 // ---------------- Card Component ----------------
-
-const Card = ({ card, index, onAuthToast }) => {
-  const { user, loading: authLoading } = useAuth(); // ✅ Get auth state
-  const ref = React.useRef(null);
+const Card = ({ card, index, onShowContact, onAuthToast }) => {
+  const { user, loading: authLoading } = useAuth();
+  const ref = useRef(null);
   const inView = useInView(ref, { once: false, margin: "-100px" });
-
-  const [showContact, setShowContact] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // ✅ For guest login modal
 
   const handleShowContact = () => {
     if (authLoading) return;
 
     if (!user) {
-      // Guest → open login modal
-      setIsModalOpen(true);
+      // Guest → trigger global modal
+      onShowContact();
       return;
     }
 
-    // Logged-in user → show contact
-    setShowContact(true);
-    setTimeout(() => setShowContact(false), 20000);
+    // Logged-in user → show contact immediately
+    onAuthToast("Welcome! Here’s the number");
   };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
-  // Then in useEffect:
-  useEffect(() => {
-    if (user && isModalOpen) {
-      setShowContact(true);
-      setTimeout(() => setShowContact(false), 20000);
-      closeModal();
-      onAuthToast("Welcome! Here’s the number"); // ✅ Now it works!
-    }
-  }, [user, isModalOpen, onAuthToast]);
 
   return (
-    <>
-      <motion.article
-        ref={ref}
-        initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
-        animate={
-          inView
-            ? { opacity: 1, y: 0, filter: "blur(0px)" }
-            : { opacity: 0, y: 30, filter: "blur(6px)" }
-        }
-        transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.15 }}
-        whileHover={{ y: -6, boxShadow: "0 12px 30px rgba(8,22,63,0.12)" }}
-        className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
+    <motion.article
+      ref={ref}
+      initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+      animate={
+        inView
+          ? { opacity: 1, y: 0, filter: "blur(0px)" }
+          : { opacity: 0, y: 30, filter: "blur(6px)" }
+      }
+      transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.15 }}
+      whileHover={{ y: -6, boxShadow: "0 12px 30px rgba(8,22,63,0.12)" }}
+      className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
+    >
+      <h3 className="font-bold text-lg mb-2 text-slate-800">{card.name}</h3>
+      <motion.div
+        className="w-full h-40 overflow-hidden rounded mb-3"
+        whileHover={{ scale: 1.03 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
       >
-        <h3 className="font-bold text-lg mb-2 text-slate-800">{card.name}</h3>
-        <motion.div
-          className="w-full h-40 overflow-hidden rounded mb-3"
-          whileHover={{ scale: 1.03 }}
-          transition={{ duration: 0.45, ease: "easeOut" }}
-        >
-          <img
-            src={getCardImage(card)}
-            alt={card.name}
-            className="w-full h-full object-cover"
-            onError={(e) =>
-              (e.currentTarget.src =
-                "https://via.placeholder.com/300x200?text=No+Image")
-            }
-          />
-        </motion.div>
-        <TruncatedText text={card.short_desc} maxLines={4} />
-        <div className="flex flex-wrap gap-2 mb-6">
-          {formatTags(card.tags).map((tag, j) => (
-            <span
-              key={j}
-              className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* Show Contact or Login Prompt */}
-        <div className="flex gap-2">
-          {authLoading ? (
-            <div className="flex-1 bg-gray-200 animate-pulse h-10 rounded-lg"></div>
-          ) : !showContact ? (
-            <button
-              onClick={handleShowContact}
-              className="flex items-center justify-center gap-2 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-4 py-2 rounded-lg font-semibold text-lg transition flex-1"
-            >
-              <FontAwesomeIcon icon={faComment} /> Show Contact
-            </button>
-          ) : (
-            <div className="flex flex-1 items-center justify-between bg-green-100 px-3 py-2 rounded text-sm font-medium">
-              <span>
-                📞 {formatPhoneNumber(card.whatsapp) || "No number available"}
-              </span>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(card.whatsapp || "");
-                  alert("Number copied to clipboard!");
-                }}
-                className="ml-2 px-2 py-1 bg-green-700 text-white rounded text-xs flex items-center gap-1"
-              >
-                <FontAwesomeIcon icon={faCopy} /> Copy
-              </button>
-            </div>
-          )}
-        </div>
-      </motion.article>
-
-      {/* Auth Modal for Guests */}
-      {isModalOpen && (
-        <AuthModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          onAuthToast={(msg) => {
-            console.log("Auth toast:", msg);
-            // Optional: auto-show contact after login
-          }}
+        <img
+          src={getCardImage(card)}
+          alt={card.name}
+          className="w-full h-full object-cover"
+          onError={(e) =>
+            (e.currentTarget.src =
+              "  https://via.placeholder.com/300x200?text=No+Image")
+          }
         />
-      )}
-    </>
+      </motion.div>
+      <TruncatedText text={card.short_desc} maxLines={4} />
+      <div className="flex flex-wrap gap-2 mb-6">
+        {formatTags(card.tags).map((tag, j) => (
+          <span
+            key={j}
+            className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <div className="flex gap-2">
+        {authLoading ? (
+          <div className="flex-1 bg-gray-200 animate-pulse h-10 rounded-lg" />
+        ) : (
+          <button
+            onClick={handleShowContact}
+            className="flex items-center justify-center gap-2 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] text-white px-4 py-2 rounded-lg font-semibold text-sm flex-1"
+          >
+            <FontAwesomeIcon icon={faComment} /> Show Contact
+          </button>
+        )}
+      </div>
+    </motion.article>
   );
 };
 
@@ -252,6 +193,8 @@ const AiTopPicks = ({ onAuthToast }) => {
     .slice(0, 3);
 
   const [showContent, setShowContent] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // ✅ Global modal state
+
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 4000);
     return () => clearTimeout(timer);
@@ -279,44 +222,56 @@ const AiTopPicks = ({ onAuthToast }) => {
   if (topPicks.length === 0) return null;
 
   return (
-    <motion.section
-      id="toppicks"
-      className="bg-[#eef8fd] py-16 font-rubik"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: false, amount: 0.15 }}
-      variants={sectionVariant}
-    >
-      <div className="max-w-7xl mx-auto px-5">
-        <motion.div className="text-center mb-12">
-          <motion.h2
-            className="text-3xl font-bold mb-2"
-            custom={0}
-            variants={titleVariant}
-          >
-            Ajani's Top Picks for You
-          </motion.h2>
-          <motion.p
-            className="text-slate-600 text-sm"
-            custom={1}
-            variants={titleVariant}
-          >
-            Verified recommendations based on popular queries
-          </motion.p>
-        </motion.div>
+    <>
+      <motion.section
+        id="toppicks"
+        className="bg-[#eef8fd] py-16 font-rubik"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariant}
+      >
+        <div className="max-w-7xl mx-auto px-5">
+          <motion.div className="text-center mb-12">
+            <motion.h2
+              className="text-3xl font-bold mb-2"
+              custom={0}
+              variants={titleVariant}
+            >
+              Ajani's Top Picks for You
+            </motion.h2>
+            <motion.p
+              className="text-slate-600 text-sm"
+              custom={1}
+              variants={titleVariant}
+            >
+              Verified recommendations based on popular queries
+            </motion.p>
+          </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topPicks.map((card, i) => (
-            <Card
-              key={card.id || i}
-              card={card}
-              index={i}
-              onAuthToast={onAuthToast}
-            />
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {topPicks.map((card, i) => (
+              <Card
+                key={card.id || i}
+                card={card}
+                index={i}
+                onShowContact={() => setIsModalOpen(true)} // ✅ Trigger global modal
+                onAuthToast={onAuthToast}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-    </motion.section>
+      </motion.section>
+
+      {/* Global Auth Modal */}
+      {isModalOpen && (
+        <AuthModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onAuthToast={onAuthToast}
+        />
+      )}
+    </>
   );
 };
 

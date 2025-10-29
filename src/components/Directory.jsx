@@ -180,7 +180,6 @@ const Directory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
 
-  // ✅ Handle "Show Contact" click
   const handleShowContact = (itemName) => {
     if (authLoading) return;
 
@@ -432,7 +431,7 @@ const Directory = () => {
                     <div className="mt-auto flex gap-2">
                       {!showContact[item.name] ? (
                         <button
-                          onClick={() => handleShowContact(item.name)} // ✅ Updated handler
+                          onClick={() => handleShowContact(item.name)}
                           disabled={authLoading}
                           className="flex items-center gap-1 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         >
@@ -478,11 +477,14 @@ const Directory = () => {
             </motion.div>
           )}
 
+          {/* Auth Modal for Guests */}
           {isModalOpen && (
             <AuthModal
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
-              // Optional: onAuthToast={onAuthToast}
+              onAuthToast={(msg) => {
+                console.log("Auth toast:", msg);
+              }}
             />
           )}
 

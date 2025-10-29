@@ -118,7 +118,7 @@ const titleVariant = {
 
 // ---------------- Card Component ----------------
 
-const Card = ({ card, index }) => {
+const Card = ({ card, index, onAuthToast }) => {
   const { user, loading: authLoading } = useAuth(); // ✅ Get auth state
   const ref = React.useRef(null);
   const inView = useInView(ref, { once: false, margin: "-100px" });
@@ -144,14 +144,15 @@ const Card = ({ card, index }) => {
     setIsModalOpen(false);
   };
 
-  // Optional: After login, auto-show contact
+  // Then in useEffect:
   useEffect(() => {
     if (user && isModalOpen) {
       setShowContact(true);
       setTimeout(() => setShowContact(false), 20000);
       closeModal();
+      onAuthToast("Welcome! Here’s the number"); // ✅ Now it works!
     }
-  }, [user, isModalOpen]);
+  }, [user, isModalOpen, onAuthToast]);
 
   return (
     <>
@@ -241,7 +242,7 @@ const Card = ({ card, index }) => {
 };
 
 // ---------------- AiTopPicks Component ----------------
-const AiTopPicks = () => {
+const AiTopPicks = ({ onAuthToast }) => {
   const SHEET_ID = import.meta.env.VITE_SHEET_ID;
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
   const { listings = [], loading, error } = useDirectoryData(SHEET_ID, API_KEY);
@@ -306,7 +307,12 @@ const AiTopPicks = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {topPicks.map((card, i) => (
-            <Card key={card.id || i} card={card} index={i} />
+            <Card
+              key={card.id || i}
+              card={card}
+              index={i}
+              onAuthToast={onAuthToast}
+            />
           ))}
         </div>
       </div>

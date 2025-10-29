@@ -29,7 +29,7 @@ export default function HomePage() {
       <Header onAuthToast={showAuthToast} />
       <Hero />
       <Dashboard />
-      <AiTopPicks />
+      <AiTopPicks onAuthToast={showAuthToast} />
       <FeaturedBanner />
       <Directory />
       <VendorForm />

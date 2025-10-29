@@ -108,9 +108,11 @@ const titleVariant = {
 
 // ---------------- Card Component ----------------
 const Card = ({ card, index, onShowContact, onAuthToast }) => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth(); // ✅ Get auth state inside card
   const ref = useRef(null);
   const inView = useInView(ref, { once: false, margin: "-100px" });
+
+  const [showContact, setShowContact] = useState(false);
 
   const handleShowContact = () => {
     if (authLoading) return;
@@ -121,8 +123,9 @@ const Card = ({ card, index, onShowContact, onAuthToast }) => {
       return;
     }
 
-    // Logged-in user → show contact immediately
-    onAuthToast("Welcome! Here’s the number");
+    // Logged-in user → show contact
+    setShowContact(true);
+    setTimeout(() => setShowContact(false), 20000);
   };
 
   return (
@@ -169,13 +172,28 @@ const Card = ({ card, index, onShowContact, onAuthToast }) => {
       <div className="flex gap-2">
         {authLoading ? (
           <div className="flex-1 bg-gray-200 animate-pulse h-10 rounded-lg" />
-        ) : (
+        ) : !showContact ? (
           <button
             onClick={handleShowContact}
             className="flex items-center justify-center gap-2 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] text-white px-4 py-2 rounded-lg font-semibold text-sm flex-1"
           >
             <FontAwesomeIcon icon={faComment} /> Show Contact
           </button>
+        ) : (
+          <div className="flex flex-1 items-center justify-between bg-green-100 px-3 py-2 rounded text-sm font-medium">
+            <span>
+              📞 {formatPhoneNumber(card.whatsapp) || "No number available"}
+            </span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(card.whatsapp || "");
+                alert("Number copied to clipboard!");
+              }}
+              className="ml-2 px-2 py-1 bg-green-700 text-white rounded text-xs flex items-center gap-1"
+            >
+              <FontAwesomeIcon icon={faCopy} /> Copy
+            </button>
+          </div>
         )}
       </div>
     </motion.article>

@@ -178,8 +178,8 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               onClick={() => setActiveTab("signup")}
               className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === "signup"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  ? " text-blue-600 shadow-sm bg-blue-50 hover:bg-blue-100"
+                  : " text-blue-900 bg-white"
               }`}
             >
               Sign Up
@@ -188,8 +188,8 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               onClick={() => setActiveTab("login")}
               className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === "login"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  ? "bg-blue-50 hover:bg-blue-100 text-blue-900 shadow-sm"
+                  : "bg-white  text-blue-800 "
               }`}
             >
               Log In
@@ -218,7 +218,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
 
           <form onSubmit={handleSubmit} className="space-y-3 px-4 pb-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 items-center gap-1">
                 <CiMail className="text-xs" />
                 Email
               </label>
@@ -236,7 +236,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
             </div>
 
             <div className="relative">
-              <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 items-center gap-1">
                 <CiLock className="text-xs" />
                 Password
               </label>
@@ -252,7 +252,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                className="absolute inset-y-0 mt-8 right-3 flex items-center text-gray-500 hover:text-gray-700"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
@@ -305,7 +305,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+              className="w-full bg-[rgb(0,6,90)]  hover:bg-[#0e1f45] text-white py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
             >
               {loading ? (
                 "Processing..."
@@ -326,7 +326,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm transition-colors disabled:opacity-70"
+              className="w-full flex items-center justify-center gap-2 bg-[rgb(0,6,90)]  hover:bg-[#0e1f45] text-white py-2.5 rounded-lg font-medium text-sm transition-colors disabled:opacity-70"
             >
               <FaGoogle className="text-lg" />
               <span>Continue with Google</span>

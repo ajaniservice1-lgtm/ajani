@@ -30,15 +30,15 @@ export default function LoginButton({ onAuthToast }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-const handleSignOut = async () => {
-  try {
-    await signOut(auth);
-    onAuthToast?.("Thanks for visiting Ajani AI!"); // ✅ Add this
-    setIsDropdownOpen(false);
-  } catch (error) {
-    console.error("Sign out error:", error);
-  }
-};
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      onAuthToast?.("Thanks for visiting Ajani AI!"); // ✅ Add this
+      setIsDropdownOpen(false);
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
 
   // While loading
   if (loading) {
@@ -122,7 +122,7 @@ const handleSignOut = async () => {
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+        className="flex items-center gap-2 bg-[rgb(0,6,90)]  hover:bg-[#0e1f45]  duration-300 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
       >
         <FiUser className="text-base" />
         <span>Login</span>

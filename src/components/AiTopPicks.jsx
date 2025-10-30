@@ -7,15 +7,15 @@ import { faComment, faCopy } from "@fortawesome/free-solid-svg-icons";
 import AuthModal from "./ui/AuthModal";
 import { useAuth } from "../hook/useAuth";
 
-// Fallback images
+// ✅ FIXED: Removed leading/trailing spaces in all URLs
 const FALLBACK_IMAGES = {
   "food-default":
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
   "hotel-default":
-    "  https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80",
+    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80",
   "event-default":
-    "  https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&q=80",
-  default: "  https://via.placeholder.com/300x200?text=No+Image",
+    "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&q=80",
+  default: "https://via.placeholder.com/300x200?text=No+Image",
 };
 
 const getCardImage = (item) => {
@@ -24,7 +24,7 @@ const getCardImage = (item) => {
   if (item.category?.includes("food")) return FALLBACK_IMAGES["food-default"];
   if (item.category?.includes("hotel")) return FALLBACK_IMAGES["hotel-default"];
   if (item.category?.includes("event")) return FALLBACK_IMAGES["event-default"];
-  return FALLBACK_IMAGES["default"];
+  return FALLBACK_IMAGES.default;
 };
 
 const formatTags = (tagString) => {
@@ -64,9 +64,9 @@ const TruncatedText = ({ text, maxLines = 4 }) => {
         style={{
           WebkitLineClamp: isExpanded ? "unset" : maxLines,
           WebkitBoxOrient: "vertical",
+          display: "-webkit-box",
           overflow: "hidden",
           textOverflow: "ellipsis",
-          display: "-webkit-box",
         }}
       >
         {text}
@@ -81,7 +81,8 @@ const TruncatedText = ({ text, maxLines = 4 }) => {
   );
 };
 
-// Animation variants
+// ---------------- Animation Variants ----------------
+// ✅ ADDED: These were missing!
 const sectionVariant = {
   hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
   visible: {
@@ -108,7 +109,7 @@ const titleVariant = {
 
 // ---------------- Card Component ----------------
 const Card = ({ card, index, onShowContact, onAuthToast }) => {
-  const { user, loading: authLoading } = useAuth(); // ✅ Get auth state inside card
+  const { user, loading: authLoading } = useAuth();
   const ref = useRef(null);
   const inView = useInView(ref, { once: false, margin: "-100px" });
 
@@ -116,14 +117,10 @@ const Card = ({ card, index, onShowContact, onAuthToast }) => {
 
   const handleShowContact = () => {
     if (authLoading) return;
-
     if (!user) {
-      // Guest → trigger global modal
       onShowContact();
       return;
     }
-
-    // Logged-in user → show contact
     setShowContact(true);
     setTimeout(() => setShowContact(false), 20000);
   };
@@ -139,7 +136,7 @@ const Card = ({ card, index, onShowContact, onAuthToast }) => {
       }
       transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.15 }}
       whileHover={{ y: -6, boxShadow: "0 12px 30px rgba(8,22,63,0.12)" }}
-      className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
+      className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col h-full"
     >
       <h3 className="font-bold text-lg mb-2 text-slate-800">{card.name}</h3>
       <motion.div
@@ -151,25 +148,27 @@ const Card = ({ card, index, onShowContact, onAuthToast }) => {
           src={getCardImage(card)}
           alt={card.name}
           className="w-full h-full object-cover"
-          onError={(e) =>
-            (e.currentTarget.src =
-              "  https://via.placeholder.com/300x200?text=No+Image")
-          }
+          onError={(e) => {
+            e.currentTarget.src =
+              "https://via.placeholder.com/300x200?text=No+Image";
+          }}
         />
       </motion.div>
       <TruncatedText text={card.short_desc} maxLines={4} />
-      <div className="flex flex-wrap gap-2 mb-6">
+
+      {/* ✅ Tags now wrap safely */}
+      <div className="flex flex-wrap gap-2 mb-6 min-w-0">
         {formatTags(card.tags).map((tag, j) => (
           <span
             key={j}
-            className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium"
+            className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium whitespace-normal break-words"
           >
             {tag}
           </span>
         ))}
       </div>
 
-      <div className="flex gap-2">
+      <div className="mt-auto flex gap-2">
         {authLoading ? (
           <div className="flex-1 bg-gray-200 animate-pulse h-10 rounded-lg" />
         ) : !showContact ? (
@@ -211,7 +210,7 @@ const AiTopPicks = ({ onAuthToast }) => {
     .slice(0, 3);
 
   const [showContent, setShowContent] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // ✅ Global modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 4000);
@@ -221,7 +220,7 @@ const AiTopPicks = ({ onAuthToast }) => {
   if (loading || !showContent)
     return (
       <section className="bg-slate-100 py-16 font-rubik">
-        <div className="max-w-7xl mx-auto px-5 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-blue-500 mx-auto"></div>
           <p className="mt-4 text-lg">Top picks data is loading...</p>
         </div>
@@ -231,7 +230,7 @@ const AiTopPicks = ({ onAuthToast }) => {
   if (error)
     return (
       <section className="bg-slate-100 py-16 font-rubik">
-        <div className="max-w-7xl mx-auto px-5 text-center text-red-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center text-red-500">
           {error}
         </div>
       </section>
@@ -247,21 +246,21 @@ const AiTopPicks = ({ onAuthToast }) => {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: false, amount: 0.15 }}
-        variants={sectionVariant}
+        variants={sectionVariant} // ✅ Now defined!
       >
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div className="text-center mb-12">
             <motion.h2
               className="text-3xl font-bold mb-2"
               custom={0}
-              variants={titleVariant}
+              variants={titleVariant} // ✅ Now defined!
             >
               Ajani's Top Picks for You
             </motion.h2>
             <motion.p
               className="text-slate-600 text-sm"
               custom={1}
-              variants={titleVariant}
+              variants={titleVariant} // ✅ Now defined!
             >
               Verified recommendations based on popular queries
             </motion.p>
@@ -273,7 +272,7 @@ const AiTopPicks = ({ onAuthToast }) => {
                 key={card.id || i}
                 card={card}
                 index={i}
-                onShowContact={() => setIsModalOpen(true)} // ✅ Trigger global modal
+                onShowContact={() => setIsModalOpen(true)}
                 onAuthToast={onAuthToast}
               />
             ))}

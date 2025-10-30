@@ -1,20 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faComment,
-  faStore,
-  faCopy,
-  faSearch,
-} from "@fortawesome/free-solid-svg-icons";
+import { faComment, faStore, faCopy } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 import { useAuth } from "../hook/useAuth";
-import AuthModal from "../components/ui/AuthModal";
+import AuthModal from "../components/ui/AuthModal"; // ✅ Adjust path if needed
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
   str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
-// ✅ Cleaned: removed leading/trailing spaces in URLs
 const FALLBACK_IMAGES = {
   1: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
   2: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
@@ -30,19 +24,15 @@ const FALLBACK_IMAGES = {
 const getFallbackImage = (item) => {
   const sheetImage = (item["image url"] || "").trim();
   if (sheetImage && sheetImage.startsWith("http")) return sheetImage;
-
-  if (item.id && FALLBACK_IMAGES[item.id])
-    return FALLBACK_IMAGES[item.id].trim();
-  if (item.category?.includes("hotel"))
-    return FALLBACK_IMAGES["hotel-default"].trim();
+  if (item.id && FALLBACK_IMAGES[item.id]) return FALLBACK_IMAGES[item.id];
+  if (item.category?.includes("hotel")) return FALLBACK_IMAGES["hotel-default"];
   if (item.category?.includes("ridehail"))
-    return FALLBACK_IMAGES["transport-default"].trim();
-  if (item.category?.includes("event"))
-    return FALLBACK_IMAGES["event-default"].trim();
-
+    return FALLBACK_IMAGES["transport-default"];
+  if (item.category?.includes("event")) return FALLBACK_IMAGES["event-default"];
   return "https://via.placeholder.com/300x200?text=No+Image";
 };
 
+// Format WhatsApp numbers neatly
 const formatWhatsapp = (number) => {
   if (!number) return "";
   const digits = number.replace(/\D/g, "");
@@ -82,7 +72,6 @@ const useGoogleSheet = (sheetId, apiKey) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ✅ Fixed: removed extra spaces in URL
         const response = await fetch(
           `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`
         );
@@ -127,9 +116,9 @@ const TruncatedText = ({ text, maxLines = 4 }) => {
         style={{
           WebkitLineClamp: isExpanded ? "unset" : maxLines,
           WebkitBoxOrient: "vertical",
-          display: "-webkit-box",
           overflow: "hidden",
           textOverflow: "ellipsis",
+          display: "-webkit-box",
         }}
       >
         {text}
@@ -193,19 +182,24 @@ const Directory = () => {
 
   const handleShowContact = (itemName) => {
     if (authLoading) return;
+
     if (!user) {
-      setIsModalOpen(true);
+      setIsModalOpen(true); // Open login modal for guests
       return;
     }
+
+    // For logged-in users: show contact
     setShowContact((prev) => ({ ...prev, [itemName]: true }));
     setTimeout(() => {
       setShowContact((prev) => ({ ...prev, [itemName]: false }));
     }, 20000);
   };
 
+  // ✅ Auto-show contact after login (optional but smooth)
   useEffect(() => {
     if (user && isModalOpen) {
       setIsModalOpen(false);
+      // Optionally show a toast: onAuthToast("Now you can view contact details!");
     }
   }, [user, isModalOpen]);
 
@@ -286,7 +280,7 @@ const Directory = () => {
 
   return (
     <section ref={directoryRef} id="directory" className="bg-[#eef8fd]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-rubik">
+      <div className="max-w-7xl mx-auto px-5 py-12 font-rubik">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <motion.div
@@ -303,9 +297,7 @@ const Directory = () => {
             </motion.p>
           </motion.div>
           <div className="relative w-full md:w-80">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <FontAwesomeIcon icon={faSearch} className="text-slate-400" />
-            </div>
+            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
             <input
               type="text"
               placeholder="Search businesses or items..."
@@ -378,10 +370,7 @@ const Directory = () => {
           {/* Cards */}
           {currentItems.length === 0 ? (
             <div className="text-center py-12 border border-dashed border-slate-300 rounded-lg text-slate-500">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="text-4xl mb-4 block text-slate-400"
-              />
+              <i className="fas fa-search text-4xl mb-4 block text-slate-400"></i>
               <h4 className="font-semibold mb-2">No results found</h4>
               <p>Try adjusting your filters or search term</p>
             </div>
@@ -416,21 +405,21 @@ const Directory = () => {
                       From ₦{formatPrice(item.price_from)}
                     </div>
 
-                    {/* ✅ Fixed: tags now wrap safely */}
-                    <div className="flex flex-wrap gap-2 mb-4 min-w-0">
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {(item.tags ? item.tags.split(",") : []).map((tag, i) => {
                         const [name, price] = tag.trim().split(":");
                         return price ? (
                           <span
                             key={i}
-                            className="bg-[#E6F2FF] text-blue-700 px-3 py-1 rounded-lg text-sm font-medium whitespace-normal break-words"
+                            className="bg-[#E6F2FF] text-blue-700 px-3 py-1 rounded-lg text-sm font-medium"
                           >
                             {name} ₦{parseInt(price).toLocaleString()}
                           </span>
                         ) : (
                           <span
                             key={i}
-                            className="bg-gray-100 text-[#003366] px-3 py-1 rounded-lg text-sm whitespace-normal break-words"
+                            className="bg-gray-100 text-[#003366] px-3 py-1 rounded-lg text-sm"
                           >
                             {name}
                           </span>
@@ -488,7 +477,7 @@ const Directory = () => {
             </motion.div>
           )}
 
-          {/* Auth Modal */}
+          {/* Auth Modal for Guests */}
           {isModalOpen && (
             <AuthModal
               isOpen={isModalOpen}

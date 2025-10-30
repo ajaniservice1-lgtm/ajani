@@ -124,7 +124,7 @@ const PriceInsights = () => {
     return (
       <div className="p-6 bg-white rounded-lg shadow-md">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 mx-auto"></div>
-        <p className="mt-2 text-center text-gray-500">Loading prices...</p>
+        <p className="mt-2 text-center text-gray-500">Loading prices insights...</p>
       </div>
     );
   }

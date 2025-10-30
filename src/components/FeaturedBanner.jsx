@@ -54,20 +54,20 @@ const FeaturedBanner = () => {
               <h3 className="text-xl font-bold text-gray-800">
                 {obj.modal_title}
               </h3>
-              <p className="mt-2 text-gray-600">{obj.modal_description}</p>
+              <p className="mt-2 text-gray-600 text-sm">{obj.modal_description}</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
                 {obj.tag1 && (
-                  <span className="bg-green-100 px-2 py-1 rounded-full">
+                  <span className="bg-green-300 px-2 py-1 rounded-full">
                     {obj.tag1}
                   </span>
                 )}
                 {obj.tag2 && (
-                  <span className="bg-yellow-100 px-2 py-1 rounded-full">
+                  <span className="bg-yellow-300 px-2 py-1 rounded-full">
                     {obj.tag2}
                   </span>
                 )}
                 {obj.tag3 && (
-                  <span className="bg-red-100 px-2 py-1 rounded-full">
+                  <span className="bg-red-300 px-2 py-1 rounded-full">
                     {obj.tag3}
                   </span>
                 )}

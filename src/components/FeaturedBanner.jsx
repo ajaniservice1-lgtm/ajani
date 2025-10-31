@@ -1,9 +1,10 @@
+// src/components/FeaturedBanner.jsx
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// 🔑 CONFIG — Consider moving to env vars in production
+// 🔑 CONFIG — Move to .env in production
 const SHEET_ID = "1JZ_EiO9qP0Z74-OQXLrkhDNRh1JBZ68j-7yVjCR_PRY";
-const API_KEY = "AIzaSyCELfgRKcAaUeLnInsvenpXJRi2kSSwS3E";
+const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const RANGE = "Ads!A1:O";
 
 const FeaturedBanner = () => {
@@ -16,7 +17,7 @@ const FeaturedBanner = () => {
     setLoading(true);
     setError(null);
     try {
-      // ✅ FIXED: No extra spaces in URL
+      // ✅ FIXED: Removed extra spaces in URL
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
       const response = await fetch(url);
 
@@ -50,11 +51,17 @@ const FeaturedBanner = () => {
                 src={obj.image_url}
                 alt={obj.modal_title || "Ad"}
                 className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover w-full"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://via.placeholder.com/300x200?text=Ad+Image";
+                }}
               />
               <h3 className="text-xl font-bold text-gray-800">
                 {obj.modal_title}
               </h3>
-              <p className="mt-2 text-gray-600 text-sm">{obj.modal_description}</p>
+              <p className="mt-2 text-gray-600 text-sm">
+                {obj.modal_description}
+              </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
                 {obj.tag1 && (
                   <span className="bg-green-300 px-2 py-1 rounded-full">
@@ -103,19 +110,24 @@ const FeaturedBanner = () => {
     fetchAds();
   }, []);
 
+  // ✅ Responsive slide-in from left (left → right)
   const cardVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
+    hidden: { opacity: 0, x: "-20vw" },
+    visible: (index) => ({
       opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
+      x: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+        delay: index * 0.15,
+      },
+    }),
   };
 
   if (loading) {
     return (
-      <section className="py-16 bg-gray-900 p-6 text-white font-rubik my-5  overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 text-center">
+      <section className="py-16 bg-gray-900 p-6 text-white font-rubik my-5 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-5 text-center">
           <p>Loading featured businesses...</p>
         </div>
       </section>
@@ -124,8 +136,8 @@ const FeaturedBanner = () => {
 
   if (error) {
     return (
-      <section className="py-16 bg-gray-900 p-6 text-white font-rubik my-5">
-        <div className="max-w-6xl mx-auto px-4 text-center">
+      <section className="py-16 bg-gray-900 p-6 text-white font-rubik my-5 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-5 text-center">
           <p className="text-red-400 mb-4">Error: {error}</p>
           <button
             onClick={fetchAds}
@@ -141,8 +153,9 @@ const FeaturedBanner = () => {
   const activeAd = ads.find((a) => a.id === showModal);
 
   return (
-    <section className="py-16 bg-gray-900 shadow-xl p-6 text-white font-rubik my-5">
-      <div className="max-w-6xl mx-auto px-4">
+    <section className="py-16 bg-gray-900 shadow-xl  text-white font-rubik my-5 overflow-hidden ">
+      {/* ✅ Matched width: max-w-7xl + px-5 */}
+      <div className=" max-w-6xl mx-auto px-4">
         <div className="text-left mb-8">
           <motion.h2
             initial={{ opacity: 0, y: -20 }}
@@ -164,22 +177,24 @@ const FeaturedBanner = () => {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* ✅ Grid with consistent padding */}
+        <div className=" grid grid-cols-1 md:grid-cols-3 gap-6">
           {ads.map((ad, index) => (
             <motion.div
               key={ad.id || `ad-${index}`}
               variants={cardVariants}
+              custom={index}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, margin: "-100px 0px" }}
-              className={`relative rounded-lg shadow-lg p-6 cursor-pointer transition-colors ${ad.bgColor}`}
+              viewport={{ once: false, margin: "-100px 0px" }}
+              className={`relative rounded-lg shadow-lg p-6 cursor-pointer transition-colors ${
+                ad.bgColor.includes("white") ? "text-gray-800" : "text-gray-900"
+              } ${ad.bgColor}`}
               onClick={() => setShowModal(ad.id)}
             >
               <div className="font-medium text-gray-500 mb-2">{ad.title}</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                {ad.subtitle}
-              </h3>
-              <p className="text-gray-600 mb-4 text-sm">{ad.description}</p>
+              <h3 className="text-lg font-semibold mb-2">{ad.subtitle}</h3>
+              <p className="mb-4 text-sm opacity-90">{ad.description}</p>
               <button
                 className={`px-4 py-2 rounded-lg font-semibold text-white transition ${ad.buttonColor}`}
                 onClick={(e) => {

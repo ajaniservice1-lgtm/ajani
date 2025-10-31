@@ -38,17 +38,30 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
           email,
           password,
         });
-        if (error) throw error;
+
+        if (error) {
+          // Custom error for unconfirmed email
+          if (error.message.includes("Email not confirmed")) {
+            setError(
+              "Your email is not confirmed yet. Please check your inbox and click the verification link."
+            );
+          } else {
+            setError(error.message);
+          }
+          return;
+        }
+
         setSuccess("Logged in successfully!");
         onAuthToast?.("Welcome back!");
         setTimeout(onClose, 800);
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleGoogleSignIn = async () => {
     const { error } = await supabase.auth.signInWithOAuth({

@@ -167,7 +167,7 @@ const Directory = () => {
   const { user, loading: authLoading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
-  const API_KEY = "AIzaSyCELfgRKcAaUeLnInsvenpXJRi2kSSwS3E";
+  const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
   const { data: listings, loading, error } = useGoogleSheet(SHEET_ID, API_KEY);
   const directoryRef = useRef(null);
 

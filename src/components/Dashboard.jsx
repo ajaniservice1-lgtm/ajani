@@ -1,4 +1,4 @@
-// Dashboard.jsx
+// src/components/Dashboard.jsx
 import React, { useState, useEffect, useRef } from "react";
 import NoDataMessage from "./NoDataMessage";
 import { LabelList } from "recharts";
@@ -22,7 +22,6 @@ import {
   faMoon,
   faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
-
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 
@@ -42,6 +41,7 @@ const useGoogleSheet = (sheetId, apiKey) => {
       setLoading(true);
       setError(null);
       try {
+        // ✅ FIXED: Removed extra spaces in URL
         const response = await fetch(
           `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`
         );
@@ -146,12 +146,10 @@ const useCountUp = (target, duration = 1000) => {
 
 /* -----------------------------
    Small presentational components
-   (accept `start` prop so hooks inside them don't run until needed)
    ----------------------------- */
 
 const AnimatedBarLabel = ({ x, y, width, value, start = false }) => {
   const animatedValue = useCountUp(start ? value : 0, 1200);
-
   return (
     <text
       x={x + width / 2}
@@ -233,8 +231,6 @@ const Dashboard = () => {
   const SHEET_ID = import.meta.env.VITE_SHEET_ID;
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
-
-  // DATA + UI hooks (these must be declared before any early returns)
   const {
     data: vendors,
     loading: dataLoading,
@@ -243,7 +239,7 @@ const Dashboard = () => {
   } = useGoogleSheet(SHEET_ID, API_KEY);
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
-  // Intersection observers (must be at top-level)
+  // Intersection observers
   const [sectionRef, sectionInView] = useInView({
     triggerOnce: true,
     threshold: 0.15,
@@ -269,7 +265,6 @@ const Dashboard = () => {
     threshold: 0.15,
   });
 
-  // UI state
   const [showContent, setShowContent] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(
     "accommodation.hotel"
@@ -277,12 +272,9 @@ const Dashboard = () => {
   const [selectedArea, setSelectedArea] = useState("");
   const [pulling, setPulling] = useState(false);
   const [pullStartY, setPullStartY] = useState(0);
-
-  // Autocomplete state
   const [areaSuggestions, setAreaSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Show content delay (keeps your original logic)
   useEffect(() => {
     if (error) {
       setShowContent(true);
@@ -294,12 +286,37 @@ const Dashboard = () => {
 
   const safeVendors = Array.isArray(vendors) ? vendors : [];
 
+  // ✅ DYNAMIC CATEGORIES FROM GOOGLE SHEET (only accommodation, transport, event)
+  const allowedMains = ["accommodation", "transport", "event"];
+  const categoryMap = safeVendors.reduce((acc, vendor) => {
+    const cat = vendor.category?.trim();
+    if (!cat) return acc;
+
+    const parts = cat.split(".");
+    const main = parts[0] || "other";
+    const sub = parts[1] || main;
+
+    if (!allowedMains.includes(main)) return acc;
+
+    if (!acc[main]) acc[main] = new Set();
+    acc[main].add(sub);
+    return acc;
+  }, {});
+
+  const dynamicCategories = Object.fromEntries(
+    Object.entries(categoryMap).map(([main, subs]) => [
+      main,
+      Array.from(subs).sort(),
+    ])
+  );
+  const mainCategories = Object.keys(dynamicCategories).sort();
+
   // Unique areas
   const allAreas = Array.from(
     new Set(safeVendors.map((v) => v.area?.trim()).filter(Boolean))
   ).sort();
 
-  // Filter logic
+  // ✅ Filter with exact match
   const filteredVendors = safeVendors.filter((vendor) => {
     const matchesCategory =
       selectedCategory === "All" || vendor.category === selectedCategory;
@@ -392,17 +409,9 @@ const Dashboard = () => {
         )
       : { area: "—", price: 0 };
 
-  const categories = {
-    accommodation: ["hotel", "shortlet", "guesthouse", "resorts", "airbnb"],
-    transport: ["taxi", "bus", "bike", "carrental", "dispatch"],
-    event: ["cinema", "club", "park", "weekend", "concert", "art", "tech"],
-  };
-
+  // Helper functions
   const getMainCategory = (cat) => cat.split(".")[0] || "accommodation";
-  const getSubCategory = (cat) => cat.split(".")[1] || "hotel";
-  const updateSelectedCategory = (newMain, newSub) => {
-    setSelectedCategory(`${newMain}.${newSub}`);
-  };
+  const getSubCategory = (cat) => cat.split(".")[1] || getMainCategory(cat);
 
   // Auto-refetch
   useEffect(() => {
@@ -412,7 +421,7 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [refetch]);
 
-  // Pull-to-refresh handlers
+  // Pull-to-refresh
   const handleTouchStart = (e) => {
     if (window.scrollY === 0) {
       setPullStartY(e.touches[0].clientY);
@@ -441,7 +450,7 @@ const Dashboard = () => {
     setSelectedArea(data.area);
   };
 
-  // Early returns (hooks already declared above)
+  // Early returns
   if (error) {
     return (
       <div
@@ -480,7 +489,7 @@ const Dashboard = () => {
     <section
       id="priceinsight"
       ref={sectionRef}
-      className={`min-h-screen transition-colors duration-300  overflow-hidden ${
+      className={`min-h-screen transition-colors duration-300 overflow-hidden ${
         isDarkMode ? "bg-gray-900 text-white" : "bg-[#eef8fd] text-gray-900"
       }`}
     >
@@ -573,11 +582,11 @@ const Dashboard = () => {
                   onChange={(e) => {
                     const newMain = e.target.value;
                     const currentSub = getSubCategory(selectedCategory);
-                    const validSubs = categories[newMain] || [];
-                    const newSub = validSubs.includes(currentSub)
+                    const availableSubs = dynamicCategories[newMain] || [];
+                    const newSub = availableSubs.includes(currentSub)
                       ? currentSub
-                      : validSubs[0] || "hotel";
-                    updateSelectedCategory(newMain, newSub);
+                      : availableSubs[0] || newMain;
+                    setSelectedCategory(`${newMain}.${newSub}`);
                   }}
                   className={`px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 w-full ${
                     isDarkMode
@@ -585,7 +594,8 @@ const Dashboard = () => {
                       : "bg-white text-gray-900 border-gray-300"
                   }`}
                 >
-                  {Object.keys(categories).map((main) => (
+                  <option value="">All Categories</option>
+                  {mainCategories.map((main) => (
                     <option key={main} value={main}>
                       {main.charAt(0).toUpperCase() + main.slice(1)}
                     </option>
@@ -609,7 +619,7 @@ const Dashboard = () => {
                   onChange={(e) => {
                     const newSub = e.target.value;
                     const currentMain = getMainCategory(selectedCategory);
-                    updateSelectedCategory(currentMain, newSub);
+                    setSelectedCategory(`${currentMain}.${newSub}`);
                   }}
                   className={`px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 w-full ${
                     isDarkMode
@@ -618,7 +628,9 @@ const Dashboard = () => {
                   }`}
                   disabled={!getMainCategory(selectedCategory)}
                 >
-                  {categories[getMainCategory(selectedCategory)]?.map((sub) => (
+                  {(
+                    dynamicCategories[getMainCategory(selectedCategory)] || []
+                  ).map((sub) => (
                     <option key={sub} value={sub}>
                       {sub.charAt(0).toUpperCase() + sub.slice(1)}
                     </option>
@@ -713,20 +725,20 @@ const Dashboard = () => {
               },
               {
                 title: "Most Affordable Area",
-                value: selectedCategory.startsWith("accommodation.")
+                value: selectedCategory.includes("accommodation.")
                   ? affordableArea.price
                   : 0,
-                change: selectedCategory.startsWith("accommodation.")
+                change: selectedCategory.includes("accommodation.")
                   ? `${Math.round(
                       ((priceIndex - affordableArea.price) / priceIndex) * 100
                     )}% below avg`
                   : "No data applicable",
                 icon: faArrowDown,
-                color: selectedCategory.startsWith("accommodation.")
+                color: selectedCategory.includes("accommodation.")
                   ? "text-green-500"
                   : "text-gray-500",
                 isPrice: true,
-                hideValue: !selectedCategory.startsWith("accommodation."),
+                hideValue: !selectedCategory.includes("accommodation."),
               },
               {
                 title: "Price Alert",

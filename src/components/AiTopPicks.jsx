@@ -243,13 +243,13 @@ const AiTopPicks = ({ onAuthToast }) => {
     <>
       <motion.section
         id="toppicks"
-        className="bg-[#eef8fd] py-16 font-rubik"
+        className="bg-[#eef8fd] py-16 font-rubik  overflow-hidden"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: false, amount: 0.15 }}
         variants={sectionVariant}
       >
-        <div className="max-w-7xl mx-auto px-5">
+        <div className="max-w-7xl mx-auto px-5  overflow-hidden">
           <motion.div className="text-center mb-12">
             <motion.h2
               className="text-3xl font-bold mb-2"

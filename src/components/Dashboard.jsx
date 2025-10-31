@@ -480,7 +480,7 @@ const Dashboard = () => {
     <section
       id="priceinsight"
       ref={sectionRef}
-      className={`min-h-screen transition-colors duration-300 ${
+      className={`min-h-screen transition-colors duration-300  overflow-hidden ${
         isDarkMode ? "bg-gray-900 text-white" : "bg-[#eef8fd] text-gray-900"
       }`}
     >

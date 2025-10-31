@@ -227,7 +227,10 @@ const VendorForm = () => {
   const submitInView = useInView(submitRef, { once: false, amount: 0.2 });
 
   return (
-    <section id="vendors" className="py-16 bg-gray-900 text-white relative">
+    <section
+      id="vendors"
+      className="py-16 bg-gray-900 text-white relative  overflow-hidden"
+    >
       {/* Toast */}
       <AnimatePresence>
         {toast.show && (

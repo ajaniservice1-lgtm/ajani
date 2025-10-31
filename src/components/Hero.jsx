@@ -110,12 +110,9 @@ const Hero = () => {
             {/* ✅ Re-animating CountUp */}
             <span className="text-[13px] flex gap-1 font-medium text-slate-600 justify-center md:justify-start">
               Trusted by{" "}
-              {hasAnimated && (
-                <CountUp end={2000} duration={2} separator="," />
-              )}
-              + locals •{" "}
-              {hasAnimated && <CountUp end={300} duration={2} />}
-              + vendors onboarded
+              {hasAnimated && <CountUp end={2000} duration={2} separator="," />}
+              + locals • {hasAnimated && <CountUp end={300} duration={2} />}+
+              vendors onboarded
             </span>
           </motion.div>
 

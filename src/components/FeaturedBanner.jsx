@@ -114,7 +114,7 @@ const FeaturedBanner = () => {
 
   if (loading) {
     return (
-      <section className="py-16 bg-gray-900 p-6 text-white font-rubik my-5">
+      <section className="py-16 bg-gray-900 p-6 text-white font-rubik my-5  overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p>Loading featured businesses...</p>
         </div>

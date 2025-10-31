@@ -90,13 +90,13 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               duration: 0.4,
             }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl w-full max-w-sm md:max-w-md p-6 shadow-lg font-sans mx-auto md:my-0"
+            className="bg-white rounded-2xl w-full max-w-sm md:max-w-md p-6 shadow-lg font-rubik font-bold mx-auto md:my-0"
           >
             {/* Tabs */}
             <div className="flex rounded-full overflow-hidden border border-blue-200 mb-4">
               <button
                 onClick={() => setActiveTab("signup")}
-                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                className={`flex-1 py-2 text-sm transition-colors ${
                   activeTab === "signup"
                     ? "bg-blue-50 text-blue-600 shadow-sm"
                     : "bg-white text-blue-900"
@@ -106,7 +106,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               </button>
               <button
                 onClick={() => setActiveTab("login")}
-                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                className={`flex-1 py-2 text-sm transition-colors ${
                   activeTab === "login"
                     ? "bg-blue-50 text-blue-900 shadow-sm"
                     : "bg-white text-blue-800"
@@ -116,7 +116,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               </button>
             </div>
 
-            <h2 className="text-xl font-bold text-gray-800 mb-1">
+            <h2 className="text-xl mb-1">
               {activeTab === "signup" ? "Create your account" : "Welcome back"}
             </h2>
             <p className="text-sm text-gray-500 mb-4">
@@ -133,7 +133,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
             <form onSubmit={handleSubmit} className="space-y-3">
               {/* Email */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 items-center gap-1">
+                <label className="block text-xs mb-1 flex items-center gap-1">
                   <CiMail className="text-xs" />
                   Email
                 </label>
@@ -149,7 +149,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
 
               {/* Password */}
               <div className="relative">
-                <label className="block text-xs font-medium text-gray-700 mb-1 items-center gap-1">
+                <label className="block text-xs mb-1 flex items-center gap-1">
                   <CiLock className="text-xs" />
                   Password
                 </label>
@@ -184,7 +184,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                     onChange={(e) => setAgreeToTerms(e.target.checked)}
                     className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                   />
-                  <label htmlFor="terms" className="text-xs text-gray-700">
+                  <label htmlFor="terms" className="text-xs">
                     I agree to the{" "}
                     <Link className="text-blue-600 underline" to="/privacypage">
                       Terms & Conditions
@@ -212,7 +212,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[rgb(0,6,90)] text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-[#0e1f45] disabled:opacity-70"
+                className="w-full bg-[rgb(0,6,90)] text-white py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 hover:bg-[#0e1f45] disabled:opacity-70"
               >
                 {loading ? (
                   "Processing..."
@@ -233,7 +233,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
-                className="w-full flex items-center justify-center gap-2 bg-[rgb(0,6,90)] text-white py-2.5 rounded-lg font-medium text-sm hover:bg-[#0e1f45]"
+                className="w-full flex items-center justify-center gap-2 bg-[rgb(0,6,90)] text-white py-2.5 rounded-lg text-sm hover:bg-[#0e1f45]"
               >
                 <FaGoogle className="text-lg" />
                 Continue with Google

@@ -4,7 +4,7 @@ import { FiUserPlus, FiEye, FiEyeOff } from "react-icons/fi";
 import { CiLogin, CiMail, CiLock } from "react-icons/ci";
 import { FaGoogle } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function AuthModal({ isOpen, onClose, onAuthToast }) {
   const [activeTab, setActiveTab] = useState("signup");
@@ -16,8 +16,16 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [unconfirmedEmail, setUnconfirmedEmail] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Handle form submit
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => setResendCooldown((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -34,7 +42,17 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
         }
 
         const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
+
+        if (error) {
+          if (error.status === 429) {
+            setError(
+              "Too many emails sent. Please wait a few minutes before trying again."
+            );
+          } else {
+            setError(error.message);
+          }
+          return;
+        }
 
         setSuccess("Check your email to confirm your account.");
         onAuthToast?.("Signup successful!");
@@ -50,6 +68,11 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               "Your email is not confirmed yet. Please check your inbox and click the verification link."
             );
             setUnconfirmedEmail(email);
+          } else if (
+            error.status === 429 ||
+            error.message.includes("rate limit")
+          ) {
+            setError("Too many login attempts. Please try again later.");
           } else {
             setError(error.message);
           }
@@ -67,7 +90,6 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
     }
   };
 
-  // Handle Google sign-in
   const handleGoogleSignIn = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -75,36 +97,47 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
     if (error) setError("Google sign-in failed. " + error.message);
   };
 
-  // Handle forgot password
   const handleForgotPassword = async () => {
     const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) setError(error.message);
-    else setSuccess("Password reset email sent!");
+    if (error) {
+      if (error.status === 429) {
+        setError("Too many password reset requests. Please try again later.");
+      } else {
+        setError(error.message);
+      }
+    } else {
+      setSuccess("Password reset email sent!");
+    }
   };
 
-  // Handle resending confirmation email
   const handleResendConfirmation = async () => {
-    if (!unconfirmedEmail) return;
+    if (!unconfirmedEmail || resendCooldown > 0) return;
+
     try {
       const { error } = await supabase.auth.signUp({
         email: unconfirmedEmail,
         password: "dummy-password",
       });
 
-      // Only treat real errors, ignore "User already registered"
       if (error && !error.message.includes("User already registered")) {
-        setError(error.message);
+        if (error.status === 429) {
+          setError(
+            "Too many confirmation emails sent. Please wait a few minutes."
+          );
+        } else {
+          setError(error.message);
+        }
         return;
       }
 
       setSuccess("Confirmation email resent! Check your inbox.");
+      setResendCooldown(60); // 60s cooldown
       setUnconfirmedEmail("");
     } catch (err) {
       setError(err.message || "Failed to resend confirmation email.");
     }
   };
 
-  // Reset form when modal opens or tab changes
   useEffect(() => {
     if (!isOpen) return;
     setEmail("");
@@ -113,6 +146,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
     setError("");
     setSuccess("");
     setUnconfirmedEmail("");
+    setResendCooldown(0);
   }, [isOpen, activeTab]);
 
   return (
@@ -168,7 +202,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 : "Sign in to your existing account."}
             </p>
 
-            {/* Error / Success messages */}
+            {/* Messages */}
             {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
             {success && (
               <p className="text-green-500 text-sm mb-2">{success}</p>
@@ -179,15 +213,17 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               <button
                 type="button"
                 onClick={handleResendConfirmation}
-                className="text-blue-600 text-xs underline mb-2"
+                disabled={resendCooldown > 0}
+                className="text-blue-600 text-xs underline mb-2 disabled:opacity-50"
               >
-                Resend confirmation email
+                {resendCooldown > 0
+                  ? `Resend available in ${resendCooldown}s`
+                  : "Resend confirmation email"}
               </button>
             )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-3">
-              {/* Email */}
               <div>
                 <label className="block text-xs mb-1 items-center gap-1">
                   <CiMail className="text-xs" />
@@ -203,7 +239,6 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 />
               </div>
 
-              {/* Password */}
               <div className="relative">
                 <label className="block text-xs mb-1 items-center gap-1">
                   <CiLock className="text-xs" />
@@ -230,7 +265,6 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 </button>
               </div>
 
-              {/* Terms Checkbox */}
               {activeTab === "signup" && (
                 <div className="flex items-start gap-2">
                   <input
@@ -253,7 +287,6 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 </div>
               )}
 
-              {/* Forgot password */}
               {activeTab === "login" && (
                 <button
                   type="button"
@@ -264,7 +297,6 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 </button>
               )}
 
-              {/* Submit button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -274,18 +306,15 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                   "Processing..."
                 ) : activeTab === "signup" ? (
                   <>
-                    <FiUserPlus className="text-base" />
-                    Sign Up
+                    <FiUserPlus className="text-base" /> Sign Up
                   </>
                 ) : (
                   <>
-                    <CiLogin className="text-base" />
-                    Log In
+                    <CiLogin className="text-base" /> Log In
                   </>
                 )}
               </button>
 
-              {/* Google Sign In */}
               <button
                 type="button"
                 onClick={handleGoogleSignIn}

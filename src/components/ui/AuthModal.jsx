@@ -15,12 +15,15 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState("");
 
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
+    setUnconfirmedEmail("");
 
     try {
       if (activeTab === "signup") {
@@ -29,8 +32,10 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
           setLoading(false);
           return;
         }
+
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+
         setSuccess("Check your email to confirm your account.");
         onAuthToast?.("Signup successful!");
       } else {
@@ -40,11 +45,11 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
         });
 
         if (error) {
-          // Custom error for unconfirmed email
           if (error.message.includes("Email not confirmed")) {
             setError(
               "Your email is not confirmed yet. Please check your inbox and click the verification link."
             );
+            setUnconfirmedEmail(email);
           } else {
             setError(error.message);
           }
@@ -62,7 +67,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
     }
   };
 
-
+  // Handle Google sign-in
   const handleGoogleSignIn = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -70,12 +75,36 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
     if (error) setError("Google sign-in failed. " + error.message);
   };
 
+  // Handle forgot password
   const handleForgotPassword = async () => {
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) setError(error.message);
     else setSuccess("Password reset email sent!");
   };
 
+  // Handle resending confirmation email
+  const handleResendConfirmation = async () => {
+    if (!unconfirmedEmail) return;
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: unconfirmedEmail,
+        password: "dummy-password",
+      });
+
+      // Only treat real errors, ignore "User already registered"
+      if (error && !error.message.includes("User already registered")) {
+        setError(error.message);
+        return;
+      }
+
+      setSuccess("Confirmation email resent! Check your inbox.");
+      setUnconfirmedEmail("");
+    } catch (err) {
+      setError(err.message || "Failed to resend confirmation email.");
+    }
+  };
+
+  // Reset form when modal opens or tab changes
   useEffect(() => {
     if (!isOpen) return;
     setEmail("");
@@ -83,6 +112,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
     setAgreeToTerms(false);
     setError("");
     setSuccess("");
+    setUnconfirmedEmail("");
   }, [isOpen, activeTab]);
 
   return (
@@ -138,11 +168,24 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 : "Sign in to your existing account."}
             </p>
 
+            {/* Error / Success messages */}
             {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
             {success && (
               <p className="text-green-500 text-sm mb-2">{success}</p>
             )}
 
+            {/* Resend confirmation */}
+            {unconfirmedEmail && (
+              <button
+                type="button"
+                onClick={handleResendConfirmation}
+                className="text-blue-600 text-xs underline mb-2"
+              >
+                Resend confirmation email
+              </button>
+            )}
+
+            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-3">
               {/* Email */}
               <div>

@@ -90,12 +90,13 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
-    if (error) setError("Google sign-in failed. " + error.message);
-  };
+const handleGoogleSignIn = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+  });
+  if (error) setError("Google sign-in failed. " + error.message);
+};
+
 
   const handleForgotPassword = async () => {
     const { error } = await supabase.auth.resetPasswordForEmail(email);

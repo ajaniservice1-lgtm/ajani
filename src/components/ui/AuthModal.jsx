@@ -164,7 +164,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 mt-2 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                  className="absolute inset-y-0 mt-7 right-3 flex items-center text-gray-500 hover:text-gray-700"
                 >
                   {showPassword ? (
                     <FiEyeOff className="text-lg" />

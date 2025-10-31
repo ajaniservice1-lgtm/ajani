@@ -133,7 +133,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
             <form onSubmit={handleSubmit} className="space-y-3">
               {/* Email */}
               <div>
-                <label className="block text-xs mb-1 flex items-center gap-1">
+                <label className="block text-xs mb-1 items-center gap-1">
                   <CiMail className="text-xs" />
                   Email
                 </label>
@@ -149,7 +149,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
 
               {/* Password */}
               <div className="relative">
-                <label className="block text-xs mb-1 flex items-center gap-1">
+                <label className="block text-xs mb-1 items-center gap-1">
                   <CiLock className="text-xs" />
                   Password
                 </label>

@@ -91,7 +91,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
         text: "Ajani is on training!!! Coming soon.",
       };
       setMessages((prev) => [...prev, errorMsg]);
-      toast.error("Failed to reach Ajani.");
+      // toast.error("Ajani is on training, coming soon.");
     } finally {
       setIsTyping(false);
     }

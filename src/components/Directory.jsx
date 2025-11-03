@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment, faStore, faCopy } from "@fortawesome/free-solid-svg-icons";
+import {
+  faComment,
+  faStore,
+  faCopy,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons"; // Added faStar
 import { motion } from "framer-motion";
 import { useAuth } from "../hook/useAuth";
 import AuthModal from "../components/ui/AuthModal";
-import ImageModal from "../components/ImageModal"; // Will be a simple modal (no portal)
+import ImageModal from "../components/ImageModal";
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
@@ -98,10 +103,6 @@ const useGoogleSheet = (sheetId, apiKey) => {
 };
 
 // ---------------- Motion Variants ----------------
-const headerItem = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-};
 const cardVariants = (index) => ({
   hidden: { opacity: 0, x: index % 2 === 0 ? -50 : 50, filter: "blur(4px)" },
   visible: {
@@ -112,12 +113,8 @@ const cardVariants = (index) => ({
   },
   hover: { y: -5, scale: 1.02, boxShadow: "0px 8px 20px rgba(0,0,0,0.15)" },
 });
-const paginationVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
 
-// ---------------- Image Carousel (no internal modal) ----------------
+// ---------------- Image Carousel ----------------
 const ImageCarousel = ({ card, onImageClick }) => {
   const images = getCardImages(card);
   const [index, setIndex] = useState(0);
@@ -197,13 +194,14 @@ const ImageCarousel = ({ card, onImageClick }) => {
 const Directory = () => {
   const { user, loading: authLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-  // Image modal state (lifted to Directory level)
   const [imageModal, setImageModal] = useState({
     isOpen: false,
     images: [],
     initialIndex: 0,
   });
+
+  // State for expanded descriptions (✅ Fixed Hook Rule)
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
@@ -465,13 +463,51 @@ const Directory = () => {
                     <div className="text-sm text-slate-600 mb-2">
                       <span>{item.area}</span> • <span>{item.category}</span>
                     </div>
-                    <p className="text-slate-700 text-sm mb-3 line-clamp-4">
-                      {item.short_desc}
+
+                    {/* Description with See More */}
+                    <p
+                      className={`text-slate-700 text-sm mb-3 ${
+                        expandedDescriptions[item.name || item.id]
+                          ? ""
+                          : "line-clamp-4"
+                      }`}
+                    >
+                      {item.short_desc || ""}
                     </p>
+                    {item.short_desc && item.short_desc.length > 150 && (
+                      <button
+                        onClick={() =>
+                          setExpandedDescriptions((prev) => ({
+                            ...prev,
+                            [item.name || item.id]: !prev[item.name || item.id],
+                          }))
+                        }
+                        className="text-blue-600 text-sm font-medium mb-3 hover:underline"
+                      >
+                        {expandedDescriptions[item.name || item.id]
+                          ? "See Less"
+                          : "See More..."}
+                      </button>
+                    )}
+
+                    {/* Star Rating */}
+                    {item.rating && (
+                      <div className="flex items-center mb-3">
+                        <FontAwesomeIcon
+                          icon={faStar}
+                          className="text-yellow-500 mr-1"
+                        />
+                        <span className="text-sm font-medium">
+                          {item.rating}
+                        </span>
+                      </div>
+                    )}
+
                     <div className="font-bold mb-2">
                       From ₦{formatPrice(item.price_from)}
                     </div>
 
+                    {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
                       {(item.tags ? item.tags.split(",") : []).map(
                         (tag, idx) => {
@@ -495,6 +531,7 @@ const Directory = () => {
                       )}
                     </div>
 
+                    {/* Show Contact */}
                     <div className="mt-auto flex gap-2">
                       {!showContact[item.name] ? (
                         <button

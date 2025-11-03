@@ -2,7 +2,6 @@ import React, { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
 
-
 const VendorForm = () => {
   const [formData, setFormData] = useState({
     businessName: "",
@@ -20,7 +19,6 @@ const VendorForm = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, type: "", message: "" });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-  
 
   const categoryMap = {
     accommodation: ["hotel", "guesthouse", "airbnb", "shortlet", "resort"],
@@ -233,7 +231,7 @@ const VendorForm = () => {
   return (
     <section
       id="vendors"
-      className="py-16 bg-gray-900 text-white relative  overflow-hidden"
+      className="py-16 bg-gray-900 text-white relative overflow-hidden"
     >
       {/* Toast */}
       <AnimatePresence>

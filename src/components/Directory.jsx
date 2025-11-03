@@ -345,7 +345,11 @@ const Directory = () => {
     );
 
   return (
-    <section ref={directoryRef} id="directory" className="bg-[#eef8fd]">
+    <section
+      ref={directoryRef}
+      id="directory"
+      className="bg-[#eef8fd]  overflow-hidden"
+    >
       <div className="max-w-7xl mx-auto px-5 py-12 font-rubik">
         {/* Header + Search */}
         <motion.div

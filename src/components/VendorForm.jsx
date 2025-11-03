@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { Link } from "react-router-dom";
+
 
 const VendorForm = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +19,8 @@ const VendorForm = () => {
   const [imageURL, setImageURL] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, type: "", message: "" });
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  
 
   const categoryMap = {
     accommodation: ["hotel", "guesthouse", "airbnb", "shortlet", "resort"],
@@ -599,7 +603,29 @@ const VendorForm = () => {
                     Click here for promotional and discount messages.
                   </label>
                 </div>
-
+                <div className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={agreeToTerms}
+                    onChange={(e) => setAgreeToTerms(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  <label
+                    htmlFor="terms"
+                    className="text-sm font-medium text-gray-200 my-1"
+                  >
+                    I agree to the{" "}
+                    <Link className="text-blue-600 underline" to="/privacypage">
+                      Terms & Conditions
+                    </Link>{" "}
+                    and{" "}
+                    <Link className="text-blue-600 underline" to="/privacypage">
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
                 <button
                   type="submit"
                   className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"

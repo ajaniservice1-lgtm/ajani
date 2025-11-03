@@ -12,21 +12,33 @@ const FALLBACK_IMAGES = {
   "food-default":
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
   "hotel-default":
-    "  https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80",
+    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80",
   "event-default":
-    "  https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&q=80",
-  default: "  https://via.placeholder.com/300x200?text=No+Image",
+    "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&q=80",
+  default: "https://via.placeholder.com/300x200?text=No+Image",
 };
 
-const getCardImage = (item) => {
-  const sheetImage = (item["image url"] || "").trim();
-  if (sheetImage && sheetImage.startsWith("http")) return sheetImage;
-  if (item.category?.includes("food")) return FALLBACK_IMAGES["food-default"];
-  if (item.category?.includes("hotel")) return FALLBACK_IMAGES["hotel-default"];
-  if (item.category?.includes("event")) return FALLBACK_IMAGES["event-default"];
-  return FALLBACK_IMAGES["default"];
+// ✅ NEW: Function to extract multiple images from comma-separated cell
+const getCardImages = (item) => {
+  const raw = item["image url"] || "";
+  const urls = raw
+    .split(",")
+    .map((u) => u.trim())
+    .filter((u) => u.startsWith("http"));
+
+  if (urls.length > 0) return urls;
+
+  // fallback by category
+  if (item.category?.toLowerCase().includes("food"))
+    return [FALLBACK_IMAGES["food-default"]];
+  if (item.category?.toLowerCase().includes("hotel"))
+    return [FALLBACK_IMAGES["hotel-default"]];
+  if (item.category?.toLowerCase().includes("event"))
+    return [FALLBACK_IMAGES["event-default"]];
+  return [FALLBACK_IMAGES.default];
 };
 
+// Helper for formatting price tags
 const formatTags = (tagString) => {
   if (!tagString) return [];
   return tagString.split(",").map((tag) => {
@@ -36,6 +48,7 @@ const formatTags = (tagString) => {
   });
 };
 
+// Format phone numbers nicely
 const formatPhoneNumber = (number) => {
   if (!number) return "";
   const digits = number.replace(/\D/g, "");
@@ -51,6 +64,7 @@ const formatPhoneNumber = (number) => {
   return digits;
 };
 
+// Expand/collapse long text
 const TruncatedText = ({ text, maxLines = 4 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   if (!text || text.length < 200)
@@ -106,24 +120,89 @@ const titleVariant = {
   }),
 };
 
+// ✅ New carousel component for sliding images
+const ImageCarousel = ({ card }) => {
+  const images = getCardImages(card);
+  const [index, setIndex] = useState(0);
+  const timeoutRef = useRef(null);
+  const [dragStart, setDragStart] = useState(0);
+
+  // Auto-scroll every 4s
+  useEffect(() => {
+    timeoutRef.current = setTimeout(
+      () => setIndex((prev) => (prev + 1) % images.length),
+      4000
+    );
+    return () => clearTimeout(timeoutRef.current);
+  }, [index, images.length]);
+
+  // Swipe support
+  const handleTouchStart = (e) => setDragStart(e.touches[0].clientX);
+  const handleTouchEnd = (e) => {
+    const diff = e.changedTouches[0].clientX - dragStart;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        setIndex((prev) => (prev - 1 + images.length) % images.length);
+      } else {
+        setIndex((prev) => (prev + 1) % images.length);
+      }
+    }
+  };
+
+  return (
+    <div
+      className="relative w-full h-44 md:h-48 lg:h-52 overflow-hidden rounded-xl"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <motion.div
+        className="flex h-full"
+        animate={{ x: `-${index * 100}%` }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+      >
+        {images.map((img, i) => (
+          <img
+            key={i}
+            src={img}
+            alt={`slide-${i}`}
+            className="w-full h-full flex-shrink-0 object-cover"
+            onError={(e) =>
+              (e.currentTarget.src =
+                "https://via.placeholder.com/300x200?text=No+Image")
+            }
+          />
+        ))}
+      </motion.div>
+
+      {/* Dots indicator */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIndex(i)}
+            className={`w-2.5 h-2.5 rounded-full transition-all ${
+              i === index ? "bg-blue-600 scale-110" : "bg-gray-300"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ---------------- Card Component ----------------
-const Card = ({ card, index, onShowContact, onAuthToast }) => {
-  const { user, loading: authLoading } = useAuth(); // ✅ Get auth state inside card
+const Card = ({ card, index, onShowContact }) => {
+  const { user, loading: authLoading } = useAuth();
   const ref = useRef(null);
   const inView = useInView(ref, { once: false, margin: "-100px" });
-
   const [showContact, setShowContact] = useState(false);
 
   const handleShowContact = () => {
     if (authLoading) return;
-
     if (!user) {
-      // Guest → trigger global modal
       onShowContact();
       return;
     }
-
-    // Logged-in user → show contact
     setShowContact(true);
     setTimeout(() => setShowContact(false), 20000);
   };
@@ -142,21 +221,16 @@ const Card = ({ card, index, onShowContact, onAuthToast }) => {
       className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm"
     >
       <h3 className="font-bold text-lg mb-2 text-slate-800">{card.name}</h3>
+
+      {/* ✅ Image carousel added here */}
       <motion.div
-        className="w-full h-40 overflow-hidden rounded mb-3"
-        whileHover={{ scale: 1.03 }}
+        className="relative w-full overflow-hidden rounded-lg mb-3 select-none"
+        whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
       >
-        <img
-          src={getCardImage(card)}
-          alt={card.name}
-          className="w-full h-full object-cover"
-          onError={(e) =>
-            (e.currentTarget.src =
-              "  https://via.placeholder.com/300x200?text=No+Image")
-          }
-        />
+        <ImageCarousel card={card} />
       </motion.div>
+
       <TruncatedText text={card.short_desc} maxLines={4} />
       <div className="flex flex-wrap gap-2 mb-6">
         {formatTags(card.tags).map((tag, j) => (
@@ -211,7 +285,7 @@ const AiTopPicks = ({ onAuthToast }) => {
     .slice(0, 3);
 
   const [showContent, setShowContent] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // ✅ Global modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 4000);
@@ -243,13 +317,13 @@ const AiTopPicks = ({ onAuthToast }) => {
     <>
       <motion.section
         id="toppicks"
-        className="bg-[#eef8fd] py-16 font-rubik  overflow-hidden"
+        className="bg-[#eef8fd] py-16 font-rubik overflow-hidden"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: false, amount: 0.15 }}
         variants={sectionVariant}
       >
-        <div className="max-w-7xl mx-auto px-5  overflow-hidden">
+        <div className="max-w-7xl mx-auto px-5 overflow-hidden">
           <motion.div className="text-center mb-12">
             <motion.h2
               className="text-3xl font-bold mb-2"
@@ -273,7 +347,7 @@ const AiTopPicks = ({ onAuthToast }) => {
                 key={card.id || i}
                 card={card}
                 index={i}
-                onShowContact={() => setIsModalOpen(true)} // ✅ Trigger global modal
+                onShowContact={() => setIsModalOpen(true)}
                 onAuthToast={onAuthToast}
               />
             ))}

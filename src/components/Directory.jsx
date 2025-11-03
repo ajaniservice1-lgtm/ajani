@@ -1,66 +1,77 @@
+// src/pages/Directory.jsx (or wherever you keep it)
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faStore, faCopy } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 import { useAuth } from "../hook/useAuth";
-import AuthModal from "../components/ui/AuthModal"; // ✅ Adjust path if needed
+import AuthModal from "../components/ui/AuthModal";
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
   str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
 const FALLBACK_IMAGES = {
-  1: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-  2: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-  3: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+  1: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80",
+  2: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&q=80",
   "hotel-default":
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
   "transport-default":
     "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=80",
   "event-default":
     "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&q=80",
+  default: "https://via.placeholder.com/300x200?text=No+Image",
 };
 
+// If you still want a single fallback getter (not used by carousel)
 const getFallbackImage = (item) => {
   const sheetImage = (item["image url"] || "").trim();
   if (sheetImage && sheetImage.startsWith("http")) return sheetImage;
   if (item.id && FALLBACK_IMAGES[item.id]) return FALLBACK_IMAGES[item.id];
-  if (item.category?.includes("hotel")) return FALLBACK_IMAGES["hotel-default"];
-  if (item.category?.includes("ridehail"))
+  if (item.category?.toLowerCase().includes("hotel"))
+    return FALLBACK_IMAGES["hotel-default"];
+  if (item.category?.toLowerCase().includes("ridehail"))
     return FALLBACK_IMAGES["transport-default"];
-  if (item.category?.includes("event")) return FALLBACK_IMAGES["event-default"];
-  return "https://via.placeholder.com/300x200?text=No+Image";
+  if (item.category?.toLowerCase().includes("event"))
+    return FALLBACK_IMAGES["event-default"];
+  return FALLBACK_IMAGES.default;
 };
 
-// Format WhatsApp numbers neatly
+// ✅ NEW: parse comma-separated urls from "image url" cell
+const getCardImages = (item) => {
+  const raw = item["image url"] || "";
+  const urls = raw
+    .split(",")
+    .map((u) => u.trim())
+    .filter((u) => u && (u.startsWith("http://") || u.startsWith("https://")));
+
+  if (urls.length > 0) return urls;
+
+  // category-based fallback single image (keeps carousel happy with 1 image)
+  if (item.category?.toLowerCase().includes("hotel"))
+    return [FALLBACK_IMAGES["hotel-default"]];
+  if (item.category?.toLowerCase().includes("ridehail"))
+    return [FALLBACK_IMAGES["transport-default"]];
+  if (item.category?.toLowerCase().includes("event"))
+    return [FALLBACK_IMAGES["event-default"]];
+  return [FALLBACK_IMAGES.default];
+};
+
 const formatWhatsapp = (number) => {
   if (!number) return "";
   const digits = number.replace(/\D/g, "");
-  let formatted = digits;
-  if (digits.length === 10) {
-    formatted = `+234 ${digits.slice(1, 4)} ${digits.slice(
-      4,
+  // common Nigeria formats: 080xxxxxxxx (11), 23480xxxxxxxxx (13) etc
+  if (digits.length === 11 && digits.startsWith("0")) {
+    return `+234 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(
       7
-    )} ${digits.slice(7, 11)}`;
-  } else if (digits.length === 11 && digits.startsWith("0")) {
-    formatted = `+234 ${digits.slice(1, 4)} ${digits.slice(
-      4,
-      7
-    )} ${digits.slice(7, 11)}`;
-  } else if (digits.length === 13 && digits.startsWith("234")) {
-    formatted = `+234 ${digits.slice(3, 6)} ${digits.slice(
-      6,
-      9
-    )} ${digits.slice(9, 13)}`;
-  } else if (digits.length === 14 && digits.startsWith("2340")) {
-    formatted = `+234 ${digits.slice(4, 7)} ${digits.slice(
-      7,
-      10
-    )} ${digits.slice(10, 14)}`;
-  } else {
-    formatted = `+${digits}`;
+    )}`;
   }
-  return formatted;
+  if (digits.length === 13 && digits.startsWith("234")) {
+    return `+234 ${digits.slice(3, 6)} ${digits.slice(6, 9)} ${digits.slice(
+      9
+    )}`;
+  }
+  // fallback: return with plus
+  return `+${digits}`;
 };
 
 // ---------------- Custom Hook ----------------
@@ -72,74 +83,36 @@ const useGoogleSheet = (sheetId, apiKey) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`
-        );
-        const result = await response.json();
-        if (result.values && result.values.length > 1) {
-          const headers = result.values[0];
-          const rows = result.values.slice(1);
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json.values && json.values.length > 1) {
+          const headers = json.values[0];
+          const rows = json.values.slice(1);
           const formatted = rows.map((row) => {
             const obj = {};
-            headers.forEach((header, i) => (obj[header] = row[i] || ""));
+            headers.forEach((h, i) => (obj[h] = row[i] || ""));
             return obj;
           });
           setData(formatted);
+        } else {
+          setData([]);
         }
       } catch (err) {
-        console.error(err);
-        setError(
-          "⚠️ Failed to load Directory data. Check your internet connection."
-        );
+        console.error("Google Sheets fetch error:", err);
+        setError("⚠️ Failed to load Directory data.");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    if (sheetId && apiKey) fetchData();
+    else {
+      setError("Missing SHEET_ID or API_KEY");
+      setLoading(false);
+    }
   }, [sheetId, apiKey]);
 
   return { data, loading, error };
-};
-
-// ---------------- TruncatedText ----------------
-const TruncatedText = ({ text, maxLines = 4 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  if (!text || text.length < 200)
-    return <p className="text-slate-700 text-sm mb-3">{text}</p>;
-
-  return (
-    <div className="relative">
-      <p
-        className={`text-slate-700 text-sm mb-3 ${
-          isExpanded ? "" : "line-clamp-4"
-        }`}
-        style={{
-          WebkitLineClamp: isExpanded ? "unset" : maxLines,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          display: "-webkit-box",
-        }}
-      >
-        {text}
-      </p>
-      {!isExpanded ? (
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="text-[#3276ee] text-sm font-medium hover:underline mt-1 block"
-        >
-          See More...
-        </button>
-      ) : (
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="text-blue-600 text-sm font-medium hover:underline mt-1 block"
-        >
-          See Less
-        </button>
-      )}
-    </div>
-  );
 };
 
 // ---------------- Motion Variants ----------------
@@ -162,15 +135,97 @@ const paginationVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
+// ---------------- Image Carousel ----------------
+const ImageCarousel = ({ card }) => {
+  const images = getCardImages(card);
+  const [index, setIndex] = useState(0);
+  const timeoutRef = useRef(null);
+  const [paused, setPaused] = useState(false);
+  const [dragStart, setDragStart] = useState(0);
+
+  // Auto-slide (pauses when `paused` true)
+  useEffect(() => {
+    if (paused) return;
+    timeoutRef.current = setTimeout(
+      () => setIndex((prev) => (prev + 1) % images.length),
+      4000
+    );
+    return () => clearTimeout(timeoutRef.current);
+  }, [index, paused, images.length]);
+
+  const handleMouseEnter = () => setPaused(true);
+  const handleMouseLeave = () => setPaused(false);
+
+  const handleTouchStart = (e) => {
+    setPaused(true);
+    setDragStart(e.touches[0].clientX);
+  };
+  const handleTouchEnd = (e) => {
+    const diff = e.changedTouches[0].clientX - dragStart;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) setIndex((p) => (p - 1 + images.length) % images.length);
+      else setIndex((p) => (p + 1) % images.length);
+    }
+    setPaused(false);
+  };
+
+  return (
+    <div
+      className="relative w-full h-44 md:h-52 overflow-hidden rounded-t-xl bg-slate-100"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <motion.div
+        className="flex h-full"
+        animate={{ x: `-${index * 100}%` }}
+        transition={{ duration: 0.65, ease: "easeInOut" }}
+      >
+        {images.map((img, i) => (
+          <img
+            key={i}
+            src={img}
+            alt={`${card.name || "image"}-${i}`}
+            className="w-full h-full flex-shrink-0 object-cover"
+            onError={(e) => (e.currentTarget.src = FALLBACK_IMAGES.default)}
+          />
+        ))}
+      </motion.div>
+
+      {/* Dots (overlay) */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIndex(i)}
+            className={`w-2.5 h-2.5 rounded-full transition-all ${
+              i === index ? "bg-white/90 scale-110 shadow" : "bg-white/50"
+            }`}
+            aria-label={`Go to slide ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ---------------- Directory Component ----------------
 const Directory = () => {
   const { user, loading: authLoading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Replace with your sheet ID & API key
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-  const { data: listings, loading, error } = useGoogleSheet(SHEET_ID, API_KEY);
-  const directoryRef = useRef(null);
 
+  const {
+    data: listings = [],
+    loading,
+    error,
+  } = useGoogleSheet(SHEET_ID, API_KEY);
+
+  const directoryRef = useRef(null);
   const [showContact, setShowContact] = useState({});
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
@@ -178,31 +233,17 @@ const Directory = () => {
   const [subCategory, setSubCategory] = useState("");
   const [area, setArea] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
+  const [itemsPerPage, setItemsPerPage] = useState(3);
 
-  const handleShowContact = (itemName) => {
-    if (authLoading) return;
-
-    if (!user) {
-      setIsModalOpen(true); // Open login modal for guests
-      return;
-    }
-
-    // For logged-in users: show contact
-    setShowContact((prev) => ({ ...prev, [itemName]: true }));
-    setTimeout(() => {
-      setShowContact((prev) => ({ ...prev, [itemName]: false }));
-    }, 20000);
-  };
-
-  // ✅ Auto-show contact after login (optional but smooth)
+  // responsive items per page
   useEffect(() => {
-    if (user && isModalOpen) {
-      setIsModalOpen(false);
-      // Optionally show a toast: onAuthToast("Now you can view contact details!");
-    }
-  }, [user, isModalOpen]);
+    const check = () => setItemsPerPage(window.innerWidth >= 1024 ? 6 : 3);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
+  // filters: compute options
   const areas = [
     ...new Set(listings.map((i) => i.area).filter(Boolean)),
   ].sort();
@@ -220,82 +261,107 @@ const Directory = () => {
     ? [
         ...new Set(
           listings
-            .filter(
-              (i) =>
-                capitalizeFirst((i.category?.split(".") || [])[0]) ===
-                mainCategory
-            )
-            .map(
-              (i) =>
-                capitalizeFirst((i.category?.split(".") || [])[1]) ||
-                capitalizeFirst(i.category)
-            )
+            .filter((i) => {
+              const parts = i.category?.split(".") || [];
+              return capitalizeFirst(parts[0]) === mainCategory;
+            })
+            .map((i) => {
+              const parts = i.category?.split(".") || [];
+              return parts[1]
+                ? capitalizeFirst(parts[1])
+                : capitalizeFirst(i.category);
+            })
             .filter(Boolean)
         ),
       ]
     : [];
 
+  // apply filters & search
   useEffect(() => {
     const result = listings.filter((i) => {
+      const q = search.trim().toLowerCase();
       const matchesSearch =
-        i.name?.toLowerCase().includes(search.toLowerCase()) ||
-        i.short_desc?.toLowerCase().includes(search.toLowerCase()) ||
-        i.tags?.toLowerCase().includes(search.toLowerCase());
+        !q ||
+        i.name?.toLowerCase().includes(q) ||
+        i.short_desc?.toLowerCase().includes(q) ||
+        i.tags?.toLowerCase().includes(q);
+
       const catParts = i.category?.split(".") || [];
       const mainCat =
         capitalizeFirst(catParts[0]) || capitalizeFirst(i.category);
       const subCat = catParts[1] ? capitalizeFirst(catParts[1]) : mainCat;
+
       const matchesMain = mainCategory ? mainCat === mainCategory : true;
       const matchesSub = subCategory ? subCat === subCategory : true;
       const matchesArea = area ? i.area === area : true;
+
       return matchesSearch && matchesMain && matchesSub && matchesArea;
     });
     setFiltered(result);
     setCurrentPage(1);
   }, [listings, search, mainCategory, subCategory, area]);
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filtered.slice(startIndex, startIndex + itemsPerPage);
-  const formatPrice = (n) => (n ? n.toLocaleString() : "–");
+
+  const formatPrice = (n) => (n ? Number(n).toLocaleString() : "–");
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
     directoryRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleShowContact = (itemName) => {
+    if (authLoading) return;
+    if (!user) {
+      setIsModalOpen(true);
+      return;
+    }
+    setShowContact((prev) => ({ ...prev, [itemName]: true }));
+    setTimeout(
+      () => setShowContact((prev) => ({ ...prev, [itemName]: false })),
+      20000
+    );
+  };
+
+  useEffect(() => {
+    if (user && isModalOpen) setIsModalOpen(false);
+  }, [user, isModalOpen]);
+
   if (loading)
     return (
-      <div className="max-w-7xl mx-auto px-5 py-12 font-rubik text-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-blue-500 mx-auto"></div>
+      <div className="max-w-7xl mx-auto px-5 py-12 text-center font-rubik">
+        <div className="animate-spin h-10 w-10 border-t-2 border-blue-500 rounded-full mx-auto"></div>
         <p className="mt-4">Loading directory...</p>
       </div>
     );
+
   if (error)
     return (
-      <div className="max-w-7xl mx-auto px-5 py-12 font-rubik text-center text-red-500">
+      <div className="max-w-7xl mx-auto px-5 py-12 text-center text-red-500 font-rubik">
         {error}
       </div>
     );
 
   return (
     <section ref={directoryRef} id="directory" className="bg-[#eef8fd]">
-      <div className="max-w-7xl mx-auto px-5 py-12 font-rubik  overflow-hidden">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <motion.div
-            whileInView="visible"
-            initial="hidden"
-            viewport={{ once: false }}
-            variants={headerItem}
-          >
-            <motion.h2 className="text-3xl font-bold">
-              Full Business Directory
-            </motion.h2>
-            <motion.p className="text-slate-600 mt-1">
+      <div className="max-w-7xl mx-auto px-5 py-12 font-rubik">
+        {/* Header + Search */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: false }}
+          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
+        >
+          <div>
+            <h2 className="text-3xl font-bold">Full Business Directory</h2>
+            <p className="text-slate-600 mt-1 text-sm">
               Browse all verified businesses in Ibadan
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
+
           <div className="relative w-full md:w-80">
             <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
             <input
@@ -303,15 +369,21 @@ const Directory = () => {
               placeholder="Search businesses or items..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-        </div>
-
+        </motion.div>
         {/* Filters + Cards + Pagination */}
         <div className="bg-white p-6 rounded-xl border border-slate-200">
           {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: false }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+          >
+            {/* Main Category */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Main Category
@@ -332,6 +404,8 @@ const Directory = () => {
                 ))}
               </select>
             </div>
+
+            {/* Subcategory */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Subcategory
@@ -350,6 +424,8 @@ const Directory = () => {
                 ))}
               </select>
             </div>
+
+            {/* Area */}
             <div>
               <label className="block text-sm font-medium mb-1">Area</label>
               <select
@@ -365,66 +441,66 @@ const Directory = () => {
                 ))}
               </select>
             </div>
-          </div>
+          </motion.div>
 
           {/* Cards */}
           {currentItems.length === 0 ? (
             <div className="text-center py-12 border border-dashed border-slate-300 rounded-lg text-slate-500">
-              <i className="fas fa-search text-4xl mb-4 block text-slate-400"></i>
+              <i className="fas fa-search text-4xl mb-4 block text-slate-400" />
               <h4 className="font-semibold mb-2">No results found</h4>
               <p>Try adjusting your filters or search term</p>
             </div>
           ) : (
             <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-              {currentItems.map((item, index) => (
+              {currentItems.map((item, i) => (
                 <motion.div
-                  key={`${item.id || item.name}-${currentPage}`}
-                  variants={cardVariants(index)}
-                  whileHover="hover"
-                  whileInView="visible"
+                  key={`${item.id || item.name}-${currentPage}-${i}`}
+                  variants={cardVariants(i)}
                   initial="hidden"
+                  whileInView="visible"
+                  whileHover="hover"
                   viewport={{ once: false }}
                   className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow flex flex-col h-full"
                 >
-                  <img
-                    src={getFallbackImage(item)}
-                    alt={item.name || "Business"}
-                    className="w-full h-44 object-cover bg-slate-100"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/300x200?text=Image+Not+Available";
-                    }}
-                  />
+                  {/* Carousel */}
+                  <ImageCarousel card={item} />
+
                   <div className="p-4 flex flex-col flex-grow">
                     <h3 className="font-bold text-lg mb-1">{item.name}</h3>
                     <div className="text-sm text-slate-600 mb-2">
                       <span>{item.area}</span> • <span>{item.category}</span>
                     </div>
-                    <TruncatedText text={item.short_desc} maxLines={4} />
+
+                    <p className="text-slate-700 text-sm mb-3 line-clamp-4">
+                      {item.short_desc}
+                    </p>
+
                     <div className="font-bold mb-2">
                       From ₦{formatPrice(item.price_from)}
                     </div>
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {(item.tags ? item.tags.split(",") : []).map((tag, i) => {
-                        const [name, price] = tag.trim().split(":");
-                        return price ? (
-                          <span
-                            key={i}
-                            className="bg-[#E6F2FF] text-blue-700 px-3 py-1 rounded-lg text-sm font-medium"
-                          >
-                            {name} ₦{parseInt(price).toLocaleString()}
-                          </span>
-                        ) : (
-                          <span
-                            key={i}
-                            className="bg-gray-100 text-[#003366] px-3 py-1 rounded-lg text-sm"
-                          >
-                            {name}
-                          </span>
-                        );
-                      })}
+                      {(item.tags ? item.tags.split(",") : []).map(
+                        (tag, idx) => {
+                          const [name, price] = tag.trim().split(":");
+                          return price ? (
+                            <span
+                              key={idx}
+                              className="bg-[#E6F2FF] text-blue-700 px-3 py-1 rounded-lg text-sm font-medium"
+                            >
+                              {name} ₦{parseInt(price).toLocaleString()}
+                            </span>
+                          ) : (
+                            <span
+                              key={idx}
+                              className="bg-gray-100 text-[#003366] px-3 py-1 rounded-lg text-sm"
+                            >
+                              {name}
+                            </span>
+                          );
+                        }
+                      )}
                     </div>
 
                     {/* Show Contact */}
@@ -433,7 +509,7 @@ const Directory = () => {
                         <button
                           onClick={() => handleShowContact(item.name)}
                           disabled={authLoading}
-                          className="flex items-center gap-1 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-3 py-2 rounded text-sm font-medium flex-1 justify-center shadow-[0px_4px_18px_rgba(0,0,0,0.1)] border border-blue-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          className="flex-1 bg-[rgb(0,6,90)] text-white px-3 py-2 rounded text-sm font-medium hover:bg-[#0e1f45] flex items-center justify-center gap-2"
                         >
                           {authLoading ? (
                             <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -444,11 +520,9 @@ const Directory = () => {
                           )}
                         </button>
                       ) : (
-                        <div className="flex flex-1 items-center justify-between bg-green-100 px-3 py-2 rounded text-sm font-medium">
+                        <div className="flex-1 flex justify-between items-center bg-green-100 px-3 py-2 rounded text-sm font-medium">
                           <span>
-                            📞{" "}
-                            {formatWhatsapp(item.whatsapp) ||
-                              "No number available"}
+                            📞 {formatWhatsapp(item.whatsapp) || "N/A"}
                           </span>
                           <button
                             onClick={() => {
@@ -466,7 +540,7 @@ const Directory = () => {
 
                       <a
                         href="#vendors"
-                        className="flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-800 px-3 py-2 rounded text-sm font-medium justify-center"
+                        className="bg-slate-200 px-3 py-2 rounded text-sm flex items-center justify-center"
                       >
                         <FontAwesomeIcon icon={faStore} />
                       </a>
@@ -477,7 +551,7 @@ const Directory = () => {
             </motion.div>
           )}
 
-          {/* Auth Modal for Guests */}
+          {/* Auth Modal */}
           {isModalOpen && (
             <AuthModal
               isOpen={isModalOpen}
@@ -488,45 +562,66 @@ const Directory = () => {
             />
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
-            <motion.div
-              variants={paginationVariants}
-              whileInView="visible"
-              initial="hidden"
-              viewport={{ once: false }}
-              className="flex justify-center mt-8"
-            >
+            <motion.div className="flex justify-center mt-8 flex-wrap gap-2">
               {currentPage > 1 && (
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
-                  className="px-4 py-2 mx-1 rounded bg-[#172c69] hover:bg-[#19243b] duration-300 text-white"
+                  className="px-4 py-2 mx-1 rounded bg-[rgb(0,6,90)] hover:bg-[#0e265c] text-white"
                 >
                   Prev
                 </button>
               )}
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .slice(
-                  Math.max(0, currentPage - 1),
-                  Math.min(totalPages, currentPage + 2)
-                )
-                .map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-4 py-2 mx-1 rounded ${
-                      currentPage === page
-                        ? "bg-[rgb(0,6,90)] hover:bg-[#0e265c] duration-300 text-white"
-                        : "bg-slate-200 text-slate-800 hover:bg-slate-300"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+
+              {(() => {
+                const isMobile = window.innerWidth < 1024; // or use a state / hook for viewport width
+                if (isMobile) {
+                  const maxPagesToShow = 4;
+                  const pages = [];
+                  for (
+                    let p = 1;
+                    p <= Math.min(totalPages, maxPagesToShow);
+                    p++
+                  ) {
+                    pages.push(p);
+                  }
+                  return pages.map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-4 py-2 mx-1 rounded ${
+                        currentPage === page
+                          ? "bg-[rgb(0,6,90)] text-white"
+                          : "bg-slate-200 text-slate-800 hover:bg-slate-300"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ));
+                } else {
+                  return Array.from(
+                    { length: totalPages },
+                    (_, i) => i + 1
+                  ).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-4 py-2 mx-1 rounded ${
+                        currentPage === page
+                          ? "bg-[rgb(0,6,90)] text-white"
+                          : "bg-slate-200 text-slate-800 hover:bg-slate-300"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ));
+                }
+              })()}
+
               {currentPage < totalPages && (
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
-                  className="px-4 py-2 mx-1 rounded bg-[#172c69] hover:bg-[#19243b] duration-300 text-white"
+                  className="px-4 py-2 mx-1 rounded bg-[rgb(0,6,90)] hover:bg-[#0e265c] text-white"
                 >
                   Next
                 </button>

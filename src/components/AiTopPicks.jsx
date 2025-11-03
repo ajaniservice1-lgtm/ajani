@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faCopy } from "@fortawesome/free-solid-svg-icons";
 import AuthModal from "./ui/AuthModal";
 import { useAuth } from "../hook/useAuth";
+import ImageModal from "./ImageModal"; // ✅ Import ImageModal
 
 // Fallback images
 const FALLBACK_IMAGES = {
@@ -18,7 +19,6 @@ const FALLBACK_IMAGES = {
   default: "https://via.placeholder.com/300x200?text=No+Image",
 };
 
-// ✅ NEW: Function to extract multiple images from comma-separated cell
 const getCardImages = (item) => {
   const raw = item["image url"] || "";
   const urls = raw
@@ -28,7 +28,6 @@ const getCardImages = (item) => {
 
   if (urls.length > 0) return urls;
 
-  // fallback by category
   if (item.category?.toLowerCase().includes("food"))
     return [FALLBACK_IMAGES["food-default"]];
   if (item.category?.toLowerCase().includes("hotel"))
@@ -38,7 +37,6 @@ const getCardImages = (item) => {
   return [FALLBACK_IMAGES.default];
 };
 
-// Helper for formatting price tags
 const formatTags = (tagString) => {
   if (!tagString) return [];
   return tagString.split(",").map((tag) => {
@@ -48,7 +46,6 @@ const formatTags = (tagString) => {
   });
 };
 
-// Format phone numbers nicely
 const formatPhoneNumber = (number) => {
   if (!number) return "";
   const digits = number.replace(/\D/g, "");
@@ -64,7 +61,6 @@ const formatPhoneNumber = (number) => {
   return digits;
 };
 
-// Expand/collapse long text
 const TruncatedText = ({ text, maxLines = 4 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   if (!text || text.length < 200)
@@ -95,39 +91,13 @@ const TruncatedText = ({ text, maxLines = 4 }) => {
   );
 };
 
-// Animation variants
-const sectionVariant = {
-  hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: {
-      staggerChildren: 0.12,
-      when: "beforeChildren",
-      duration: 0.6,
-    },
-  },
-};
-
-const titleVariant = {
-  hidden: { opacity: 0, y: 18, filter: "blur(4px)" },
-  visible: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.6, delay: i * 0.08, ease: "easeOut" },
-  }),
-};
-
-// ✅ New carousel component for sliding images
-const ImageCarousel = ({ card }) => {
+// ---------------- Updated ImageCarousel ----------------
+const ImageCarousel = ({ card, onImageClick }) => {
   const images = getCardImages(card);
   const [index, setIndex] = useState(0);
   const timeoutRef = useRef(null);
   const [dragStart, setDragStart] = useState(0);
 
-  // Auto-scroll every 4s
   useEffect(() => {
     timeoutRef.current = setTimeout(
       () => setIndex((prev) => (prev + 1) % images.length),
@@ -136,7 +106,6 @@ const ImageCarousel = ({ card }) => {
     return () => clearTimeout(timeoutRef.current);
   }, [index, images.length]);
 
-  // Swipe support
   const handleTouchStart = (e) => setDragStart(e.touches[0].clientX);
   const handleTouchEnd = (e) => {
     const diff = e.changedTouches[0].clientX - dragStart;
@@ -151,9 +120,10 @@ const ImageCarousel = ({ card }) => {
 
   return (
     <div
-      className="relative w-full h-44 md:h-48 lg:h-52 overflow-hidden rounded-xl"
+      className="relative w-full h-44 md:h-48 lg:h-52 overflow-hidden rounded-xl cursor-pointer"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onClick={() => onImageClick(images, index)} // ✅ Trigger full-screen modal
     >
       <motion.div
         className="flex h-full"
@@ -166,20 +136,19 @@ const ImageCarousel = ({ card }) => {
             src={img}
             alt={`slide-${i}`}
             className="w-full h-full flex-shrink-0 object-cover"
-            onError={(e) =>
-              (e.currentTarget.src =
-                "https://via.placeholder.com/300x200?text=No+Image")
-            }
+            onError={(e) => (e.currentTarget.src = FALLBACK_IMAGES.default)}
           />
         ))}
       </motion.div>
 
-      {/* Dots indicator */}
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2">
         {images.map((_, i) => (
           <button
             key={i}
-            onClick={() => setIndex(i)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIndex(i);
+            }}
             className={`w-2.5 h-2.5 rounded-full transition-all ${
               i === index ? "bg-blue-600 scale-110" : "bg-gray-300"
             }`}
@@ -190,8 +159,7 @@ const ImageCarousel = ({ card }) => {
   );
 };
 
-// ---------------- Card Component ----------------
-const Card = ({ card, index, onShowContact }) => {
+const Card = ({ card, index, onShowContact, onImageClick }) => {
   const { user, loading: authLoading } = useAuth();
   const ref = useRef(null);
   const inView = useInView(ref, { once: false, margin: "-100px" });
@@ -222,13 +190,12 @@ const Card = ({ card, index, onShowContact }) => {
     >
       <h3 className="font-bold text-lg mb-2 text-slate-800">{card.name}</h3>
 
-      {/* ✅ Image carousel added here */}
       <motion.div
         className="relative w-full overflow-hidden rounded-lg mb-3 select-none"
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
       >
-        <ImageCarousel card={card} />
+        <ImageCarousel card={card} onImageClick={onImageClick} />
       </motion.div>
 
       <TruncatedText text={card.short_desc} maxLines={4} />
@@ -274,7 +241,6 @@ const Card = ({ card, index, onShowContact }) => {
   );
 };
 
-// ---------------- AiTopPicks Component ----------------
 const AiTopPicks = ({ onAuthToast }) => {
   const SHEET_ID = import.meta.env.VITE_SHEET_ID;
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
@@ -286,6 +252,11 @@ const AiTopPicks = ({ onAuthToast }) => {
 
   const [showContent, setShowContent] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [imageModal, setImageModal] = useState({
+    isOpen: false,
+    images: [],
+    initialIndex: 0,
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 4000);
@@ -348,14 +319,16 @@ const AiTopPicks = ({ onAuthToast }) => {
                 card={card}
                 index={i}
                 onShowContact={() => setIsModalOpen(true)}
-                onAuthToast={onAuthToast}
+                onImageClick={(images, index) =>
+                  setImageModal({ isOpen: true, images, initialIndex: index })
+                }
               />
             ))}
           </div>
         </div>
       </motion.section>
 
-      {/* Global Auth Modal */}
+      {/* Auth Modal */}
       {isModalOpen && (
         <AuthModal
           isOpen={isModalOpen}
@@ -363,8 +336,46 @@ const AiTopPicks = ({ onAuthToast }) => {
           onAuthToast={onAuthToast}
         />
       )}
+
+      {/* ✅ Full-Screen Image Modal */}
+      {imageModal.isOpen && (
+        <ImageModal
+          images={imageModal.images}
+          initialIndex={imageModal.initialIndex}
+          onClose={() =>
+            setImageModal({ isOpen: false, images: [], initialIndex: 0 })
+          }
+          item={imageModal.item} // ✅ Pass the current listing item
+          onAuthToast={(msg) => console.log("Auth toast:", msg)} // or your handler
+        />
+      )}
     </>
   );
+};
+
+// Motion variants (kept at bottom for clarity)
+const sectionVariant = {
+  hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      staggerChildren: 0.12,
+      when: "beforeChildren",
+      duration: 0.6,
+    },
+  },
+};
+
+const titleVariant = {
+  hidden: { opacity: 0, y: 18, filter: "blur(4px)" },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.6, delay: i * 0.08, ease: "easeOut" },
+  }),
 };
 
 export default AiTopPicks;

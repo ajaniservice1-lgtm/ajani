@@ -104,14 +104,31 @@ const useGoogleSheet = (sheetId, apiKey) => {
 
 // ---------------- Motion Variants ----------------
 const cardVariants = (index) => ({
-  hidden: { opacity: 0, x: index % 2 === 0 ? -50 : 50, filter: "blur(4px)" },
+  hidden: {
+    opacity: 0,
+    y: 30,
+    filter: "blur(4px)",
+  },
   visible: {
     opacity: 1,
-    x: 0,
+    y: 0,
     filter: "blur(0px)",
-    transition: { duration: 0.5 },
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+      delay: index * 0.05,
+    },
   },
-  hover: { y: -5, scale: 1.02, boxShadow: "0px 8px 20px rgba(0,0,0,0.15)" },
+  hover: {
+    y: -8,
+    scale: 1.025,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 20,
+      mass: 0.8,
+    },
+  },
 });
 
 // ---------------- Image Carousel ----------------
@@ -194,11 +211,12 @@ const ImageCarousel = ({ card, onImageClick }) => {
 const Directory = () => {
   const { user, loading: authLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [imageModal, setImageModal] = useState({
-    isOpen: false,
-    images: [],
-    initialIndex: 0,
-  });
+ const [imageModal, setImageModal] = useState({
+  isOpen: false,
+  images: [],
+  initialIndex: 0,
+  item: null, // ✅ Add this
+});
 
   // State for expanded descriptions (✅ Fixed Hook Rule)
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
@@ -454,6 +472,7 @@ const Directory = () => {
                         isOpen: true,
                         images,
                         initialIndex: index,
+                        item, // ✅ Include the full item
                       })
                     }
                   />
@@ -598,6 +617,8 @@ const Directory = () => {
               onClose={() =>
                 setImageModal({ isOpen: false, images: [], initialIndex: 0 })
               }
+              item={imageModal.item} // ✅ Pass the current listing item
+              onAuthToast={(msg) => console.log("Auth toast:", msg)} // or your handler
             />
           )}
 

@@ -1,10 +1,10 @@
-// src/pages/Directory.jsx (or wherever you keep it)
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faStore, faCopy } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 import { useAuth } from "../hook/useAuth";
 import AuthModal from "../components/ui/AuthModal";
+import ImageModal from "../components/ImageModal"; // Will be a simple modal (no portal)
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
@@ -22,21 +22,6 @@ const FALLBACK_IMAGES = {
   default: "https://via.placeholder.com/300x200?text=No+Image",
 };
 
-// If you still want a single fallback getter (not used by carousel)
-const getFallbackImage = (item) => {
-  const sheetImage = (item["image url"] || "").trim();
-  if (sheetImage && sheetImage.startsWith("http")) return sheetImage;
-  if (item.id && FALLBACK_IMAGES[item.id]) return FALLBACK_IMAGES[item.id];
-  if (item.category?.toLowerCase().includes("hotel"))
-    return FALLBACK_IMAGES["hotel-default"];
-  if (item.category?.toLowerCase().includes("ridehail"))
-    return FALLBACK_IMAGES["transport-default"];
-  if (item.category?.toLowerCase().includes("event"))
-    return FALLBACK_IMAGES["event-default"];
-  return FALLBACK_IMAGES.default;
-};
-
-// ✅ NEW: parse comma-separated urls from "image url" cell
 const getCardImages = (item) => {
   const raw = item["image url"] || "";
   const urls = raw
@@ -46,7 +31,6 @@ const getCardImages = (item) => {
 
   if (urls.length > 0) return urls;
 
-  // category-based fallback single image (keeps carousel happy with 1 image)
   if (item.category?.toLowerCase().includes("hotel"))
     return [FALLBACK_IMAGES["hotel-default"]];
   if (item.category?.toLowerCase().includes("ridehail"))
@@ -59,7 +43,6 @@ const getCardImages = (item) => {
 const formatWhatsapp = (number) => {
   if (!number) return "";
   const digits = number.replace(/\D/g, "");
-  // common Nigeria formats: 080xxxxxxxx (11), 23480xxxxxxxxx (13) etc
   if (digits.length === 11 && digits.startsWith("0")) {
     return `+234 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(
       7
@@ -70,7 +53,6 @@ const formatWhatsapp = (number) => {
       9
     )}`;
   }
-  // fallback: return with plus
   return `+${digits}`;
 };
 
@@ -135,15 +117,14 @@ const paginationVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-// ---------------- Image Carousel ----------------
-const ImageCarousel = ({ card }) => {
+// ---------------- Image Carousel (no internal modal) ----------------
+const ImageCarousel = ({ card, onImageClick }) => {
   const images = getCardImages(card);
   const [index, setIndex] = useState(0);
   const timeoutRef = useRef(null);
   const [paused, setPaused] = useState(false);
   const [dragStart, setDragStart] = useState(0);
 
-  // Auto-slide (pauses when `paused` true)
   useEffect(() => {
     if (paused) return;
     timeoutRef.current = setTimeout(
@@ -155,7 +136,6 @@ const ImageCarousel = ({ card }) => {
 
   const handleMouseEnter = () => setPaused(true);
   const handleMouseLeave = () => setPaused(false);
-
   const handleTouchStart = (e) => {
     setPaused(true);
     setDragStart(e.touches[0].clientX);
@@ -171,11 +151,12 @@ const ImageCarousel = ({ card }) => {
 
   return (
     <div
-      className="relative w-full h-44 md:h-52 overflow-hidden rounded-t-xl bg-slate-100"
+      className="relative w-full h-44 md:h-52 overflow-hidden rounded-t-xl bg-slate-100 cursor-pointer"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onClick={() => onImageClick(images, index)}
     >
       <motion.div
         className="flex h-full"
@@ -193,12 +174,14 @@ const ImageCarousel = ({ card }) => {
         ))}
       </motion.div>
 
-      {/* Dots (overlay) */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
         {images.map((_, i) => (
           <button
             key={i}
-            onClick={() => setIndex(i)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIndex(i);
+            }}
             className={`w-2.5 h-2.5 rounded-full transition-all ${
               i === index ? "bg-white/90 scale-110 shadow" : "bg-white/50"
             }`}
@@ -213,9 +196,15 @@ const ImageCarousel = ({ card }) => {
 // ---------------- Directory Component ----------------
 const Directory = () => {
   const { user, loading: authLoading } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Replace with your sheet ID & API key
+  // Image modal state (lifted to Directory level)
+  const [imageModal, setImageModal] = useState({
+    isOpen: false,
+    images: [],
+    initialIndex: 0,
+  });
+
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
@@ -235,7 +224,6 @@ const Directory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(3);
 
-  // responsive items per page
   useEffect(() => {
     const check = () => setItemsPerPage(window.innerWidth >= 1024 ? 6 : 3);
     check();
@@ -243,7 +231,6 @@ const Directory = () => {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // filters: compute options
   const areas = [
     ...new Set(listings.map((i) => i.area).filter(Boolean)),
   ].sort();
@@ -276,7 +263,6 @@ const Directory = () => {
       ]
     : [];
 
-  // apply filters & search
   useEffect(() => {
     const result = listings.filter((i) => {
       const q = search.trim().toLowerCase();
@@ -315,7 +301,7 @@ const Directory = () => {
   const handleShowContact = (itemName) => {
     if (authLoading) return;
     if (!user) {
-      setIsModalOpen(true);
+      setIsAuthModalOpen(true);
       return;
     }
     setShowContact((prev) => ({ ...prev, [itemName]: true }));
@@ -326,8 +312,8 @@ const Directory = () => {
   };
 
   useEffect(() => {
-    if (user && isModalOpen) setIsModalOpen(false);
-  }, [user, isModalOpen]);
+    if (user && isAuthModalOpen) setIsAuthModalOpen(false);
+  }, [user, isAuthModalOpen]);
 
   if (loading)
     return (
@@ -348,7 +334,7 @@ const Directory = () => {
     <section
       ref={directoryRef}
       id="directory"
-      className="bg-[#eef8fd]  overflow-hidden"
+      className="bg-[#eef8fd] overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-5 py-12 font-rubik">
         {/* Header + Search */}
@@ -377,7 +363,7 @@ const Directory = () => {
             />
           </div>
         </motion.div>
-        {/* Filters + Cards + Pagination */}
+
         <div className="bg-white p-6 rounded-xl border border-slate-200">
           {/* Filters */}
           <motion.div
@@ -387,7 +373,6 @@ const Directory = () => {
             viewport={{ once: false }}
             className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
           >
-            {/* Main Category */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Main Category
@@ -409,7 +394,6 @@ const Directory = () => {
               </select>
             </div>
 
-            {/* Subcategory */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Subcategory
@@ -429,7 +413,6 @@ const Directory = () => {
               </select>
             </div>
 
-            {/* Area */}
             <div>
               <label className="block text-sm font-medium mb-1">Area</label>
               <select
@@ -458,7 +441,7 @@ const Directory = () => {
             <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
               {currentItems.map((item, i) => (
                 <motion.div
-                  key={`${item.id || item.name}-${currentPage}-${i}`}
+                  key={`${item.id || item.name}-${i}`}
                   variants={cardVariants(i)}
                   initial="hidden"
                   whileInView="visible"
@@ -466,24 +449,29 @@ const Directory = () => {
                   viewport={{ once: false }}
                   className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow flex flex-col h-full"
                 >
-                  {/* Carousel */}
-                  <ImageCarousel card={item} />
+                  <ImageCarousel
+                    card={item}
+                    onImageClick={(images, index) =>
+                      setImageModal({
+                        isOpen: true,
+                        images,
+                        initialIndex: index,
+                      })
+                    }
+                  />
 
                   <div className="p-4 flex flex-col flex-grow">
                     <h3 className="font-bold text-lg mb-1">{item.name}</h3>
                     <div className="text-sm text-slate-600 mb-2">
                       <span>{item.area}</span> • <span>{item.category}</span>
                     </div>
-
                     <p className="text-slate-700 text-sm mb-3 line-clamp-4">
                       {item.short_desc}
                     </p>
-
                     <div className="font-bold mb-2">
                       From ₦{formatPrice(item.price_from)}
                     </div>
 
-                    {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
                       {(item.tags ? item.tags.split(",") : []).map(
                         (tag, idx) => {
@@ -507,7 +495,6 @@ const Directory = () => {
                       )}
                     </div>
 
-                    {/* Show Contact */}
                     <div className="mt-auto flex gap-2">
                       {!showContact[item.name] ? (
                         <button
@@ -556,16 +543,28 @@ const Directory = () => {
           )}
 
           {/* Auth Modal */}
-          {isModalOpen && (
+          {isAuthModalOpen && (
             <AuthModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
+              isOpen={isAuthModalOpen}
+              onClose={() => setIsAuthModalOpen(false)}
               onAuthToast={(msg) => {
                 console.log("Auth toast:", msg);
               }}
             />
           )}
 
+          {/* Full-Screen Image Modal — rendered at root level of Directory */}
+          {imageModal.isOpen && (
+            <ImageModal
+              images={imageModal.images}
+              initialIndex={imageModal.initialIndex}
+              onClose={() =>
+                setImageModal({ isOpen: false, images: [], initialIndex: 0 })
+              }
+            />
+          )}
+
+          {/* Pagination */}
           {totalPages > 1 && (
             <motion.div className="flex justify-center mt-8 flex-wrap gap-2">
               {currentPage > 1 && (
@@ -578,7 +577,7 @@ const Directory = () => {
               )}
 
               {(() => {
-                const isMobile = window.innerWidth < 1024; // or use a state / hook for viewport width
+                const isMobile = window.innerWidth < 1024;
                 if (isMobile) {
                   const maxPagesToShow = 4;
                   const pages = [];

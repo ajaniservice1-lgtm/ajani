@@ -15,7 +15,7 @@ export const ChatProvider = ({ children }) => {
     <ChatContext.Provider value={{ isChatOpen, openChat, closeChat }}>
       {children}
 
-      {/* 🟢 Floating Chat Button (always visible when closed) */}
+      {/* Floating Button - always visible when chat is closed */}
       <AnimatePresence>
         {!isChatOpen && (
           <motion.button
@@ -26,14 +26,14 @@ export const ChatProvider = ({ children }) => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             whileTap={{ scale: 0.9 }}
             onClick={openChat}
-            className="fixed bottom-6 right-6 z-50 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] text-white px-5 py-4 rounded-full shadow-lg"
+            className="fixed bottom-6 right-6 z-50 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] text-white px-5 py-4 rounded-full shadow-lg text-lg font-medium"
           >
             💬 Ask Ajani
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* 🟢 Chat Widget (only visible when open) */}
+      {/* Chat Window */}
       {isChatOpen && <ChatWidget isOpen={isChatOpen} onClose={closeChat} />}
     </ChatContext.Provider>
   );

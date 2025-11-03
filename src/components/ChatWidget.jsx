@@ -1,15 +1,62 @@
 // src/components/ChatWidget.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
+import { useAuth } from "../hook/useAuth";
 
 const ChatWidget = ({ isOpen, onClose }) => {
+  const { user } = useAuth(); // { email: "user@domain.com", name?: "..." }
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const hasSentWelcome = useRef(false);
 
+  // Extract friendly name from email
+  const getDisplayName = () => {
+    if (user?.name) return user.name;
+
+    if (user?.email) {
+      const emailName = user.email.split("@")[0];
+      return emailName
+        .replace(/[^a-zA-Z0-9]/g, " ")
+        .split(/\s+/)
+        .map(
+          (part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+        )
+        .join(" ");
+    }
+
+    return "there";
+  };
+
+  // Time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning 😊";
+    if (hour < 18) return "Good afternoon 🌞";
+    return "Good evening 🌙";
+  };
+
+  // Send welcome message on first open
   useEffect(() => {
-    if (!isOpen) setMessages([]);
+    if (isOpen && !hasSentWelcome.current) {
+      const displayName = getDisplayName();
+      const greeting = getGreeting();
+      const welcomeText = `Hello${
+        displayName !== "there" ? `, ${displayName}` : ""
+      }! ${greeting} How may I help?`;
+      setMessages([{ sender: "bot", text: welcomeText }]);
+      hasSentWelcome.current = true;
+    }
+  }, [isOpen, user]);
+
+  // Reset when closed
+  useEffect(() => {
+    if (!isOpen) {
+      setMessages([]);
+      setInput("");
+      hasSentWelcome.current = false;
+    }
   }, [isOpen]);
 
   const handleSend = async () => {
@@ -39,11 +86,12 @@ const ChatWidget = ({ isOpen, onClose }) => {
       setMessages((prev) => [...prev, botMessage]);
       toast.success("Ajani replied!");
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "Ajani is on training!!! Coming soon." },
-      ]);
-      toast.error("Ajani is on training!!! Coming soon.");
+      const errorMsg = {
+        sender: "bot",
+        text: "Ajani is on training!!! Coming soon.",
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+      toast.error("Failed to reach Ajani.");
     } finally {
       setIsTyping(false);
     }
@@ -54,7 +102,6 @@ const ChatWidget = ({ isOpen, onClose }) => {
     visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
   };
 
-  // Only render chat window (no button here)
   return (
     <>
       <Toaster
@@ -69,6 +116,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
           },
         }}
       />
+
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -77,7 +125,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed bottom-6 right-6 z-50 w-[320px] h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+            className="fixed bottom-6 right-6 z-50 w-[320px] h-[384px] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
           >
             <div className="bg-[rgb(0,6,90)] text-white p-3 flex justify-between items-center">
               <span className="font-medium">💬 Ask Ajani</span>

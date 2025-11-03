@@ -1,11 +1,7 @@
 // src/App.jsx
 import React, { lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-// ✅ Import ChatProvider
 import { ChatProvider } from "./context/ChatContext";
-
-// ✅ Import TrackingWrapper
 import TrackingWrapper from "./components/TrackingWrapper";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -16,8 +12,6 @@ const ContactPage = lazy(() => import("./pages/ContactPage"));
 function App() {
   return (
     <ChatProvider>
-      {" "}
-      {/* ✅ Wrap entire app with ChatProvider */}
       <BrowserRouter>
         <TrackingWrapper>
           <Routes>

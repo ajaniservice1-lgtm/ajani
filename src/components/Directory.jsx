@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "../hook/useAuth";
 import AuthModal from "../components/ui/AuthModal";
 import ImageModal from "../components/ImageModal";
+import { useChat } from "../context/ChatContext";
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
@@ -223,6 +224,8 @@ const Directory = () => {
 
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+
+  const { openChat } = useChat();
 
   const {
     data: listings = [],
@@ -615,10 +618,16 @@ const Directory = () => {
               images={imageModal.images}
               initialIndex={imageModal.initialIndex}
               onClose={() =>
-                setImageModal({ isOpen: false, images: [], initialIndex: 0 })
+                setImageModal({
+                  isOpen: false,
+                  images: [],
+                  initialIndex: 0,
+                  item: null,
+                })
               }
-              item={imageModal.item} // ✅ Pass the current listing item
-              onAuthToast={(msg) => console.log("Auth toast:", msg)} // or your handler
+              item={imageModal.item}
+              onAuthToast={(msg) => console.log("Auth toast:", msg)}
+              onOpenChat={openChat} // ✅ Add this line
             />
           )}
 

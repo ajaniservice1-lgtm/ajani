@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+// src/components/ChatWidget.jsx
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
 
-const ChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const ChatWidget = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) setMessages([]);
+  }, [isOpen]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -27,7 +31,6 @@ const ChatWidget = () => {
       );
 
       const data = await response.json();
-
       const botMessage = {
         sender: "bot",
         text: data.response || "Ajani is on training!!! Coming soon.",
@@ -51,6 +54,7 @@ const ChatWidget = () => {
     visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
   };
 
+  // Only render chat window (no button here)
   return (
     <>
       <Toaster
@@ -65,102 +69,74 @@ const ChatWidget = () => {
           },
         }}
       />
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="chat-window"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="fixed bottom-6 right-6 z-50 w-[320px] h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+          >
+            <div className="bg-[rgb(0,6,90)] text-white p-3 flex justify-between items-center">
+              <span className="font-medium">💬 Ask Ajani</span>
+              <button onClick={onClose} className="text-white text-lg">
+                ✕
+              </button>
+            </div>
 
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-        {/* Chat Window */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              key="chat-window"
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="w-[320px] h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
-            >
-              {/* Header */}
-              <div className="bg-[rgb(0,6,90)] text-white p-3 flex justify-between items-center">
-                <span className="font-medium">💬 Ask Ajani</span>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="text-white text-lg"
-                >
-                  ✕
-                </button>
-              </div>
+            <div className="flex-1 p-3 overflow-y-auto bg-gray-50">
+              {messages.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  Ask something about businesses in Ibadan!
+                </p>
+              ) : (
+                <AnimatePresence>
+                  {messages.map((msg, i) => (
+                    <motion.div
+                      key={i}
+                      variants={bubbleVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
+                      className={`mb-2 p-2 rounded-lg max-w-[80%] ${
+                        msg.sender === "user"
+                          ? "bg-blue-100 ml-auto text-blue-800"
+                          : "bg-gray-200 mr-auto text-gray-800"
+                      }`}
+                    >
+                      {msg.text}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              )}
 
-              {/* Messages */}
-              <div className="flex-1 p-3 overflow-y-auto bg-gray-50">
-                {messages.length === 0 ? (
-                  <p className="text-sm text-gray-500">
-                    Ask something about businesses in Ibadan!
-                  </p>
-                ) : (
-                  <AnimatePresence>
-                    {messages.map((msg, i) => (
-                      <motion.div
-                        key={i}
-                        variants={bubbleVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="hidden"
-                        className={`mb-2 p-2 rounded-lg max-w-[80%] ${
-                          msg.sender === "user"
-                            ? "bg-blue-100 ml-auto text-blue-800"
-                            : "bg-gray-200 mr-auto text-gray-800"
-                        }`}
-                      >
-                        {msg.text}
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                )}
+              {isTyping && (
+                <p className="text-gray-500 italic text-sm">
+                  Ajani is typing...
+                </p>
+              )}
+            </div>
 
-                {isTyping && (
-                  <p className="text-gray-500 italic text-sm">
-                    Ajani is typing...
-                  </p>
-                )}
-              </div>
-
-              {/* Input */}
-              <div className="p-2 border-t bg-white flex gap-2">
-                <input
-                  className="flex-1 border rounded px-2 py-1 text-sm"
-                  placeholder="Type your question..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                />
-                <button
-                  onClick={handleSend}
-                  className="bg-[rgb(0,6,90)] hover:bg-[#0a155d] text-white px-3 py-1 rounded text-sm"
-                >
-                  Send
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Chat Button */}
-        <AnimatePresence>
-          {!isOpen && (
-            <motion.button
-              key="chat-button"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsOpen(true)}
-              className="bg-[rgb(0,6,90)] hover:bg-[#0e1f45] text-white px-5 py-4 rounded-full shadow-lg"
-            >
-              💬 Ask Ajani
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
+            <div className="p-2 border-t bg-white flex gap-2">
+              <input
+                className="flex-1 border rounded px-2 py-1 text-sm"
+                placeholder="Type your question..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              />
+              <button
+                onClick={handleSend}
+                className="bg-[rgb(0,6,90)] hover:bg-[#0a155d] text-white px-3 py-1 rounded text-sm"
+              >
+                Send
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

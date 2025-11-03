@@ -2,16 +2,16 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPhone, faComment, faCopy } from "@fortawesome/free-solid-svg-icons";
-import { useAuth } from "../hook/useAuth"; // ✅ Import auth hook
-import AuthModal from "./ui/AuthModal"; // ✅ Import AuthModal
+import { useAuth } from "../hook/useAuth";
+import AuthModal from "./ui/AuthModal";
 
 const ImageModal = ({
   images,
   initialIndex,
   onClose,
-  // ✅ New props for contact functionality
-  item, // The full listing item (with whatsapp, name, etc.)
+  item, // Full listing object (for WhatsApp, name, etc.)
   onAuthToast,
+  onOpenChat, // ✅ Critical: function to open global ChatWidget
 }) => {
   const { user, loading: authLoading } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -41,7 +41,7 @@ const ImageModal = ({
     }
   };
 
-  // Handle keyboard
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
@@ -52,20 +52,18 @@ const ImageModal = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose, currentIndex, images.length]);
 
-  // Handle "Show Contact" from modal
+  // Handle "Show Contact" button
   const handleShowContactFromModal = () => {
     if (authLoading) return;
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
-
-    // Reveal number for 20s (same as Directory)
     setShowContactNumber(true);
     setTimeout(() => setShowContactNumber(false), 20000);
   };
 
-  // Format WhatsApp number (reuse your helper)
+  // WhatsApp formatter (same as Directory)
   const formatWhatsapp = (number) => {
     if (!number) return "";
     const digits = number.replace(/\D/g, "");
@@ -82,7 +80,7 @@ const ImageModal = ({
     return `+${digits}`;
   };
 
-  // Render main content
+  // Render content: image or contact screen
   const renderContent = () => {
     if (showContactScreen) {
       return (
@@ -94,7 +92,6 @@ const ImageModal = ({
 
             <div className="space-y-2">
               {showContactNumber ? (
-                // Show WhatsApp number (same as Directory)
                 <div className="flex flex-col items-center justify-center bg-green-100 text-slate-800 p-3 rounded-lg font-medium">
                   <span className="mb-2">
                     📞 {formatWhatsapp(item?.whatsapp) || "N/A"}
@@ -129,8 +126,8 @@ const ImageModal = ({
 
               <button
                 onClick={() => {
-                  onClose(); // Close modal first
-                  onOpenChat?.(); // ✅ Trigger global chat widget
+                  onClose(); // Close modal
+                  onOpenChat?.(); // ✅ Open global ChatWidget
                 }}
                 className="w-full border border-blue-500 text-white py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2"
               >
@@ -142,6 +139,7 @@ const ImageModal = ({
       );
     }
 
+    // Regular image view
     return (
       <img
         src={images[currentIndex]}
@@ -154,6 +152,7 @@ const ImageModal = ({
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
+        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-white text-3xl bg-black/50 rounded-full p-2 hover:bg-black/70 z-10"
@@ -162,6 +161,7 @@ const ImageModal = ({
           &times;
         </button>
 
+        {/* Navigation Arrows */}
         <button
           onClick={handlePrev}
           className={`absolute left-4 text-white text-4xl bg-black/50 rounded-full p-3 hover:bg-black/70 z-10 ${
@@ -180,10 +180,12 @@ const ImageModal = ({
           &#10095;
         </button>
 
+        {/* Main Content */}
         <div className="max-w-full max-h-full flex items-center justify-center">
           {renderContent()}
         </div>
 
+        {/* Image Counter */}
         <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm z-10">
           <span>
             {showContactScreen
@@ -193,7 +195,7 @@ const ImageModal = ({
         </div>
       </div>
 
-      {/* Auth Modal for ImageModal */}
+      {/* Auth Modal (for unauthenticated users) */}
       {isAuthModalOpen && (
         <AuthModal
           isOpen={isAuthModalOpen}

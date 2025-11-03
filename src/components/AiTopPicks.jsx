@@ -7,6 +7,7 @@ import { faComment, faCopy } from "@fortawesome/free-solid-svg-icons";
 import AuthModal from "./ui/AuthModal";
 import { useAuth } from "../hook/useAuth";
 import ImageModal from "./ImageModal"; // ✅ Import ImageModal
+import { useChat } from "../context/ChatContext";
 
 // Fallback images
 const FALLBACK_IMAGES = {
@@ -245,6 +246,7 @@ const AiTopPicks = ({ onAuthToast }) => {
   const SHEET_ID = import.meta.env.VITE_SHEET_ID;
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
   const { listings = [], loading, error } = useDirectoryData(SHEET_ID, API_KEY);
+  const { openChat } = useChat();
 
   const topPicks = (Array.isArray(listings) ? listings : [])
     .filter((item) => item.is_featured?.toLowerCase() === "yes")
@@ -343,10 +345,16 @@ const AiTopPicks = ({ onAuthToast }) => {
           images={imageModal.images}
           initialIndex={imageModal.initialIndex}
           onClose={() =>
-            setImageModal({ isOpen: false, images: [], initialIndex: 0 })
+            setImageModal({
+              isOpen: false,
+              images: [],
+              initialIndex: 0,
+              item: null,
+            })
           }
-          item={imageModal.item} // ✅ Pass the current listing item
-          onAuthToast={(msg) => console.log("Auth toast:", msg)} // or your handler
+          item={imageModal.item}
+          onAuthToast={(msg) => console.log("Auth toast:", msg)}
+          onOpenChat={openChat} // ✅ Add this line
         />
       )}
     </>

@@ -1,3 +1,4 @@
+import LocalBusinessSchema from "../components/LocalBusinessSchema";
 import Header from "../components/Header";
 import Hero from "../components/Hero";
 import Dashboard from "../components/Dashboard";
@@ -12,18 +13,19 @@ import Toast from "../components/Toast";
 import { useState } from "react";
 
 export default function HomePage() {
-   const [toastMessage, setToastMessage] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
 
-   // This function will be called on login OR logout
-   const showAuthToast = (message) => {
-     setToastMessage(message);
-   };
+  // This function will be called on login OR logout
+  const showAuthToast = (message) => {
+    setToastMessage(message);
+  };
 
-   const closeToast = () => {
-     setToastMessage("");
-   };
+  const closeToast = () => {
+    setToastMessage("");
+  };
   return (
     <section className="relative">
+      <LocalBusinessSchema />
       {toastMessage && <Toast message={toastMessage} onClose={closeToast} />}
       <ChatWidget />
       <Header onAuthToast={showAuthToast} />

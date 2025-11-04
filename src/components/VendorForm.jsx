@@ -12,13 +12,14 @@ const VendorForm = () => {
     address: "",
     shortDescription: "",
     itemPrices: [{ itemName: "", price: "" }],
-    businessImage: null,
+    businessImages: [], // ✅ Now an array
   });
 
-  const [imageURL, setImageURL] = useState("");
+  const [imageURLs, setImageURLs] = useState([]); // ✅ Array of preview URLs
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, type: "", message: "" });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categoryMap = {
     accommodation: ["hotel", "guesthouse", "airbnb", "shortlet", "resort"],
@@ -67,41 +68,56 @@ const VendorForm = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Handle up to 4 image uploads
   const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const validTypes = ["image/png", "image/jpeg"];
-    const maxSize = 5 * 1024 * 1024;
-
-    if (!validTypes.includes(file.type)) {
-      showToast("❌ Only PNG and JPG files are allowed.", "error");
+    const files = Array.from(e.target.files);
+    if (imageURLs.length + files.length > 4) {
+      showToast("❌ You can upload up to 4 images only.", "error");
       return;
     }
-    if (file.size > maxSize) {
-      showToast("❌ File size must be less than 5MB.", "error");
-      return;
-    }
+
+    const validFiles = files.filter((file) => {
+      const validTypes = ["image/png", "image/jpeg"];
+      const maxSize = 5 * 1024 * 1024;
+      if (!validTypes.includes(file.type)) {
+        showToast("❌ Only PNG and JPG files are allowed.", "error");
+        return false;
+      }
+      if (file.size > maxSize) {
+        showToast("❌ File size must be less than 5MB.", "error");
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
 
     setIsUploading(true);
     try {
-      const formDataCloud = new FormData();
-      formDataCloud.append("file", file);
-      formDataCloud.append("upload_preset", "ajani-upload");
-      formDataCloud.append("cloud_name", "debpabo0a");
+      const uploadPromises = validFiles.map((file) => {
+        const formDataCloud = new FormData();
+        formDataCloud.append("file", file);
+        formDataCloud.append("upload_preset", "ajani-upload");
+        formDataCloud.append("cloud_name", "debpabo0a");
 
-      const response = await fetch(
-        "https://api.cloudinary.com/v1_1/debpabo0a/image/upload",
-        { method: "POST", body: formDataCloud }
-      );
+        return fetch("https://api.cloudinary.com/v1_1/debpabo0a/image/upload", {
+          method: "POST",
+          body: formDataCloud,
+        }).then((res) => res.json());
+      });
 
-      const data = await response.json();
-      if (data.secure_url) {
-        setImageURL(data.secure_url);
-        setFormData((prev) => ({ ...prev, businessImage: data.secure_url }));
-        showToast("✅ Image uploaded successfully!", "success");
-      } else {
-        throw new Error(data.error?.message || "Upload failed");
+      const results = await Promise.all(uploadPromises);
+      const newURLs = results
+        .filter((data) => data.secure_url)
+        .map((data) => data.secure_url);
+
+      if (newURLs.length > 0) {
+        setImageURLs((prev) => [...prev, ...newURLs]);
+        setFormData((prev) => ({
+          ...prev,
+          businessImages: [...prev.businessImages, ...newURLs],
+        }));
+        showToast(`✅ ${newURLs.length} image(s) uploaded!`, "success");
       }
     } catch (error) {
       console.error("Cloudinary upload error:", error);
@@ -111,9 +127,12 @@ const VendorForm = () => {
     }
   };
 
-  const handleRemoveImage = () => {
-    setImageURL("");
-    setFormData((prev) => ({ ...prev, businessImage: null }));
+  const handleRemoveImage = (index) => {
+    setImageURLs((prev) => prev.filter((_, i) => i !== index));
+    setFormData((prev) => ({
+      ...prev,
+      businessImages: prev.businessImages.filter((_, i) => i !== index),
+    }));
   };
 
   const addItem = () => {
@@ -146,26 +165,23 @@ const VendorForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = `Submitting...`;
-    submitBtn.disabled = true;
+    setIsSubmitting(true); // ✅ Start submitting
 
     try {
-      const payload = { ...formData, businessImage: imageURL };
       await fetch(
         "https://script.google.com/macros/s/AKfycbwaoXxan7oM9eW2JXuwzcV36GVBKUubB5r2_z_SiFKb-6eJJc0du969ueT8ECkLP4io/exec",
         {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(formData),
         }
       );
       showToast(
         "✅ Form submitted! We’ll review and add you to our catalog within 24 hours.",
         "success"
       );
+      // Reset form
       setFormData({
         businessName: "",
         category: "",
@@ -175,9 +191,9 @@ const VendorForm = () => {
         address: "",
         shortDescription: "",
         itemPrices: [{ itemName: "", price: "" }],
-        businessImage: null,
+        businessImages: [],
       });
-      setImageURL("");
+      setImageURLs([]);
     } catch (error) {
       console.error("Submission failed:", error);
       showToast(
@@ -185,8 +201,7 @@ const VendorForm = () => {
         "error"
       );
     } finally {
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
+      setIsSubmitting(false); // ✅ Stop submitting
     }
   };
 
@@ -426,94 +441,72 @@ const VendorForm = () => {
               />
             </motion.div>
 
-            {/* Business Image */}
+            {/* Business Images (up to 4) */}
             <motion.div
               ref={imageRef}
               variants={fadeUp}
               animate={imageInView ? "visible" : "hidden"}
             >
-              {/* ...keep your image upload code here as-is */}
-              {/* Business Image */}
-              <div>
-                <label className="block text-sm font-medium text-gray-200 mb-1">
-                  Upload Photo
-                </label>
-                <div
-                  className={`border-2 border-dashed border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition ${
-                    imageURL ? "bg-gray-700" : ""
-                  }`}
-                  onClick={() =>
-                    document.getElementById("businessImageInput").click()
-                  }
-                >
-                  <input
-                    type="file"
-                    accept="image/png, image/jpeg"
-                    onChange={handleImageChange}
-                    className="hidden"
-                    id="businessImageInput"
-                  />
-
-                  {imageURL ? (
-                    <div className="relative w-full h-32 flex items-center justify-center">
-                      <img
-                        src={imageURL}
-                        alt="Preview"
-                        className="max-h-full max-w-full object-contain"
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Upload Photos (up to 4)
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {imageURLs.map((url, index) => (
+                  <div key={index} className="relative w-full h-32">
+                    <img
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-full object-cover rounded-lg border border-gray-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute -top-2 -right-2 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs z-10"
+                      aria-label="Remove image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {imageURLs.length < 4 && (
+                  <div
+                    className="border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition"
+                    onClick={() =>
+                      document.getElementById("businessImageInput").click()
+                    }
+                    style={{ height: "80px" }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                       />
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveImage();
-                        }}
-                        className="absolute top-2 right-2 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs"
-                      >
-                        ×
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          document.getElementById("businessImageInput").click();
-                        }}
-                        className="absolute bottom-2 left-2 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs"
-                      >
-                        Change Image
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="mx-auto h-8 w-8 text-gray-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                        />
-                      </svg>
-                      <p className="mt-2 text-sm text-gray-400">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        PNG, JPG up to 5MB
-                      </p>
-                    </>
-                  )}
-                </div>
-                {isUploading && (
-                  <p className="mt-2 text-xs text-blue-400 flex items-center">
-                    Uploading...
-                    <span className="spinner"></span>
-                  </p>
+                    </svg>
+                  </div>
                 )}
               </div>
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                multiple
+                onChange={handleImageChange}
+                className="hidden"
+                id="businessImageInput"
+                disabled={imageURLs.length >= 4}
+              />
+              {isUploading && (
+                <p className="mt-2 text-xs text-blue-400">
+                  Uploading images...
+                </p>
+              )}
             </motion.div>
 
             {/* Item Prices */}
@@ -522,7 +515,6 @@ const VendorForm = () => {
               variants={fadeUp}
               animate={itemPricesInView ? "visible" : "hidden"}
             >
-              {/* ...keep your item prices code here as-is */}
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-1">
                   Item Prices (e.g., Amala 1200, Ewedu 500, Rice 4000)
@@ -590,18 +582,17 @@ const VendorForm = () => {
               variants={fadeUp}
               animate={submitInView ? "visible" : "hidden"}
             >
-              {/* ...keep your submit button + checkbox code as-is */}
               <div className="pt-2">
                 <div className="flex gap-2.5 mb-2">
-                  <input type="checkbox" className="" required />
+                  <input type="checkbox" required />
                   <label
                     htmlFor="checkbox"
-                    className="text-sm font-medium text-gray-200 leading-[1.2]"
+                    className="lg:text-sm text-xs font-medium text-gray-200 leading-[1.2]"
                   >
                     Click here for promotional and discount messages.
                   </label>
                 </div>
-                <div className="flex items-start gap-2">
+                <div className="flex text-xs items-start gap-2">
                   <input
                     type="checkbox"
                     id="terms"
@@ -619,16 +610,26 @@ const VendorForm = () => {
                       Terms & Conditions
                     </Link>{" "}
                     and{" "}
-                    <Link className="text-blue-600 underline" to="/privacypage">
+                    <Link className="text-blue-600 underline" to="/termspage">
                       Privacy Policy
                     </Link>
                   </label>
                 </div>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                  disabled={isUploading} // Optional: also disable during image upload
+                  className="flex items-center gap-2 my-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <i className="fab fa-telegram-plane"></i> Submit Listing
+                  {isSubmitting ? (
+                    <>
+                      <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fab fa-telegram-plane"></i> Submit Listing
+                    </>
+                  )}
                 </button>
                 <p className="mt-2 text-xs text-gray-400">
                   We review all listings. By submitting, you agree your info can

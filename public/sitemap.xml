@@ -6,19 +6,14 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://ajani.ai/about</loc>
+    <loc>https://ajani.ai/privacypage</loc>
     <priority>0.80</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ajani.ai/vendors</loc>
+    <loc>https://ajani.ai/termspage</loc>
     <priority>0.90</priority>
     <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://ajani.ai/faq</loc>
-    <priority>0.70</priority>
-    <changefreq>monthly</changefreq>
   </url>
   <url>
     <loc>https://ajani.ai/contact</loc>

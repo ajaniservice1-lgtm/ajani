@@ -1,3 +1,4 @@
+// src/components/VendorForm.jsx
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -12,10 +13,10 @@ const VendorForm = () => {
     address: "",
     shortDescription: "",
     itemPrices: [{ itemName: "", price: "" }],
-    businessImages: [], // ✅ Now an array
+    businessImages: [],
   });
 
-  const [imageURLs, setImageURLs] = useState([]); // ✅ Array of preview URLs
+  const [imageURLs, setImageURLs] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, type: "", message: "" });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -68,7 +69,6 @@ const VendorForm = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Handle up to 4 image uploads
   const handleImageChange = async (e) => {
     const files = Array.from(e.target.files);
     if (imageURLs.length + files.length > 4) {
@@ -165,22 +165,29 @@ const VendorForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true); // ✅ Start submitting
+    setIsSubmitting(true);
 
     try {
-      await fetch(
-        "https://script.google.com/macros/s/AKfycbwaoXxan7oM9eW2JXuwzcV36GVBKUubB5r2_z_SiFKb-6eJJc0du969ueT8ECkLP4io/exec",
+      // ✅ Use correct URL with NO trailing spaces
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbyMiHUxjG8LsgHwfx_qhhIIjUBgFBOzHJyEeqx3hwxjAxwYZp4QsUWIkHd_WJxvAT7r/exec",
         {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain" },
+          headers: { "Content-Type": "application/json" }, // ✅ JSON
           body: JSON.stringify(formData),
         }
       );
+
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const result = await response.json();
+      if (result.result !== "success") throw new Error("Submission failed");
+
       showToast(
         "✅ Form submitted! We’ll review and add you to our catalog within 24 hours.",
         "success"
       );
+
       // Reset form
       setFormData({
         businessName: "",
@@ -201,7 +208,7 @@ const VendorForm = () => {
         "error"
       );
     } finally {
-      setIsSubmitting(false); // ✅ Stop submitting
+      setIsSubmitting(false);
     }
   };
 
@@ -215,7 +222,6 @@ const VendorForm = () => {
     visible: { transition: { staggerChildren: 0.08 } },
   };
 
-  // Refs for in-view animations
   const headerRef = useRef(null);
   const headerInView = useInView(headerRef, { once: false, amount: 0.2 });
 
@@ -248,7 +254,6 @@ const VendorForm = () => {
       id="vendors"
       className="py-16 bg-gray-900 text-white relative overflow-hidden"
     >
-      {/* Toast */}
       <AnimatePresence>
         {toast.show && (
           <motion.div
@@ -265,7 +270,6 @@ const VendorForm = () => {
       </AnimatePresence>
 
       <div className="max-w-5xl mx-auto px-4">
-        {/* Header */}
         <motion.div
           ref={headerRef}
           initial="hidden"
@@ -281,7 +285,6 @@ const VendorForm = () => {
           </motion.p>
         </motion.div>
 
-        {/* Form */}
         <motion.div
           ref={formRef}
           initial="hidden"
@@ -587,12 +590,12 @@ const VendorForm = () => {
                   <input type="checkbox" required />
                   <label
                     htmlFor="checkbox"
-                    className="lg:text-sm text-xs font-medium text-gray-200 leading-[1.2]"
+                    className="text-sm font-medium text-gray-200 leading-[1.2]"
                   >
                     Click here for promotional and discount messages.
                   </label>
                 </div>
-                <div className="flex text-xs items-start gap-2">
+                <div className="flex items-start gap-2">
                   <input
                     type="checkbox"
                     id="terms"
@@ -617,7 +620,7 @@ const VendorForm = () => {
                 </div>
                 <button
                   type="submit"
-                  disabled={isUploading} // Optional: also disable during image upload
+                  disabled={isSubmitting || isUploading}
                   className="flex items-center gap-2 my-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (

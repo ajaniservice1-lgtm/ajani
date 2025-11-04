@@ -38,7 +38,7 @@ const FAQ = () => {
   return (
     <section id="faq" className="max-w-7xl mx-auto px-5 py-12 font-rubik">
       <h2 className="text-3xl font-bold mb-2">Frequently Asked Questions</h2>
-      <p className="text-slate-600 mb-8">
+      <p className="text-slate-600 mb-8 text-sm">
         Everything you need to know about using Ajani
       </p>
 

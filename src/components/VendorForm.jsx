@@ -626,7 +626,7 @@ const VendorForm = () => {
                 </div>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                  className="flex items-center mt-2 gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
                 >
                   <i className="fab fa-telegram-plane"></i> Submit Listing
                 </button>

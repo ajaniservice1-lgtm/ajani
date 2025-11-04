@@ -170,7 +170,7 @@ const VendorForm = () => {
     try {
       // ✅ Use correct URL with NO trailing spaces
       const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbyMiHUxjG8LsgHwfx_qhhIIjUBgFBOzHJyEeqx3hwxjAxwYZp4QsUWIkHd_WJxvAT7r/exec",
+        "https://script.google.com/macros/s/AKfycbycNREFmbgzOzZThDwz2ZX8wGXLOWm9WkaHlPSkX55bwiIFBkj01qTVWTWV677eQNnq/exec",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" }, // ✅ JSON

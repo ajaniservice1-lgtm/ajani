@@ -42,7 +42,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
         }
 
         const { error } = await supabase.auth.signUp({ email, password });
-
+        console.log(error);
         if (error) {
           if (error.status === 429) {
             setError(
@@ -51,6 +51,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
           } else {
             setError(error.message);
           }
+
           return;
         }
 
@@ -272,7 +273,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                     id="terms"
                     checked={agreeToTerms}
                     onChange={(e) => setAgreeToTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-gray-300  text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 h-4 w-4 rounded border-gray-300   text-blue-600 focus:ring-2 focus:ring-blue-500"
                   />
                   <label htmlFor="terms" className="text-xs text-gray-900">
                     I agree to the{" "}

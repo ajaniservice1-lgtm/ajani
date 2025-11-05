@@ -116,7 +116,11 @@ const Header = ({ onAuthToast }) => {
       </header>
 
       {/* Mobile Menu */}
-      <div className="fixed inset-0 z-50 pointer-events-none md:hidden">
+      <div
+        className={`fixed inset-0 z-50 md:hidden ${
+          isMenuOpen ? "" : "pointer-events-none"
+        }`}
+      >
         {/* Overlay */}
         <div
           className={`fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
@@ -131,7 +135,7 @@ const Header = ({ onAuthToast }) => {
           className={`fixed left-0 top-0 w-full h-screen bg-[#e6f2ff] flex flex-col transform transition-transform duration-300 ease-in-out z-50 ${
             isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
         >
           {/* Header */}
           <div className="p-5 border-b border-gray-200 flex justify-between items-center bg-[#f2f9ff] rounded-full shadow-md px-6 py-3 mt-1.5">
@@ -142,7 +146,6 @@ const Header = ({ onAuthToast }) => {
             >
               <div className="flex items-center gap-2">
                 <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
-                {/* Vertical Divider */}
                 <div className="w-px h-6 bg-gray-300 mx-2"></div>
                 <span className="md:text-sm text-[12.5px] text-slate-600 duration-300 hover:text-gray-900">
                   The Ibadan Smart Guide
@@ -180,10 +183,13 @@ const Header = ({ onAuthToast }) => {
             ].map((item) => (
               <button
                 key={item.id}
-                className="block w-full text-left py-2 text-gray-900 duration-300 hover:text-green-600 font-medium focus:outline-none"
+                className="block w-full text-left py-2 text-gray-900 duration-300 hover:text-blue-800 font-medium focus:outline-none"
                 onClick={() => {
-                  closeMenu();
-                  setTimeout(() => scrollToSection(item.id), 100);
+                  // Close AFTER scroll for smoother navigation
+                  scrollToSection(item.id);
+                  setTimeout(() => {
+                    closeMenu();
+                  }, 400); // wait for scroll to start
                 }}
                 aria-label={`Go to ${item.label}`}
               >

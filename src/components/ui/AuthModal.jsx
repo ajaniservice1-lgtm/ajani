@@ -193,7 +193,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               </button>
             </div>
 
-            <h2 className="text-xl mb-1">
+            <h2 className="text-xl mb-1 text-gray-900">
               {activeTab === "signup" ? "Create your account" : "Welcome back"}
             </h2>
             <p className="text-sm text-gray-500 mb-4">
@@ -225,7 +225,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label className="block text-xs mb-1 items-center gap-1">
+                <label className="block text-gray-900 text-xs mb-1 items-center gap-1">
                   <CiMail className="text-xs" />
                   Email
                 </label>
@@ -233,14 +233,14 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full px-3 py-2 border text-gray-900 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="johndoe@gmail.com"
                   required
                 />
               </div>
 
               <div className="relative">
-                <label className="block text-xs mb-1 items-center gap-1">
+                <label className="block text-xs text-gray-900 mb-1 items-center gap-1">
                   <CiLock className="text-xs" />
                   Password
                 </label>
@@ -248,7 +248,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full px-3 py-2 pr-10 border text-gray-900 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="Password"
                   required
                 />
@@ -272,9 +272,9 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                     id="terms"
                     checked={agreeToTerms}
                     onChange={(e) => setAgreeToTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 h-4 w-4 rounded border-gray-300  text-blue-600 focus:ring-2 focus:ring-blue-500"
                   />
-                  <label htmlFor="terms" className="text-xs">
+                  <label htmlFor="terms" className="text-xs text-gray-900">
                     I agree to the{" "}
                     <Link className="text-blue-600 underline" to="/privacypage">
                       Terms & Conditions
@@ -305,7 +305,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <svg
-                      className="animate-spin h-4 w-4 text-white"
+                      className="animate-spin h-4 w-4 text-gray-200"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"

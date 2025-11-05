@@ -1,15 +1,13 @@
 // src/components/FeaturedBanner.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "../hook/useAuth"; // ✅ Auth hook
-import AuthModal from "./ui/AuthModal"; // ✅ Auth modal
+import { useAuth } from "../hook/useAuth";
+import AuthModal from "./ui/AuthModal";
 
-// 🔑 CONFIG
 const SHEET_ID = "1JZ_EiO9qP0Z74-OQXLrkhDNRh1JBZ68j-7yVjCR_PRY";
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const RANGE = "Ads!A1:O";
 
-// ✅ WhatsApp formatter (same as Directory)
 const formatWhatsapp = (number) => {
   if (!number) return "";
   const digits = number.replace(/\D/g, "");
@@ -34,13 +32,14 @@ const FeaturedBanner = () => {
   const [error, setError] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [showContact, setShowContact] = useState({});
+  const [imageLoading, setImageLoading] = useState({}); // ✅ Track image load state
   const contactTimeouts = useRef({});
 
   const fetchAds = async () => {
     setLoading(true);
     setError(null);
     try {
-      // ✅ Fixed URL: no extra spaces
+      // ✅ Fixed: removed extra spaces in URL
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
       const response = await fetch(url);
 
@@ -69,7 +68,7 @@ const FeaturedBanner = () => {
           bgColor: obj.bgColor || "bg-white",
           buttonColor: obj.buttonColor || "bg-blue-600 hover:bg-blue-700",
           whatsappLink: obj.whatsapp_link || "",
-          whatsapp: obj.whatsapp || "", // ✅ Raw number for copy
+          whatsapp: obj.whatsapp || "",
           modal_title: obj.modal_title || "",
           modal_description: obj.modal_description || "",
           image_url: obj.image_url || "",
@@ -89,7 +88,6 @@ const FeaturedBanner = () => {
     }
   };
 
-  // ✅ Handle contact reveal (same logic as Directory)
   const handleShowContact = (adId, whatsapp) => {
     if (authLoading) return;
     if (!user) {
@@ -99,12 +97,10 @@ const FeaturedBanner = () => {
 
     setShowContact((prev) => ({ ...prev, [adId]: true }));
 
-    // Clear previous timeout
     if (contactTimeouts.current[adId]) {
       clearTimeout(contactTimeouts.current[adId]);
     }
 
-    // Hide after 20 seconds
     const timer = setTimeout(() => {
       setShowContact((prev) => ({ ...prev, [adId]: false }));
     }, 20000);
@@ -116,7 +112,6 @@ const FeaturedBanner = () => {
     fetchAds();
   }, []);
 
-  // Auto-close auth modal when user logs in
   useEffect(() => {
     if (user && isAuthModalOpen) {
       setIsAuthModalOpen(false);
@@ -219,7 +214,6 @@ const FeaturedBanner = () => {
         </div>
       </div>
 
-      {/* Ad Detail Modal */}
       <AnimatePresence>
         {showModal && activeAd && (
           <motion.div
@@ -250,15 +244,41 @@ const FeaturedBanner = () => {
               </button>
 
               <div className="font-rubik">
-                <img
-                  src={activeAd.image_url}
-                  alt={activeAd.modal_title || "Ad"}
-                  className="mx-auto mb-4 rounded-lg shadow-md max-h-48 object-cover w-full"
-                  onError={(e) => {
-                    e.currentTarget.src =
-                      "https://via.placeholder.com/300x200?text=Ad+Image";
-                  }}
-                />
+                {/* ✅ Image with loading spinner */}
+                <div className="relative w-full h-48 mb-4 flex items-center justify-center bg-gray-100 rounded-lg">
+                  {imageLoading[activeAd.id] !== false && (
+                    <div className="flex flex-col items-center">
+                      <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Image loading...
+                      </p>
+                    </div>
+                  )}
+                  <img
+                    src={activeAd.image_url}
+                    alt={activeAd.modal_title || "Ad"}
+                    className={`absolute inset-0 w-full h-full rounded-lg shadow-md object-cover transition-opacity duration-300 ${
+                      imageLoading[activeAd.id] === false
+                        ? "opacity-100"
+                        : "opacity-0"
+                    }`}
+                    onLoad={() =>
+                      setImageLoading((prev) => ({
+                        ...prev,
+                        [activeAd.id]: false,
+                      }))
+                    }
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "https://via.placeholder.com/300x200?text=Ad+Image";
+                      setImageLoading((prev) => ({
+                        ...prev,
+                        [activeAd.id]: false,
+                      }));
+                    }}
+                  />
+                </div>
+
                 <h3 className="text-xl font-bold text-gray-900">
                   {activeAd.modal_title}
                 </h3>
@@ -288,7 +308,6 @@ const FeaturedBanner = () => {
                   </p>
                 )}
 
-                {/* ✅ Auth-aware WhatsApp button */}
                 <div className="mt-6">
                   {showContact[activeAd.id] ? (
                     <div className="bg-green-100 p-3 rounded-lg inline-block">
@@ -317,7 +336,7 @@ const FeaturedBanner = () => {
                       className="flex w-full items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition shadow"
                     >
                       {authLoading ? (
-                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span className="h-4 w-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <>
                           <i className="fab fa-whatsapp"></i>{" "}
@@ -342,7 +361,6 @@ const FeaturedBanner = () => {
         )}
       </AnimatePresence>
 
-      {/* Auth Modal */}
       {isAuthModalOpen && (
         <AuthModal
           isOpen={isAuthModalOpen}

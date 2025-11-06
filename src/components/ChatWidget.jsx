@@ -20,8 +20,8 @@ const ChatWidget = ({ isOpen, onClose }) => {
   // === Static responses ===
   const staticQnA = {
     hello:
-      "Hi 👋 I'm Ajani! Try: 'hotels under 10000' or 'restaurants in Bodija'.",
-    hi: "Hello! 👋 Ask me about Ibadan businesses with price filters!",
+      "Hi 👋 I'm Ajani! a automated service, im still learning, Try: 'hotels under 10000' or 'restaurants in Bodija'.",
+    hi: "Hello! I'm Ajani! a automated service, im still learning 👋 Ask me about Ibadan businesses with price filters!",
     help: "Examples:\n• “Hotels under 15000”\n• “Food above 500”\n• “Event halls in Mokola”",
     phone: "📞 Go to directory for contact details.",
     contact: "📞 Go to directory for contact details.",
@@ -97,7 +97,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
   const fetchAnswerFromSheet = async (query) => {
     const { category, area, sortOrder, minPrice, maxPrice } = query;
 
-    // 🔴 Fixed: Removed extra spaces in URL
+    // ✅ FIXED: No extra spaces in URL
     const range = "Catalog!A2:L1000";
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
 
@@ -270,7 +270,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
       const displayName = getDisplayName();
       const greeting = getGreeting();
       const welcomeText = `${greeting} I'm Ajani 👋\n\nAsk about hotels, food, or events in Ibadan! For example:\n• “Hotels under 10000”\n• “Restaurants in Bodija above 5000”\n• “Most expensive event halls”`;
-      setMessages([{ sender: "bot", text: welcomeText }]);
+      setMessages((prev) => [...prev, { sender: "bot", text: welcomeText }]);
       hasSentWelcome.current = true;
     }
   }, [isOpen, user]);

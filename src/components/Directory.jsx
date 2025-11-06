@@ -5,7 +5,7 @@ import {
   faStore,
   faCopy,
   faStar,
-} from "@fortawesome/free-solid-svg-icons"; // Added faStar
+} from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 import { useAuth } from "../hook/useAuth";
 import AuthModal from "../components/ui/AuthModal";
@@ -71,6 +71,7 @@ const useGoogleSheet = (sheetId, apiKey) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // 🔴 Fixed: Removed extra spaces
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`;
         const res = await fetch(url);
         const json = await res.json();
@@ -105,30 +106,17 @@ const useGoogleSheet = (sheetId, apiKey) => {
 
 // ---------------- Motion Variants ----------------
 const cardVariants = (index) => ({
-  hidden: {
-    opacity: 0,
-    y: 30,
-    filter: "blur(4px)",
-  },
+  hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
   visible: {
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-      delay: index * 0.05,
-    },
+    transition: { duration: 0.5, ease: "easeOut", delay: index * 0.05 },
   },
   hover: {
     y: -8,
     scale: 1.025,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 20,
-      mass: 0.8,
-    },
+    transition: { type: "spring", stiffness: 300, damping: 20, mass: 0.8 },
   },
 });
 
@@ -212,15 +200,15 @@ const ImageCarousel = ({ card, onImageClick }) => {
 const Directory = () => {
   const { user, loading: authLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
- const [imageModal, setImageModal] = useState({
-  isOpen: false,
-  images: [],
-  initialIndex: 0,
-  item: null, // ✅ Add this
-});
+  const [imageModal, setImageModal] = useState({
+    isOpen: false,
+    images: [],
+    initialIndex: 0,
+    item: null,
+  });
 
-  // State for expanded descriptions (✅ Fixed Hook Rule)
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
+  const [isFiltering, setIsFiltering] = useState(false); // ✅ New state
 
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
@@ -242,6 +230,15 @@ const Directory = () => {
   const [area, setArea] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(3);
+
+  // Reset filters
+  const resetFilters = () => {
+    setSearch("");
+    setMainCategory("");
+    setSubCategory("");
+    setArea("");
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     const check = () => setItemsPerPage(window.innerWidth >= 1024 ? 6 : 3);
@@ -282,28 +279,38 @@ const Directory = () => {
       ]
     : [];
 
+  // ✅ Filtering with loading state
   useEffect(() => {
-    const result = listings.filter((i) => {
-      const q = search.trim().toLowerCase();
-      const matchesSearch =
-        !q ||
-        i.name?.toLowerCase().includes(q) ||
-        i.short_desc?.toLowerCase().includes(q) ||
-        i.tags?.toLowerCase().includes(q);
+    if (listings.length === 0) return;
 
-      const catParts = i.category?.split(".") || [];
-      const mainCat =
-        capitalizeFirst(catParts[0]) || capitalizeFirst(i.category);
-      const subCat = catParts[1] ? capitalizeFirst(catParts[1]) : mainCat;
+    setIsFiltering(true);
+    const timer = setTimeout(() => {
+      const result = listings.filter((i) => {
+        const q = search.trim().toLowerCase();
+        const matchesSearch =
+          !q ||
+          i.name?.toLowerCase().includes(q) ||
+          i.short_desc?.toLowerCase().includes(q) ||
+          i.tags?.toLowerCase().includes(q);
 
-      const matchesMain = mainCategory ? mainCat === mainCategory : true;
-      const matchesSub = subCategory ? subCat === subCategory : true;
-      const matchesArea = area ? i.area === area : true;
+        const catParts = i.category?.split(".") || [];
+        const mainCat =
+          capitalizeFirst(catParts[0]) || capitalizeFirst(i.category);
+        const subCat = catParts[1] ? capitalizeFirst(catParts[1]) : mainCat;
 
-      return matchesSearch && matchesMain && matchesSub && matchesArea;
-    });
-    setFiltered(result);
-    setCurrentPage(1);
+        const matchesMain = mainCategory ? mainCat === mainCategory : true;
+        const matchesSub = subCategory ? subCat === subCategory : true;
+        const matchesArea = area ? i.area === area : true;
+
+        return matchesSearch && matchesMain && matchesSub && matchesArea;
+      });
+
+      setFiltered(result);
+      setCurrentPage(1);
+      setIsFiltering(false);
+    }, 150);
+
+    return () => clearTimeout(timer);
   }, [listings, search, mainCategory, subCategory, area]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
@@ -449,12 +456,24 @@ const Directory = () => {
             </div>
           </motion.div>
 
-          {/* Cards */}
-          {currentItems.length === 0 ? (
+          {/* Results or Loading or Empty */}
+          {isFiltering ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin h-8 w-8 border-t-2 border-blue-600 rounded-full"></div>
+            </div>
+          ) : currentItems.length === 0 ? (
             <div className="text-center py-12 border border-dashed border-slate-300 rounded-lg text-slate-500">
-              <i className="fas fa-search text-4xl mb-4 block text-slate-400" />
-              <h4 className="font-semibold mb-2">No results found</h4>
-              <p>Try adjusting your filters or search term</p>
+              <i className="fas fa-filter-slash text-4xl mb-4 block text-slate-400"></i>
+              <h4 className="font-semibold mb-2">No matching businesses</h4>
+              <p className="mb-4">
+                Try a different category, area, or keyword.
+              </p>
+              <button
+                onClick={resetFilters}
+                className="px-4 py-2 bg-[rgb(0,6,90)] text-white rounded-lg text-sm font-medium hover:bg-[#0e1f45] transition"
+              >
+                🔁 Reset All Filters
+              </button>
             </div>
           ) : (
             <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
@@ -475,7 +494,7 @@ const Directory = () => {
                         isOpen: true,
                         images,
                         initialIndex: index,
-                        item, // ✅ Include the full item
+                        item,
                       })
                     }
                   />
@@ -486,7 +505,6 @@ const Directory = () => {
                       <span>{item.area}</span> • <span>{item.category}</span>
                     </div>
 
-                    {/* Description with See More */}
                     <p
                       className={`text-slate-700 text-sm mb-3 ${
                         expandedDescriptions[item.name || item.id]
@@ -512,7 +530,6 @@ const Directory = () => {
                       </button>
                     )}
 
-                    {/* Star Rating */}
                     {item.rating && (
                       <div className="flex items-center mb-3">
                         <FontAwesomeIcon
@@ -529,7 +546,6 @@ const Directory = () => {
                       From ₦{formatPrice(item.price_from)}
                     </div>
 
-                    {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
                       {(item.tags ? item.tags.split(",") : []).map(
                         (tag, idx) => {
@@ -553,7 +569,6 @@ const Directory = () => {
                       )}
                     </div>
 
-                    {/* Show Contact */}
                     <div className="mt-auto flex gap-2">
                       {!showContact[item.name] ? (
                         <button
@@ -606,13 +621,11 @@ const Directory = () => {
             <AuthModal
               isOpen={isAuthModalOpen}
               onClose={() => setIsAuthModalOpen(false)}
-              onAuthToast={(msg) => {
-                console.log("Auth toast:", msg);
-              }}
+              onAuthToast={(msg) => console.log("Auth toast:", msg)}
             />
           )}
 
-          {/* Full-Screen Image Modal — rendered at root level of Directory */}
+          {/* Image Modal */}
           {imageModal.isOpen && (
             <ImageModal
               images={imageModal.images}
@@ -627,12 +640,12 @@ const Directory = () => {
               }
               item={imageModal.item}
               onAuthToast={(msg) => console.log("Auth toast:", msg)}
-              onOpenChat={openChat} // ✅ Add this line
+              onOpenChat={openChat}
             />
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {totalPages > 1 && !isFiltering && (
             <motion.div className="flex justify-center mt-8 flex-wrap gap-2">
               {currentPage > 1 && (
                 <button
@@ -643,50 +656,21 @@ const Directory = () => {
                 </button>
               )}
 
-              {(() => {
-                const isMobile = window.innerWidth < 1024;
-                if (isMobile) {
-                  const maxPagesToShow = 4;
-                  const pages = [];
-                  for (
-                    let p = 1;
-                    p <= Math.min(totalPages, maxPagesToShow);
-                    p++
-                  ) {
-                    pages.push(p);
-                  }
-                  return pages.map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-4 py-2 mx-1 rounded ${
-                        currentPage === page
-                          ? "bg-[rgb(0,6,90)] text-white"
-                          : "bg-slate-200 text-slate-800 hover:bg-slate-300"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ));
-                } else {
-                  return Array.from(
-                    { length: totalPages },
-                    (_, i) => i + 1
-                  ).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-4 py-2 mx-1 rounded ${
-                        currentPage === page
-                          ? "bg-[rgb(0,6,90)] text-white"
-                          : "bg-slate-200 text-slate-800 hover:bg-slate-300"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ));
-                }
-              })()}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .slice(0, 6) // limit for mobile
+                .map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-4 py-2 mx-1 rounded ${
+                      currentPage === page
+                        ? "bg-[rgb(0,6,90)] text-white"
+                        : "bg-slate-200 text-slate-800 hover:bg-slate-300"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
 
               {currentPage < totalPages && (
                 <button

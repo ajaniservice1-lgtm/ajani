@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-// ✅ Custom Hook: Fetch Data from Google Apps Script Web App
+
 // ✅ Custom Hook: Fetch Data from Google Apps Script Web App
 const useGoogleSheet = (webAppUrl) => {
   const [data, setData] = useState([]);
@@ -34,3 +34,6 @@ const useGoogleSheet = (webAppUrl) => {
 
   return { data, loading, error };
 };
+
+// ✅ Export the hook so it can be imported elsewhere
+export default useGoogleSheet;

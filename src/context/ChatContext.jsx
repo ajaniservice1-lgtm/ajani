@@ -15,7 +15,7 @@ export const ChatProvider = ({ children }) => {
     <ChatContext.Provider value={{ isChatOpen, openChat, closeChat }}>
       {children}
 
-      {/* Floating Button - always visible when chat is closed */}
+      {/* Floating Button - only show when chat is closed */}
       <AnimatePresence>
         {!isChatOpen && (
           <motion.button
@@ -33,8 +33,8 @@ export const ChatProvider = ({ children }) => {
         )}
       </AnimatePresence>
 
-      {/* Chat Window */}
-      {isChatOpen && <ChatWidget isOpen={isChatOpen} onClose={closeChat} />}
+      {/* ✅ Always render ChatWidget — never unmount it */}
+      <ChatWidget isOpen={isChatOpen} onClose={closeChat} />
     </ChatContext.Provider>
   );
 };

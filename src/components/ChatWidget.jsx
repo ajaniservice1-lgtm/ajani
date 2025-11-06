@@ -50,6 +50,8 @@ const ChatWidget = ({ isOpen, onClose }) => {
       "food",
       "amala",
       "jollofrice",
+      "garden",
+      "shortlet",
       "dine",
       "meal",
       "shorlet",

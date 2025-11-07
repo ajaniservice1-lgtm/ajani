@@ -11,6 +11,7 @@ import { useAuth } from "../hook/useAuth";
 import AuthModal from "../components/ui/AuthModal";
 import ImageModal from "../components/ImageModal";
 import { useChat } from "../context/ChatContext";
+import { useLocation } from "../hook/useLocation"; // ✅ Import hook
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
@@ -71,7 +72,7 @@ const useGoogleSheet = (sheetId, apiKey) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 🔴 Fixed: Removed extra spaces
+        // ✅ FIXED: No extra spaces
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`;
         const res = await fetch(url);
         const json = await res.json();
@@ -199,6 +200,13 @@ const ImageCarousel = ({ card, onImageClick }) => {
 // ---------------- Directory Component ----------------
 const Directory = () => {
   const { user, loading: authLoading } = useAuth();
+  const {
+    location,
+    loading: locLoading,
+    error: locError,
+    requestLocation,
+    getDistance,
+  } = useLocation();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [imageModal, setImageModal] = useState({
     isOpen: false,
@@ -208,7 +216,8 @@ const Directory = () => {
   });
 
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
-  const [isFiltering, setIsFiltering] = useState(false); // ✅ New state
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [useMyLocation, setUseMyLocation] = useState(false); // ✅ Location toggle
 
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
@@ -237,16 +246,20 @@ const Directory = () => {
     setMainCategory("");
     setSubCategory("");
     setArea("");
+    setUseMyLocation(false); // ✅ Reset location toggle
     setCurrentPage(1);
   };
 
+  // Adjust items per page
   useEffect(() => {
     const check = () => setItemsPerPage(window.innerWidth >= 1024 ? 6 : 3);
     check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    const handler = () => check();
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
   }, []);
 
+  // Extract filter options
   const areas = [
     ...new Set(listings.map((i) => i.area).filter(Boolean)),
   ].sort();
@@ -279,13 +292,13 @@ const Directory = () => {
       ]
     : [];
 
-  // ✅ Filtering with loading state
+  // ✅ Filtering with location support
   useEffect(() => {
     if (listings.length === 0) return;
 
     setIsFiltering(true);
     const timer = setTimeout(() => {
-      const result = listings.filter((i) => {
+      let result = listings.filter((i) => {
         const q = search.trim().toLowerCase();
         const matchesSearch =
           !q ||
@@ -305,13 +318,37 @@ const Directory = () => {
         return matchesSearch && matchesMain && matchesSub && matchesArea;
       });
 
+      // ✅ Apply location-based sorting (not filtering — preserves all)
+      if (useMyLocation && location) {
+        result = result
+          .map((item) => {
+            const lat = parseFloat(item.lat);
+            const lon = parseFloat(item.lon);
+            const dist =
+              !isNaN(lat) && !isNaN(lon)
+                ? getDistance(location.lat, location.lon, lat, lon)
+                : Infinity;
+            return { ...item, distance: dist };
+          })
+          .sort((a, b) => a.distance - b.distance);
+      }
+
       setFiltered(result);
       setCurrentPage(1);
       setIsFiltering(false);
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [listings, search, mainCategory, subCategory, area]);
+  }, [
+    listings,
+    search,
+    mainCategory,
+    subCategory,
+    area,
+    useMyLocation,
+    location,
+    getDistance,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -340,6 +377,20 @@ const Directory = () => {
   useEffect(() => {
     if (user && isAuthModalOpen) setIsAuthModalOpen(false);
   }, [user, isAuthModalOpen]);
+
+  // ✅ Handle location toggle
+  const handleLocationToggle = async () => {
+    if (useMyLocation) {
+      setUseMyLocation(false);
+    } else {
+      try {
+        await requestLocation();
+        setUseMyLocation(true);
+      } catch (err) {
+        console.warn("Location access denied or unavailable");
+      }
+    }
+  };
 
   if (loading)
     return (
@@ -397,7 +448,7 @@ const Directory = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: false }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+            className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
           >
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -454,6 +505,31 @@ const Directory = () => {
                 ))}
               </select>
             </div>
+
+            {/* ✅ Location Toggle */}
+            <div>
+              <label className="block text-sm font-medium mb-1">&nbsp;</label>
+              <label className="flex items-center cursor-pointer bg-slate-50 px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-100">
+                <input
+                  type="checkbox"
+                  checked={useMyLocation}
+                  onChange={handleLocationToggle}
+                  disabled={locLoading}
+                  className="mr-2 h-4 w-4 text-blue-600 rounded"
+                />
+                <span className="text-sm">
+                  📍{" "}
+                  {locLoading
+                    ? "Locating..."
+                    : useMyLocation
+                    ? "Using location"
+                    : "Use my location"}
+                </span>
+              </label>
+              {locError && (
+                <p className="text-xs text-red-500 mt-1">⚠️ {locError}</p>
+              )}
+            </div>
           </motion.div>
 
           {/* Results or Loading or Empty */}
@@ -503,6 +579,23 @@ const Directory = () => {
                     <h3 className="font-bold text-lg mb-1">{item.name}</h3>
                     <div className="text-sm text-slate-600 mb-2">
                       <span>{item.area}</span> • <span>{item.category}</span>
+                      {/* ✅ Distance label */}
+                      {useMyLocation && location && item.lat && item.lon ? (
+                        <span className="block mt-1 text-xs text-slate-500">
+                          📍{" "}
+                          {(() => {
+                            const d = getDistance(
+                              location.lat,
+                              location.lon,
+                              parseFloat(item.lat),
+                              parseFloat(item.lon)
+                            );
+                            return d < 100
+                              ? `${d.toFixed(1)} km away`
+                              : `>100 km`;
+                          })()}
+                        </span>
+                      ) : null}
                     </div>
 
                     <p
@@ -657,7 +750,10 @@ const Directory = () => {
               )}
 
               {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .slice(0, 6) // limit for mobile
+                .slice(
+                  Math.max(0, currentPage - 2),
+                  Math.min(totalPages, currentPage + 3)
+                )
                 .map((page) => (
                   <button
                     key={page}

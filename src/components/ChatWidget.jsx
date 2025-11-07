@@ -3,11 +3,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
 import { useAuth } from "../hook/useAuth";
+import { useLocation } from "../hook/useLocation"; // ✅ External hook
 
 const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
-let lastQueryContext = null; // Persists across widget open/close
+let lastQueryContext = null;
 
 const ChatWidget = ({ isOpen, onClose }) => {
   const { user } = useAuth();
@@ -17,12 +18,20 @@ const ChatWidget = ({ isOpen, onClose }) => {
   const hasSentWelcome = useRef(false);
   const currentPageRef = useRef(0);
 
+  const {
+    location,
+    loading: loadingLoc,
+    error: locError,
+    requestLocation,
+    getDistance,
+  } = useLocation();
+
   // === Static responses ===
   const staticQnA = {
     hello:
-      "Hi 👋 I'm Ajani! a automated service, im still learning, Try: 'hotels under 10000' or 'restaurants in Bodija'.",
-    hi: "Hello! I'm Ajani! a automated service, im still learning 👋 Ask me about Ibadan businesses with price filters!",
-    help: "Examples:\n• “Hotels under 15000”\n• “Food above 500”\n• “Event halls in Mokola”",
+      "Hi 👋 I'm Ajani! An automated assistant — I'm still learning! Try: 'hotels under 10000' or 'restaurants in Bodija'.",
+    hi: "Hello! 👋 Ask me about Ibadan businesses. Try: 'hotels near me under 10000'.",
+    help: "Examples:\n• “Hotels under 15000”\n• “Food near me”\n• “Event halls in Mokola”",
     phone: "📞 Go to directory for contact details.",
     contact: "📞 Go to directory for contact details.",
     more: "First ask a question like “hotels”, then say “more”.",
@@ -50,11 +59,9 @@ const ChatWidget = ({ isOpen, onClose }) => {
       "food",
       "amala",
       "jollofrice",
-      "garden",
       "shortlet",
       "dine",
       "meal",
-      "shorlet",
       "event",
       "party",
       "wedding",
@@ -86,7 +93,6 @@ const ChatWidget = ({ isOpen, onClose }) => {
 
     let minPrice = null;
     let maxPrice = null;
-
     const underMatch = lowerQ.match(
       /(under|below|less than)\s*[₦]?\s*([\d,]+)/i
     );
@@ -95,12 +101,14 @@ const ChatWidget = ({ isOpen, onClose }) => {
     const overMatch = lowerQ.match(/(over|above|more than)\s*[₦]?\s*([\d,]+)/i);
     if (overMatch) minPrice = parseFloat(overMatch[2].replace(/,/g, ""));
 
-    return { category, area, sortOrder, minPrice, maxPrice };
+    const isNearMe = /near me|close to me|around me/i.test(lowerQ);
+
+    return { category, area, sortOrder, minPrice, maxPrice, isNearMe };
   };
 
   // === Fetch from Google Sheets ===
   const fetchAnswerFromSheet = async (query) => {
-    const { category, area, sortOrder, minPrice, maxPrice } = query;
+    const { category, area, sortOrder, minPrice, maxPrice, isNearMe } = query;
 
     // ✅ FIXED: No extra spaces in URL
     const range = "Catalog!A2:L1000";
@@ -114,7 +122,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
       const rows = data.values || [];
 
       let businesses = rows
-        .filter((row) => row.length >= 6 && row[5])
+        .filter((row) => row.length >= 12)
         .map(
           ([
             id,
@@ -137,39 +145,58 @@ const ChatWidget = ({ isOpen, onClose }) => {
             price_from: price_from ? parseFloat(price_from) : null,
             currency: currency || "NGN",
             link: lon || "",
+            lat: lat ? parseFloat(lat) : null,
+            lon: lon ? parseFloat(lon) : null,
           })
         )
         .filter((b) => b.price_from !== null && !isNaN(b.price_from))
         .filter((b) => b.category.includes(category));
 
-      if (minPrice !== null) {
+      // Apply price filters
+      if (minPrice !== null)
         businesses = businesses.filter((b) => b.price_from >= minPrice);
-      }
-      if (maxPrice !== null) {
+      if (maxPrice !== null)
         businesses = businesses.filter((b) => b.price_from <= maxPrice);
-      }
+
+      // Apply area filter
       if (area) {
         const areaLower = area.toLowerCase();
         businesses = businesses.filter((b) => b.area.includes(areaLower));
-        if (businesses.length === 0) {
-          return `No ${category}${
-            maxPrice ? ` under ₦${maxPrice.toLocaleString()}` : ""
-          }${
-            minPrice ? ` above ₦${minPrice.toLocaleString()}` : ""
-          } found in **${area}**.`;
-        }
+      }
+
+      // Apply "near me" filter
+      if (isNearMe && location) {
+        businesses = businesses
+          .filter((b) => b.lat && b.lon)
+          .map((b) => ({
+            ...b,
+            distance: getDistance(location.lat, location.lon, b.lat, b.lon),
+          }))
+          .filter((b) => b.distance <= 15); // Max 15km
       }
 
       if (businesses.length === 0) {
+        if (isNearMe && !location) {
+          return "📍 First, allow location access. Try asking again after granting permission!";
+        }
+        if (isNearMe && location) {
+          return `No ${category} found within 15km. Try without “near me”.`;
+        }
         return `No matching ${category} found. Try: “hotels under 20000” or “food in Bodija”.`;
       }
 
-      businesses.sort((a, b) =>
-        sortOrder === "desc"
-          ? b.price_from - a.price_from
-          : a.price_from - b.price_from
-      );
+      // Sort: nearest first (if near me), otherwise by price
+      if (isNearMe && location) {
+        businesses.sort((a, b) => a.distance - b.distance);
+      } else {
+        businesses.sort((a, b) =>
+          sortOrder === "desc"
+            ? b.price_from - a.price_from
+            : a.price_from - b.price_from
+        );
+      }
 
+      // Paginate
       const batchSize = 5;
       const start = currentPageRef.current * batchSize;
       const end = start + batchSize;
@@ -180,10 +207,12 @@ const ChatWidget = ({ isOpen, onClose }) => {
         return "That’s all available for now 😊";
       }
 
+      // Format reply
       let reply = `Here are ${
         sortOrder === "desc" ? "most expensive " : ""
       }${category}`;
       if (area) reply += ` in **${area}**`;
+      if (isNearMe) reply += ` near you`;
       if (minPrice !== null) reply += ` above ₦${minPrice.toLocaleString()}`;
       if (maxPrice !== null) reply += ` under ₦${maxPrice.toLocaleString()}`;
       reply += `:\n\n`;
@@ -191,9 +220,11 @@ const ChatWidget = ({ isOpen, onClose }) => {
       batch.forEach((b, i) => {
         const idx = start + i + 1;
         const formattedArea = b.area.charAt(0).toUpperCase() + b.area.slice(1);
-        reply += `${idx}. **${
-          b.name
-        }**\n   📍 ${formattedArea}\n   💰 ₦${b.price_from.toLocaleString()}\n`;
+        reply += `${idx}. **${b.name}**\n   📍 ${formattedArea}`;
+        if (isNearMe && b.distance !== undefined) {
+          reply += ` (${b.distance.toFixed(1)} km)`;
+        }
+        reply += `\n   💰 ₦${b.price_from.toLocaleString()}\n`;
         if (b.link) reply += `   🔗 [View →](${b.link})\n`;
         reply += "\n";
       });
@@ -232,8 +263,20 @@ const ChatWidget = ({ isOpen, onClose }) => {
       currentPageRef.current = 0;
       const parsed = parseQuery(input);
       if (parsed) {
-        lastQueryContext = parsed;
-        reply = await fetchAnswerFromSheet(parsed);
+        const { isNearMe } = parsed;
+        if (isNearMe && !location) {
+          try {
+            await requestLocation();
+            lastQueryContext = { ...parsed, location: { lat: 0, lon: 0 } }; // dummy to prevent re-request
+            reply = await fetchAnswerFromSheet({ ...parsed, location });
+          } catch (err) {
+            reply =
+              "📍 Location access needed. You can still search by area (e.g., 'in Bodija').";
+          }
+        } else {
+          lastQueryContext = { ...parsed, location };
+          reply = await fetchAnswerFromSheet({ ...parsed, location });
+        }
       } else {
         reply = getStaticResponse(input);
       }
@@ -241,7 +284,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
 
     if (!reply) {
       reply =
-        "Ajani didn’t understand. Try:\n• “Hotels under 10000”\n• “Food in Bodija above 500”\n• “Most expensive event halls”";
+        "Ajani didn’t understand. Try:\n• “Hotels near me”\n• “Food under 1000 in Bodija”\n• “Most expensive event halls”";
     }
 
     setMessages((prev) => [...prev, { sender: "bot", text: reply }]);
@@ -274,13 +317,12 @@ const ChatWidget = ({ isOpen, onClose }) => {
     if (isOpen && !hasSentWelcome.current) {
       const displayName = getDisplayName();
       const greeting = getGreeting();
-      const welcomeText = `${greeting} I'm Ajani 👋\n\nAsk about hotels, food, or events in Ibadan! For example:\n• “Hotels under 10000”\n• “Restaurants in Bodija above 5000”\n• “Most expensive event halls”`;
+      const welcomeText = `${greeting} I'm Ajani 👋\n\nAsk about hotels, food, or events in Ibadan!\nExamples:\n• “Hotels near me”\n• “Restaurants in Bodija under 1000”\n• “Most expensive event halls”`;
       setMessages((prev) => [...prev, { sender: "bot", text: welcomeText }]);
       hasSentWelcome.current = true;
     }
   }, [isOpen, user]);
 
-  // ✅ Clear ONLY input when closing — keep messages & context
   useEffect(() => {
     if (!isOpen) {
       setInput("");
@@ -328,7 +370,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
             <div className="flex-1 p-3 overflow-y-auto bg-gray-50">
               {messages.length === 0 ? (
                 <p className="text-sm text-gray-500">
-                  Try: “hotels under 10k”, “food in Bodija”
+                  Try: “hotels near me”, “food under 1k in Bodija”
                 </p>
               ) : (
                 <AnimatePresence>
@@ -387,7 +429,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
             <div className="p-2 border-t bg-white flex gap-2">
               <input
                 className="flex-1 border rounded px-2 py-1 text-sm"
-                placeholder="E.g., hotels under 10000 in Bodija"
+                placeholder="E.g., hotels near me under 10000"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}

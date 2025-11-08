@@ -230,15 +230,15 @@ const Directory = () => {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const handleShowContact = (itemName) => {
+  const handleShowContact = (itemId) => {
     if (authLoading) return;
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
-    setShowContact((prev) => ({ ...prev, [itemName]: true }));
+    setShowContact((prev) => ({ ...prev, [itemId]: true }));
     setTimeout(
-      () => setShowContact((prev) => ({ ...prev, [itemName]: false })),
+      () => setShowContact((prev) => ({ ...prev, [itemId]: false })),
       20000
     );
   };
@@ -342,99 +342,104 @@ const Directory = () => {
           </div>
         </motion.div>
 
-        {/* Filters */}
-        <div className="bg-white/10 p-6 rounded-xl shadow-sm border border-gray-200 mb-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Main Category
-              </label>
-              <select
-                value={mainCategory}
-                onChange={(e) => {
-                  setMainCategory(e.target.value);
-                  setSubCategory("");
-                }}
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All</option>
-                {[
-                  ...new Set(
-                    listings
-                      .map((i) =>
-                        capitalizeFirst(
-                          (i.category || "").split(".")[0] || i.category
+        {/* Filters + Gradient overlay */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-5 relative">
+          <div className="p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Main Category
+                </label>
+                <select
+                  value={mainCategory}
+                  onChange={(e) => {
+                    setMainCategory(e.target.value);
+                    setSubCategory("");
+                  }}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All</option>
+                  {[
+                    ...new Set(
+                      listings
+                        .map((i) =>
+                          capitalizeFirst(
+                            (i.category || "").split(".")[0] || i.category
+                          )
                         )
-                      )
-                      .filter(Boolean)
-                  ),
-                ]
-                  .sort()
-                  .map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-              </select>
-            </div>
+                        .filter(Boolean)
+                    ),
+                  ]
+                    .sort()
+                    .map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Subcategory
-              </label>
-              <select
-                value={subCategory}
-                onChange={(e) => setSubCategory(e.target.value)}
-                disabled={!mainCategory}
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              >
-                <option value="">All</option>
-                {[
-                  ...new Set(
-                    listings
-                      .filter(
-                        (i) =>
-                          capitalizeFirst((i.category || "").split(".")[0]) ===
-                          mainCategory
-                      )
-                      .map((i) => {
-                        const parts = (i.category || "").split(".");
-                        return parts[1]
-                          ? capitalizeFirst(parts[1])
-                          : mainCategory;
-                      })
-                  ),
-                ]
-                  .filter(Boolean)
-                  .sort()
-                  .map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-              </select>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subcategory
+                </label>
+                <select
+                  value={subCategory}
+                  onChange={(e) => setSubCategory(e.target.value)}
+                  disabled={!mainCategory}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="">All</option>
+                  {[
+                    ...new Set(
+                      listings
+                        .filter(
+                          (i) =>
+                            capitalizeFirst(
+                              (i.category || "").split(".")[0]
+                            ) === mainCategory
+                        )
+                        .map((i) => {
+                          const parts = (i.category || "").split(".");
+                          return parts[1]
+                            ? capitalizeFirst(parts[1])
+                            : mainCategory;
+                        })
+                    ),
+                  ]
+                    .filter(Boolean)
+                    .sort()
+                    .map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Area
-              </label>
-              <select
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Areas</option>
-                {[...new Set(listings.map((i) => i.area).filter(Boolean))]
-                  .sort()
-                  .map((a) => (
-                    <option key={a} value={a}>
-                      {a}
-                    </option>
-                  ))}
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Area
+                </label>
+                <select
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Areas</option>
+                  {[...new Set(listings.map((i) => i.area).filter(Boolean))]
+                    .sort()
+                    .map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
           </div>
+          {/* Gradient overlay at bottom of filter section */}
+          <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-b from-white/0 to-white pointer-events-none" />
         </div>
 
         {/* Results */}
@@ -651,30 +656,30 @@ const Directory = () => {
             )}
           </>
         )}
-      </div>
 
-      {/* Modals */}
-      {isAuthModalOpen && (
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-        />
-      )}
-      {imageModal.isOpen && (
-        <ImageModal
-          images={imageModal.images}
-          initialIndex={imageModal.initialIndex}
-          onClose={() =>
-            setImageModal({
-              isOpen: false,
-              images: [],
-              initialIndex: 0,
-              item: null,
-            })
-          }
-          item={imageModal.item}
-        />
-      )}
+        {/* Modals */}
+        {isAuthModalOpen && (
+          <AuthModal
+            isOpen={isAuthModalOpen}
+            onClose={() => setIsAuthModalOpen(false)}
+          />
+        )}
+        {imageModal.isOpen && (
+          <ImageModal
+            images={imageModal.images}
+            initialIndex={imageModal.initialIndex}
+            onClose={() =>
+              setImageModal({
+                isOpen: false,
+                images: [],
+                initialIndex: 0,
+                item: null,
+              })
+            }
+            item={imageModal.item}
+          />
+        )}
+      </div>
     </section>
   );
 };

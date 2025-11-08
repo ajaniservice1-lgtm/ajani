@@ -188,7 +188,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
 
       if (!batch.length) {
         currentPageRef.current = 0;
-        return "That’s all available for now 😊";
+        return "No results at the moment, That’s all available for now 😊";
       }
 
       // === Reply builder

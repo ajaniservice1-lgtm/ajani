@@ -312,7 +312,7 @@ const Directory = () => {
     <section
       ref={directoryRef}
       id="directory"
-      className="bg-gray-50 py-12 font-rubik"
+      className="bg-[#eef8fd] py-12 font-rubik"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -438,224 +438,227 @@ const Directory = () => {
               </div>
             </div>
           </div>
-          {/* Gradient overlay at bottom of filter section */}
-          <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-b from-white/0 to-white pointer-events-none" />
-        </div>
 
-        {/* Results */}
-        {currentItems.length === 0 ? (
-          <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
-            <i className="fas fa-box-open text-5xl text-gray-300 mb-4 block"></i>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              No businesses match your filters
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Try adjusting your search or filters.
-            </p>
-          </div>
-        ) : (
-          <>
-            <motion.div
-              layout
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"
-            >
-              {currentItems.map((item, i) => {
-                const itemId = `business-${item.id}`;
-                return (
-                  <motion.div
-                    key={itemId}
-                    id={itemId}
-                    variants={cardVariants(i)}
-                    initial="hidden"
-                    animate="visible"
-                    whileHover="hover"
-                    className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full"
-                  >
-                    <ImageCarousel
-                      card={item}
-                      onImageClick={(images, idx) =>
-                        setImageModal({
-                          isOpen: true,
-                          images,
-                          initialIndex: idx,
-                          item,
-                        })
-                      }
-                    />
-                    <div className="p-5 flex flex-col flex-grow">
-                      <h3 className="font-bold text-lg text-gray-900 mb-1 truncate">
-                        {item.name}
-                      </h3>
-                      <div className="text-sm text-gray-600 mb-2">
-                        <span className="font-medium">{item.area}</span>
-                      </div>
-                      <p
-                        className={`text-gray-700 text-sm mb-3 ${
-                          expandedDescriptions[item.id] ? "" : "line-clamp-3"
-                        }`}
+          <div className="mb-7 p-6 px-2">
+            {/* Results */}
+            {currentItems.length === 0 ? (
+              <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
+                <i className="fas fa-box-open text-5xl text-gray-300 mb-4 block"></i>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  No businesses match your filters
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Try adjusting your search or filters.
+                </p>
+              </div>
+            ) : (
+              <>
+                <motion.div
+                  layout
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"
+                >
+                  {currentItems.map((item, i) => {
+                    const itemId = `business-${item.id}`;
+                    return (
+                      <motion.div
+                        key={itemId}
+                        id={itemId}
+                        variants={cardVariants(i)}
+                        initial="hidden"
+                        animate="visible"
+                        whileHover="hover"
+                        className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full"
                       >
-                        {item.short_desc || "No description available."}
-                      </p>
-                      {item.short_desc?.length > 120 && (
-                        <button
-                          onClick={() =>
-                            setExpandedDescriptions((prev) => ({
-                              ...prev,
-                              [item.id]: !prev[item.id],
-                            }))
+                        <ImageCarousel
+                          card={item}
+                          onImageClick={(images, idx) =>
+                            setImageModal({
+                              isOpen: true,
+                              images,
+                              initialIndex: idx,
+                              item,
+                            })
                           }
-                          className="text-blue-600 text-sm font-medium mb-3 hover:underline"
-                        >
-                          {expandedDescriptions[item.id]
-                            ? "Show Less"
-                            : "Show More..."}
-                        </button>
-                      )}
-
-                      <div className="mt-auto">
-                        {item.rating && (
-                          <div className="flex items-center mb-2">
-                            <FontAwesomeIcon
-                              icon={faStar}
-                              className="text-yellow-500 mr-1"
-                            />
-                            <span className="text-sm font-medium">
-                              {item.rating}/5
-                            </span>
+                        />
+                        <div className="p-5 flex flex-col flex-grow">
+                          <h3 className="font-bold text-lg text-gray-900 mb-1 truncate">
+                            {item.name}
+                          </h3>
+                          <div className="text-sm text-gray-600 mb-2">
+                            <span className="font-medium">{item.area}</span>
                           </div>
-                        )}
-
-                        <div className="font-bold text-lg text-gray-900 mb-3">
-                          From ₦{formatPrice(item.price_from)}
-                        </div>
-
-                        <div className="flex flex-wrap gap-1.5 mb-4">
-                          {(item.tags
-                            ? item.tags.split(",").map((t) => t.trim())
-                            : []
-                          ).map((tag, idx) => {
-                            const [name, price] = tag.split(":");
-                            return price ? (
-                              <span
-                                key={idx}
-                                className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded font-medium text-sm"
-                              >
-                                {name} ₦{parseInt(price).toLocaleString()}
-                              </span>
-                            ) : (
-                              <span
-                                key={idx}
-                                className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded text-sm"
-                              >
-                                {name}
-                              </span>
-                            );
-                          })}
-                        </div>
-
-                        <div className="flex gap-2">
-                          {!showContact[item.id] ? (
+                          <p
+                            className={`text-gray-700 text-sm mb-3 ${
+                              expandedDescriptions[item.id]
+                                ? ""
+                                : "line-clamp-3"
+                            }`}
+                          >
+                            {item.short_desc || "No description available."}
+                          </p>
+                          {item.short_desc?.length > 120 && (
                             <button
-                              onClick={() => handleShowContact(item.id)}
-                              disabled={authLoading}
-                              className="flex-1 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white px-3 py-2.5 rounded text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-75"
+                              onClick={() =>
+                                setExpandedDescriptions((prev) => ({
+                                  ...prev,
+                                  [item.id]: !prev[item.id],
+                                }))
+                              }
+                              className="text-blue-600 text-sm font-medium mb-3 hover:underline"
                             >
-                              {authLoading ? (
-                                <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <>
-                                  <FontAwesomeIcon icon={faComment} /> Contact
-                                </>
-                              )}
+                              {expandedDescriptions[item.id]
+                                ? "Show Less"
+                                : "Show More..."}
                             </button>
-                          ) : (
-                            <div className="flex-1 flex justify-between items-center bg-green-100 px-3 py-2 rounded text-sm font-medium">
-                              <span className="truncate max-w-[150px]">
-                                📞 {formatWhatsapp(item.whatsapp) || "N/A"}
-                              </span>
+                          )}
+
+                          <div className="mt-auto">
+                            {item.rating && (
+                              <div className="flex items-center mb-2">
+                                <FontAwesomeIcon
+                                  icon={faStar}
+                                  className="text-yellow-500 mr-1"
+                                />
+                                <span className="text-sm font-medium">
+                                  {item.rating}/5
+                                </span>
+                              </div>
+                            )}
+
+                            <div className="font-bold text-lg text-gray-900 mb-3">
+                              From ₦{formatPrice(item.price_from)}
+                            </div>
+
+                            <div className="flex flex-wrap gap-1.5 mb-4">
+                              {(item.tags
+                                ? item.tags.split(",").map((t) => t.trim())
+                                : []
+                              ).map((tag, idx) => {
+                                const [name, price] = tag.split(":");
+                                return price ? (
+                                  <span
+                                    key={idx}
+                                    className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded font-medium text-sm"
+                                  >
+                                    {name} ₦{parseInt(price).toLocaleString()}
+                                  </span>
+                                ) : (
+                                  <span
+                                    key={idx}
+                                    className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded text-sm"
+                                  >
+                                    {name}
+                                  </span>
+                                );
+                              })}
+                            </div>
+
+                            <div className="flex gap-2">
+                              {!showContact[item.id] ? (
+                                <button
+                                  onClick={() => handleShowContact(item.id)}
+                                  disabled={authLoading}
+                                  className="flex-1 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white px-3 py-2.5 rounded text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-75"
+                                >
+                                  {authLoading ? (
+                                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <>
+                                      <FontAwesomeIcon icon={faComment} />{" "}
+                                      Contact
+                                    </>
+                                  )}
+                                </button>
+                              ) : (
+                                <div className="flex-1 flex justify-between items-center bg-green-100 px-3 py-2 rounded text-sm font-medium">
+                                  <span className="truncate max-w-[150px]">
+                                    📞 {formatWhatsapp(item.whatsapp) || "N/A"}
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(
+                                        formatWhatsapp(item.whatsapp) || ""
+                                      );
+                                      alert("✅ Copied to clipboard!");
+                                    }}
+                                    className="ml-2 flex-shrink-0 px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                                    aria-label="Copy phone number"
+                                  >
+                                    <FontAwesomeIcon icon={faCopy} />
+                                  </button>
+                                </div>
+                              )}
                               <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(
-                                    formatWhatsapp(item.whatsapp) || ""
-                                  );
-                                  alert("✅ Copied to clipboard!");
-                                }}
-                                className="ml-2 flex-shrink-0 px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                                aria-label="Copy phone number"
+                                onClick={() =>
+                                  openChat(`Tell me about ${item.name}`)
+                                }
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2.5 rounded text-sm flex items-center justify-center flex-shrink-0"
+                                aria-label={`Ask about ${item.name}`}
                               >
-                                <FontAwesomeIcon icon={faCopy} />
+                                <FontAwesomeIcon icon={faComment} />
                               </button>
                             </div>
-                          )}
-                          <button
-                            onClick={() =>
-                              openChat(`Tell me about ${item.name}`)
-                            }
-                            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2.5 rounded text-sm flex items-center justify-center flex-shrink-0"
-                            aria-label={`Ask about ${item.name}`}
-                          >
-                            <FontAwesomeIcon icon={faComment} />
-                          </button>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex justify-center flex-wrap gap-2"
-              >
-                {currentPage > 1 && (
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    className="px-4 py-2 bg-[rgb(0,6,90)] text-white rounded hover:bg-blue-700 transition"
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex justify-center flex-wrap gap-2"
                   >
-                    ← Prev
-                  </button>
+                    {currentPage > 1 && (
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        className="px-4 py-2 bg-[rgb(0,6,90)] text-white rounded hover:bg-blue-700 transition"
+                      >
+                        ← Prev
+                      </button>
+                    )}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let start = Math.max(1, currentPage - 2);
+                      let end = Math.min(totalPages, start + 4);
+                      return Array.from(
+                        { length: end - start + 1 },
+                        (_, j) => start + j
+                      );
+                    })
+                      .flat()
+                      .filter(
+                        (p, i, arr) => arr.indexOf(p) === i && p <= totalPages
+                      )
+                      .map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-4 py-2 rounded ${
+                            currentPage === page
+                              ? "bg-[rgb(0,6,90)] text-white"
+                              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    {currentPage < totalPages && (
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        className="px-4 py-2 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white rounded transition"
+                      >
+                        Next →
+                      </button>
+                    )}
+                  </motion.div>
                 )}
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let start = Math.max(1, currentPage - 2);
-                  let end = Math.min(totalPages, start + 4);
-                  return Array.from(
-                    { length: end - start + 1 },
-                    (_, j) => start + j
-                  );
-                })
-                  .flat()
-                  .filter(
-                    (p, i, arr) => arr.indexOf(p) === i && p <= totalPages
-                  )
-                  .map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-4 py-2 rounded ${
-                        currentPage === page
-                          ? "bg-[rgb(0,6,90)] text-white"
-                          : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                {currentPage < totalPages && (
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    className="px-4 py-2 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white rounded transition"
-                  >
-                    Next →
-                  </button>
-                )}
-              </motion.div>
+              </>
             )}
-          </>
-        )}
+          </div>
+        </div>
 
         {/* Modals */}
         {isAuthModalOpen && (

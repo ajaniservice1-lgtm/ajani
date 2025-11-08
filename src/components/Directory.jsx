@@ -1,24 +1,17 @@
 // src/components/Directory.jsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faComment,
-  faStore,
-  faCopy,
-  faStar,
-} from "@fortawesome/free-solid-svg-icons";
+import { faComment, faCopy, faStar } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 import { useAuth } from "../hook/useAuth";
 import AuthModal from "../components/ui/AuthModal";
 import ImageModal from "../components/ImageModal";
 import { useChat } from "../context/ChatContext";
-import { useLocation } from "../hook/useLocation";
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
   str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
-// ✅ FIXED: Removed all extra spaces in URLs
 const FALLBACK_IMAGES = {
   hotel:
     "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
@@ -73,22 +66,19 @@ const useGoogleSheet = (sheetId, apiKey) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!sheetId || !apiKey) {
-        setError("⚠️ Missing SHEET_ID or API_KEY");
-        setLoading(false);
-        return;
-      }
+    if (!sheetId || !apiKey) {
+      setError("⚠️ Missing SHEET_ID or API_KEY");
+      setLoading(false);
+      return;
+    }
 
+    const fetchData = async () => {
       try {
-        // ✅ FIXED URL: No extra spaces
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
         const json = await res.json();
         let result = [];
-
         if (
           json.values &&
           Array.isArray(json.values) &&
@@ -108,12 +98,11 @@ const useGoogleSheet = (sheetId, apiKey) => {
               return obj;
             });
         }
-
         setData(result);
       } catch (err) {
         console.error("Google Sheets fetch error:", err);
         setError("⚠️ Failed to load directory. Try again later.");
-        setData([]); // Always fallback to []
+        setData([]);
       } finally {
         setLoading(false);
       }
@@ -204,14 +193,6 @@ const ImageCarousel = ({ card, onImageClick }) => {
 // ---------------- Directory Component ----------------
 const Directory = () => {
   const { user, loading: authLoading } = useAuth();
-  const {
-    location,
-    loading: locLoading,
-    error: locError,
-    requestLocation,
-    getDistance,
-  } = useLocation();
-
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [imageModal, setImageModal] = useState({
     isOpen: false,
@@ -219,19 +200,16 @@ const Directory = () => {
     initialIndex: 0,
     item: null,
   });
-
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
-  const [useMyLocation, setUseMyLocation] = useState(false);
   const [search, setSearch] = useState("");
   const [mainCategory, setMainCategory] = useState("");
   const [subCategory, setSubCategory] = useState("");
   const [area, setArea] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
-
-  const directoryRef = useRef(null);
   const [showContact, setShowContact] = useState({});
 
+  const directoryRef = useRef(null);
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
@@ -242,7 +220,6 @@ const Directory = () => {
     error,
   } = useGoogleSheet(SHEET_ID, API_KEY);
 
-  // ✅ Auto items per page
   useEffect(() => {
     const update = () =>
       setItemsPerPage(
@@ -253,20 +230,23 @@ const Directory = () => {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // ✅ Manual reset
-  const resetFilters = useCallback(() => {
-    setSearch("");
-    setMainCategory("");
-    setSubCategory("");
-    setArea("");
-    setUseMyLocation(false);
-    setCurrentPage(1);
-  }, []);
+  const handleShowContact = (itemName) => {
+    if (authLoading) return;
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setShowContact((prev) => ({ ...prev, [itemName]: true }));
+    setTimeout(
+      () => setShowContact((prev) => ({ ...prev, [itemName]: false })),
+      20000
+    );
+  };
 
-  // ✅ Filter + sort — with type safety
+  const formatPrice = (n) => (n ? Number(n).toLocaleString() : "–");
+
   const [filtered, setFiltered] = useState([]);
   useEffect(() => {
-    // ✅ Guard against non-array
     if (!Array.isArray(listings)) {
       setFiltered([]);
       return;
@@ -291,38 +271,14 @@ const Directory = () => {
       return matchesSearch && matchesMain && matchesSub && matchesArea;
     });
 
-    if (useMyLocation && location) {
-      result = result
-        .map((item) => {
-          const lat = parseFloat(item.lat);
-          const lon = parseFloat(item.lon);
-          const dist =
-            lat && lon && !isNaN(lat) && !isNaN(lon)
-              ? getDistance(location.lat, location.lon, lat, lon)
-              : Infinity;
-          return { ...item, distance: dist };
-        })
-        .sort((a, b) => a.distance - b.distance);
-    }
-
     setFiltered(result);
-    setCurrentPage(1); // Reset to page 1 on filter change
-  }, [
-    listings,
-    search,
-    mainCategory,
-    subCategory,
-    area,
-    useMyLocation,
-    location,
-    getDistance,
-  ]);
+    setCurrentPage(1);
+  }, [listings, search, mainCategory, subCategory, area]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filtered.slice(startIndex, startIndex + itemsPerPage);
-
   const handlePageChange = (page) => {
     setCurrentPage(page);
     directoryRef.current?.scrollIntoView({
@@ -330,34 +286,6 @@ const Directory = () => {
       block: "start",
     });
   };
-
-  const handleShowContact = (itemName) => {
-    if (authLoading) return;
-    if (!user) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-    setShowContact((prev) => ({ ...prev, [itemName]: true }));
-    setTimeout(
-      () => setShowContact((prev) => ({ ...prev, [itemName]: false })),
-      20000
-    );
-  };
-
-  const handleLocationToggle = async () => {
-    if (useMyLocation) {
-      setUseMyLocation(false);
-    } else {
-      try {
-        await requestLocation();
-        setUseMyLocation(true);
-      } catch (err) {
-        console.warn("Location access denied:", err);
-      }
-    }
-  };
-
-  const formatPrice = (n) => (n ? Number(n).toLocaleString() : "–");
 
   // Loading / Error
   if (loading)
@@ -398,8 +326,8 @@ const Directory = () => {
             <h2 className="text-3xl font-bold text-gray-900">
               Business Directory
             </h2>
-            <p className="text-gray-600 mt-1">
-              {filtered.length} verified businesses in Ibadan
+            <p className="text-gray-600 text-sm mt-1">
+              Browse all verified businesses in Ibadan
             </p>
           </div>
           <div className="relative w-full md:w-80">
@@ -415,8 +343,8 @@ const Directory = () => {
         </motion.div>
 
         {/* Filters */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="bg-white/10 p-6 rounded-xl shadow-sm border border-gray-200 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Main Category
@@ -506,41 +434,6 @@ const Directory = () => {
                   ))}
               </select>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                &nbsp;
-              </label>
-              <label className="flex items-center cursor-pointer bg-gray-50 px-3 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-100 transition">
-                <input
-                  type="checkbox"
-                  checked={useMyLocation}
-                  onChange={handleLocationToggle}
-                  disabled={locLoading}
-                  className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  📍{" "}
-                  {locLoading
-                    ? "Locating..."
-                    : useMyLocation
-                    ? "Near Me"
-                    : "Use My Location"}
-                </span>
-              </label>
-              {locError && (
-                <p className="text-xs text-red-500 mt-1">⚠️ {locError}</p>
-              )}
-            </div>
-
-            <div className="flex items-end">
-              <button
-                onClick={resetFilters}
-                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2.5 rounded-lg transition flex items-center justify-center gap-1"
-              >
-                <i className="fas fa-sync-alt"></i> Reset
-              </button>
-            </div>
           </div>
         </div>
 
@@ -552,14 +445,8 @@ const Directory = () => {
               No businesses match your filters
             </h3>
             <p className="text-gray-600 mb-4">
-              Try adjusting your search or resetting filters.
+              Try adjusting your search or filters.
             </p>
-            <button
-              onClick={resetFilters}
-              className="px-5 py-2.5 bg-[rgb(0,6,90)] text-white rounded-lg font-medium hover:bg-blue-700 transition"
-            >
-              🔁 Reset Filters
-            </button>
           </div>
         ) : (
           <>
@@ -569,7 +456,6 @@ const Directory = () => {
             >
               {currentItems.map((item, i) => {
                 const itemId = `business-${item.id}`;
-
                 return (
                   <motion.div
                     key={itemId}
@@ -597,22 +483,7 @@ const Directory = () => {
                       </h3>
                       <div className="text-sm text-gray-600 mb-2">
                         <span className="font-medium">{item.area}</span>
-                        {useMyLocation && item.lat && item.lon && location && (
-                          <span className="block text-xs mt-1 text-gray-500">
-                            📍{" "}
-                            {(() => {
-                              const d = getDistance(
-                                location.lat,
-                                location.lon,
-                                parseFloat(item.lat),
-                                parseFloat(item.lon)
-                              );
-                              return d < 100 ? `${d.toFixed(1)} km` : ">100 km";
-                            })()}
-                          </span>
-                        )}
                       </div>
-
                       <p
                         className={`text-gray-700 text-sm mb-3 ${
                           expandedDescriptions[item.id] ? "" : "line-clamp-3"
@@ -620,7 +491,6 @@ const Directory = () => {
                       >
                         {item.short_desc || "No description available."}
                       </p>
-
                       {item.short_desc?.length > 120 && (
                         <button
                           onClick={() =>
@@ -683,7 +553,7 @@ const Directory = () => {
                             <button
                               onClick={() => handleShowContact(item.id)}
                               disabled={authLoading}
-                              className="flex-1 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white px-3 py-2.5 rounded text-sm font-medium  flex items-center justify-center gap-2 disabled:opacity-75"
+                              className="flex-1 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white px-3 py-2.5 rounded text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-75"
                             >
                               {authLoading ? (
                                 <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -712,7 +582,6 @@ const Directory = () => {
                               </button>
                             </div>
                           )}
-
                           <button
                             onClick={() =>
                               openChat(`Tell me about ${item.name}`)
@@ -773,7 +642,7 @@ const Directory = () => {
                 {currentPage < totalPages && (
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
-                    className="px-4 py-2 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white rounded  transition"
+                    className="px-4 py-2 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white rounded transition"
                   >
                     Next →
                   </button>

@@ -439,7 +439,7 @@ const Directory = () => {
             </div>
           </div>
 
-          <div className="mb-7 p-6 px-2">
+          <div className="mb-7 p-6 px-2 lg:px-5">
             {/* Results */}
             {currentItems.length === 0 ? (
               <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">

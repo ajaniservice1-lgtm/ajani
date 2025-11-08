@@ -269,7 +269,7 @@ const VendorForm = () => {
   return (
     <section
       id="vendors"
-      className="py-16 bg-gray-900 text-white relative overflow-hidden"
+      className="py-16 bg-gray-900 text-white relative overflow-hidden font-rubik"
     >
       {/* Toast */}
       <AnimatePresence>

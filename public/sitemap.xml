@@ -1,23 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
   <url>
     <loc>https://ajani.ai/</loc>
     <priority>1.00</priority>
     <changefreq>daily</changefreq>
   </url>
+
+  <!-- Contact Page -->
+  <url>
+    <loc>https://ajani.ai/contact</loc>
+    <priority>0.70</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <!-- Privacy Policy -->
   <url>
     <loc>https://ajani.ai/privacypage</loc>
     <priority>0.80</priority>
     <changefreq>monthly</changefreq>
   </url>
+
+  <!-- Terms and Conditions -->
   <url>
     <loc>https://ajani.ai/termspage</loc>
     <priority>0.90</priority>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://ajani.ai/contact</loc>
-    <priority>0.70</priority>
     <changefreq>monthly</changefreq>
   </url>
 </urlset>

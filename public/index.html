@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/favicon.ico" />
 
-    <!-- Canonical URL -->
+    <!-- ✅ Canonical URL (Fixes duplicate indexing issue) -->
     <link rel="canonical" href="https://ajani.ai/" />
 
     <!-- ✅ SEO Essentials -->
@@ -22,7 +22,7 @@
     <meta name="author" content="AjaniAI Team" />
     <meta name="theme-color" content="#00065A" />
 
-    <!-- ✅ Open Graph -->
+    <!-- ✅ Open Graph for social previews (LinkedIn, Facebook, WhatsApp, etc.) -->
     <meta property="og:title" content="AjaniAI — Smart Vendor Finder" />
     <meta
       property="og:description"
@@ -39,21 +39,29 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="AjaniAI" />
 
-    <!-- ✅ Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AjaniAI — Smart Vendor Finder" />
-    <meta
-      name="twitter:description"
-      content="Find and connect with verified vendors instantly using AjaniAI."
-    />
-    <meta
-      name="twitter:image"
-      content="https://res.cloudinary.com/debpabo0a/image/upload/v1761912981/wi5ff9fjsrgvduiq1zlk.png"
-    />
-    <meta name="twitter:site" content="@AjaniAI" />
-
     <!-- ✅ Favicon & App Icons -->
     <link rel="apple-touch-icon" href="/logo192.png" />
+
+    <!-- ✅ JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Ajani Digital Services",
+      "url": "https://ajani.ai",
+      "logo": "https://ajani.ai/logo.png",
+      "founder": "Ladele Ajao",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Ibadan",
+        "addressRegion": "Oyo State",
+        "addressCountry": "NG"
+      },
+      "sameAs": [
+        "https://www.linkedin.com/company/ajani-digital-smart-guide-services"
+      ]
+    }
+    </script>
   </head>
 
   <body>

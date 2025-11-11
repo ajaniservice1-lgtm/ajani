@@ -1,8 +1,9 @@
 // src/components/Directory.jsx
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faCopy, faStar } from "@fortawesome/free-solid-svg-icons";
-import { motion } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 import { useAuth } from "../hook/useAuth";
 import AuthModal from "../components/ui/AuthModal";
 import ImageModal from "../components/ImageModal";
@@ -114,20 +115,33 @@ const useGoogleSheet = (sheetId, apiKey) => {
   return { data: Array.isArray(data) ? data : [], loading, error };
 };
 
-// ---------------- Motion Variants ----------------
-const cardVariants = (index) => ({
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, delay: index * 0.04 },
-  },
-  hover: {
-    y: -6,
-    scale: 1.015,
-    transition: { type: "spring", stiffness: 400, damping: 15 },
-  },
-});
+// ---------------- Card Animation ----------------
+const AppleCardWrapper = ({ children, index }) => {
+  const controls = useAnimation();
+  const { ref, inView } = useInView({
+    threshold: 0.15,
+    triggerOnce: false,
+  });
+
+  useEffect(() => {
+    if (inView) {
+      controls.start({
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: { duration: 0.7, delay: index * 0.08, ease: "easeOut" },
+      });
+    } else {
+      controls.start({ opacity: 0, y: 50, scale: 0.98 });
+    }
+  }, [inView, controls, index]);
+
+  return (
+    <motion.div ref={ref} animate={controls} initial={{ opacity: 0, y: 50 }}>
+      {children}
+    </motion.div>
+  );
+};
 
 // ---------------- Image Carousel ----------------
 const ImageCarousel = ({ card, onImageClick }) => {
@@ -231,12 +245,16 @@ const Directory = () => {
   }, []);
 
   const handleShowContact = (itemId) => {
-    if (authLoading) return;
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
     setShowContact((prev) => ({ ...prev, [itemId]: true }));
+    navigator.clipboard.writeText(
+      formatWhatsapp(
+        listings.find((i) => `business-${i.id}` === itemId)?.whatsapp
+      )
+    );
     setTimeout(
       () => setShowContact((prev) => ({ ...prev, [itemId]: false })),
       20000
@@ -275,7 +293,6 @@ const Directory = () => {
     setCurrentPage(1);
   }, [listings, search, mainCategory, subCategory, area]);
 
-  // Pagination
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filtered.slice(startIndex, startIndex + itemsPerPage);
@@ -287,7 +304,6 @@ const Directory = () => {
     });
   };
 
-  // Loading / Error
   if (loading)
     return (
       <section id="directory" className="py-16 text-center font-rubik">
@@ -342,10 +358,11 @@ const Directory = () => {
           </div>
         </motion.div>
 
-        {/* Filters + Gradient overlay */}
+        {/* Filters + Results */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-5 relative">
           <div className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Filters */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Main Category
@@ -440,7 +457,6 @@ const Directory = () => {
           </div>
 
           <div className="mb-7 p-6 px-2 lg:px-5">
-            {/* Results */}
             {currentItems.length === 0 ? (
               <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
                 <i className="fas fa-box-open text-5xl text-gray-300 mb-4 block"></i>
@@ -453,236 +469,202 @@ const Directory = () => {
               </div>
             ) : (
               <>
-                <motion.div
-                  layout
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"
-                >
+                {/* Animated Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                   {currentItems.map((item, i) => {
                     const itemId = `business-${item.id}`;
                     return (
-                      <motion.div
-                        key={itemId}
-                        id={itemId}
-                        variants={cardVariants(i)}
-                        initial="hidden"
-                        animate="visible"
-                        whileHover="hover"
-                        className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full"
-                      >
-                        <ImageCarousel
-                          card={item}
-                          onImageClick={(images, idx) =>
-                            setImageModal({
-                              isOpen: true,
-                              images,
-                              initialIndex: idx,
-                              item,
-                            })
-                          }
-                        />
-                        <div className="p-5 flex flex-col flex-grow">
-                          <h3 className="font-bold text-lg text-gray-900 mb-1 truncate">
-                            {item.name}
-                          </h3>
-                          <div className="text-sm text-gray-600 mb-2">
-                            <span className="font-medium">{item.area}</span>
-                          </div>
-                          <p
-                            className={`text-gray-700 text-sm mb-3 ${
-                              expandedDescriptions[item.id]
-                                ? ""
-                                : "line-clamp-3"
-                            }`}
-                          >
-                            {item.short_desc || "No description available."}
-                          </p>
-                          {item.short_desc?.length > 120 && (
-                            <button
-                              onClick={() =>
-                                setExpandedDescriptions((prev) => ({
-                                  ...prev,
-                                  [item.id]: !prev[item.id],
-                                }))
-                              }
-                              className="text-blue-600 text-sm font-medium mb-3 hover:underline"
-                            >
-                              {expandedDescriptions[item.id]
-                                ? "Show Less"
-                                : "Show More..."}
-                            </button>
-                          )}
+                      <AppleCardWrapper key={itemId} index={i}>
+                        <motion.div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+                          <ImageCarousel
+                            card={item}
+                            onImageClick={(images, idx) =>
+                              setImageModal({
+                                isOpen: true,
+                                images,
+                                initialIndex: idx,
+                                item,
+                              })
+                            }
+                          />
+                          <div className="p-5 flex flex-col flex-grow">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                              {item.name || "Unnamed"}
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-1">
+                              {item.area || "Ibadan"}
+                            </p>
 
-                          <div className="mt-auto">
-                            {item.rating && (
-                              <div className="flex items-center mb-2">
-                                <FontAwesomeIcon
-                                  icon={faStar}
-                                  className="text-yellow-500 mr-1"
-                                />
-                                <span className="text-sm font-medium">
-                                  {item.rating}/5
-                                </span>
-                              </div>
-                            )}
-
-                            <div className="font-bold text-lg text-gray-900 mb-3">
-                              From ₦{formatPrice(item.price_from)}
-                            </div>
-
-                            <div className="flex flex-wrap gap-1.5 mb-4">
-                              {(item.tags
-                                ? item.tags.split(",").map((t) => t.trim())
-                                : []
-                              ).map((tag, idx) => {
-                                const [name, price] = tag.split(":");
-                                return price ? (
-                                  <span
-                                    key={idx}
-                                    className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded font-medium text-sm"
-                                  >
-                                    {name} ₦{parseInt(price).toLocaleString()}
-                                  </span>
-                                ) : (
-                                  <span
-                                    key={idx}
-                                    className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded text-sm"
-                                  >
-                                    {name}
-                                  </span>
-                                );
-                              })}
-                            </div>
-
-                            <div className="flex gap-2">
-                              {!showContact[item.id] ? (
+                            {/* Description */}
+                            <p className="text-gray-700 text-sm mb-3 flex-grow">
+                              {expandedDescriptions[itemId]
+                                ? item.short_desc
+                                : item.short_desc?.slice(0, 80)}
+                              {item.short_desc?.length > 80 && (
                                 <button
-                                  onClick={() => handleShowContact(item.id)}
-                                  disabled={authLoading}
-                                  className="flex-1 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white px-3 py-2.5 rounded text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-75"
+                                  onClick={() =>
+                                    setExpandedDescriptions((prev) => ({
+                                      ...prev,
+                                      [itemId]: !prev[itemId],
+                                    }))
+                                  }
+                                  className="text-blue-600 ml-2 text-xs font-medium"
                                 >
-                                  {authLoading ? (
-                                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                  ) : (
-                                    <>
-                                      <FontAwesomeIcon icon={faComment} />{" "}
-                                      Contact
-                                    </>
-                                  )}
+                                  {expandedDescriptions[itemId]
+                                    ? "Show less"
+                                    : "Read more"}
                                 </button>
-                              ) : (
-                                <div className="flex-1 flex justify-between items-center bg-green-100 px-3 py-2 rounded text-sm font-medium">
-                                  <span className="truncate max-w-[150px]">
-                                    📞 {formatWhatsapp(item.whatsapp) || "N/A"}
-                                  </span>
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(
-                                        formatWhatsapp(item.whatsapp) || ""
-                                      );
-                                      alert("✅ Copied to clipboard!");
-                                    }}
-                                    className="ml-2 flex-shrink-0 px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                                    aria-label="Copy phone number"
-                                  >
-                                    <FontAwesomeIcon icon={faCopy} />
-                                  </button>
-                                </div>
                               )}
+                            </p>
+
+                            {/* Rating & Price */}
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="font-bold text-[16px] text-gray-800">
+                                ⭐ {item.rating || "N/A"}
+                              </span>
+                              <span className="font-bold text-[18px] text-gray-800">
+                                ₦ {formatPrice(item.price_from)}
+                              </span>
+                            </div>
+
+                            {/* Tags */}
+                            <div className="flex flex-wrap gap-2 mb-6">
+                              {item.tags?.split(",").map((tag, idx) => (
+                                <span
+                                  key={idx}
+                                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold text-sm"
+                                >
+                                  {tag.trim()}
+                                </span>
+                              ))}
+                            </div>
+
+                            {/* Contact / Review Buttons */}
+                            <div className="mt-auto flex flex-wrap justify-between items-center gap-2 ">
                               <button
-                                onClick={() =>
-                                  openChat(`Tell me about ${item.name}`)
-                                }
-                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2.5 rounded text-sm flex items-center justify-center flex-shrink-0"
-                                aria-label={`Ask about ${item.name}`}
+                                onClick={() => handleShowContact(itemId)}
+                                className="flex items-center gap-2 text-sm bg-[rgb(0,6,90)] flex-1 justify-center  disabled:opacity-75 hover:bg-[rgb(15,19,71)] text-white px-3 py-2.5 rounded font-medium "
                               >
                                 <FontAwesomeIcon icon={faComment} />
+                                {showContact[itemId]
+                                  ? formatWhatsapp(item.whatsapp)
+                                  : "Contact"}
+                                {showContact[itemId] && (
+                                  <FontAwesomeIcon
+                                    icon={faCopy}
+                                    className="ml-1"
+                                  />
+                                )}
+                              </button>
+
+                              <button
+                                onClick={() => openChat(item.name)}
+                                className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 text-gray-800 hover:bg-blue-50 hover:text-gray-600 transition-colors"
+                                aria-label="Open chat"
+                              >
+                                <FontAwesomeIcon
+                                  icon={faComment}
+                                  className="text-lg"
+                                />
                               </button>
                             </div>
                           </div>
-                        </div>
-                      </motion.div>
+                        </motion.div>
+                      </AppleCardWrapper>
                     );
                   })}
-                </motion.div>
+                </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-center flex-wrap gap-2"
-                  >
+                  <div className="flex justify-center items-center gap-2 flex-wrap">
+                    {/* Previous Button */}
                     {currentPage > 1 && (
                       <button
                         onClick={() => handlePageChange(currentPage - 1)}
-                        className="px-4 py-2 bg-[rgb(0,6,90)] text-white rounded hover:bg-blue-700 transition"
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white border border-gray-300 transition"
                       >
-                        ← Prev
+                        Prev ←
                       </button>
                     )}
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let start = Math.max(1, currentPage - 2);
-                      let end = Math.min(totalPages, start + 4);
-                      return Array.from(
-                        { length: end - start + 1 },
-                        (_, j) => start + j
-                      );
-                    })
-                      .flat()
-                      .filter(
-                        (p, i, arr) => arr.indexOf(p) === i && p <= totalPages
-                      )
-                      .map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => handlePageChange(page)}
-                          className={`px-4 py-2 rounded ${
-                            currentPage === page
-                              ? "bg-[rgb(0,6,90)] text-white"
-                              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+
+                    {/* Page Numbers — Mobile: only 1–4 (or up to totalPages if <4); Desktop: all pages */}
+                    {Array.from({ length: Math.min(totalPages, 4) }).map(
+                      (_, idx) => {
+                        const pageNum = idx + 1;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                              currentPage === pageNum
+                                ? "bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white"
+                                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      }
+                    )}
+
+                    {/* Ellipsis + additional pages on medium+ screens only */}
+                    {totalPages > 4 && (
+                      <>
+                        {/* Show “…” and remaining pages only on md and up */}
+                        <span className="hidden md:inline-block px-3 py-1.5 text-sm text-gray-500">
+                          …
+                        </span>
+                        {Array.from({ length: totalPages - 4 }, (_, idx) => {
+                          const pageNum = idx + 5; // starts from 5
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`hidden md:inline-block px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                                currentPage === pageNum
+                                  ? "bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white"
+                                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </>
+                    )}
+
+                    {/* Next Button */}
                     {currentPage < totalPages && (
                       <button
                         onClick={() => handlePageChange(currentPage + 1)}
-                        className="px-4 py-2 bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white rounded transition"
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white transition"
                       >
                         Next →
                       </button>
                     )}
-                  </motion.div>
+                  </div>
                 )}
               </>
             )}
           </div>
         </div>
-
-        {/* Modals */}
-        {isAuthModalOpen && (
-          <AuthModal
-            isOpen={isAuthModalOpen}
-            onClose={() => setIsAuthModalOpen(false)}
-          />
-        )}
-        {imageModal.isOpen && (
-          <ImageModal
-            images={imageModal.images}
-            initialIndex={imageModal.initialIndex}
-            onClose={() =>
-              setImageModal({
-                isOpen: false,
-                images: [],
-                initialIndex: 0,
-                item: null,
-              })
-            }
-            item={imageModal.item}
-          />
-        )}
       </div>
+
+      {/* Modals */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+      {imageModal.isOpen && (
+        <ImageModal
+          images={imageModal.images}
+          initialIndex={imageModal.initialIndex}
+          isOpen={imageModal.isOpen}
+          onClose={() => setImageModal({ ...imageModal, isOpen: false })}
+          item={imageModal.item}
+        />
+      )}
     </section>
   );
 };

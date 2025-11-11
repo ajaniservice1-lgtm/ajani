@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /*?utm_
 
 Sitemap: https://ajani.ai/sitemap.xml

@@ -81,7 +81,7 @@ const Header = ({ onAuthToast }) => {
 
             {/* Right: WhatsApp Button */}
             <a
-              href="https://wa.me/2348123456789?text=Hi%20Ajani%20👋"
+              href="https://wa.me/2348022662256?text=Hi%20Ajani%20👋"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden md:flex items-center gap-2 mr-5 bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold text-sm transition"

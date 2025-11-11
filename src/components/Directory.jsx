@@ -9,6 +9,7 @@ import AuthModal from "../components/ui/AuthModal";
 import ImageModal from "../components/ImageModal";
 import { useChat } from "../context/ChatContext";
 
+
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
   str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
@@ -219,6 +220,8 @@ const Directory = () => {
     threshold: 0.1,
     triggerOnce: false,
   });
+  const [copiedId, setCopiedId] = useState(null);
+
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const [search, setSearch] = useState("");
   const [mainCategory, setMainCategory] = useState("");
@@ -549,21 +552,47 @@ const Directory = () => {
 
                             {/* Contact / Review Buttons */}
                             <div className="mt-auto flex flex-wrap justify-between items-center gap-2 ">
-                              <button
-                                onClick={() => handleShowContact(itemId)}
-                                className="flex items-center gap-2 text-sm bg-[rgb(0,6,90)] flex-1 justify-center  disabled:opacity-75 hover:bg-[rgb(15,19,71)] text-white px-3 py-2.5 rounded font-medium "
-                              >
-                                <FontAwesomeIcon icon={faComment} />
-                                {showContact[itemId]
-                                  ? formatWhatsapp(item.whatsapp)
-                                  : "Contact"}
-                                {showContact[itemId] && (
-                                  <FontAwesomeIcon
-                                    icon={faCopy}
-                                    className="ml-1"
-                                  />
-                                )}
-                              </button>
+                              {!showContact[itemId] ? (
+                                <button
+                                  onClick={() => handleShowContact(itemId)}
+                                  className="flex items-center gap-2 text-sm bg-[rgb(0,6,90)] flex-1 justify-center disabled:opacity-75 hover:bg-[rgb(15,19,71)] text-white px-3 py-2.5 rounded font-medium"
+                                >
+                                  <FontAwesomeIcon icon={faComment} />
+                                  Show Contact
+                                </button>
+                              ) : (
+                                <div className="flex items-center flex-1 justify-between bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm font-medium relative">
+                                  <span>
+                                    📞 {formatWhatsapp(item.whatsapp)}
+                                  </span>
+
+                                  {/* Copy button + Tooltip */}
+                                  <div className="relative group">
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(
+                                          item.whatsapp || ""
+                                        );
+                                        setCopiedId(itemId); // store ID to show tooltip
+                                        setTimeout(
+                                          () => setCopiedId(null),
+                                          1500
+                                        );
+                                      }}
+                                      className="ml-2 bg-green-700 hover:bg-green-800 text-white px-2 py-1 rounded flex items-center gap-1 text-xs"
+                                    >
+                                      <FontAwesomeIcon icon={faCopy} />
+                                      Copy
+                                    </button>
+
+                                    {copiedId === itemId && (
+                                      <span className="absolute -top-7 right-0 bg-black text-white text-xs px-2 py-1 rounded shadow-md animate-fadeIn">
+                                        Copied!
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
 
                               <button
                                 onClick={() => openChat(item.name)}

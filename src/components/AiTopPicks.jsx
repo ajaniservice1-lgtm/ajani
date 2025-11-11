@@ -1,4 +1,3 @@
-// src/components/AiTopPicks.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
@@ -20,19 +19,15 @@ const FALLBACK_IMAGES = {
   default: "https://via.placeholder.com/300x200?text=No+Image",
 };
 
-const [headerRef, headerInView] = useInView({
-  threshold: 0.1,
-  triggerOnce: false, // 👈 Animates every time it scrolls in/out
-});
-
 const getCardImages = (item) => {
   const raw = item["image url"] || "";
   const urls = raw
     .split(",")
     .map((u) => u.trim())
-    .filter((u) => u.startsWith("http"));
+    .filter((u) => u && u.startsWith("http"));
 
-  if (urls.length) return urls;
+  if (urls.length > 0) return urls;
+
   const cat = (item.category || "").toLowerCase();
   if (cat.includes("food")) return [FALLBACK_IMAGES.food];
   if (cat.includes("hotel")) return [FALLBACK_IMAGES.hotel];
@@ -105,9 +100,10 @@ const ImageCarousel = ({ card, onImageClick }) => {
           <img
             key={i}
             src={img}
-            alt={`${card.name || "Business"} ${i + 1}`}
+            alt={`${card.name || "Business"} image ${i + 1}`}
             className="w-full h-full object-cover flex-shrink-0"
             onError={(e) => (e.currentTarget.src = FALLBACK_IMAGES.default)}
+            loading="lazy"
           />
         ))}
       </motion.div>
@@ -124,6 +120,7 @@ const ImageCarousel = ({ card, onImageClick }) => {
               className={`w-2 h-2 rounded-full transition-all ${
                 i === index ? "bg-white scale-125" : "bg-white/40"
               }`}
+              aria-label={`Go to slide ${i + 1}`}
             />
           ))}
         </div>
@@ -228,15 +225,27 @@ const Card = ({ card, index, onShowContact, onImageClick }) => {
 
 // ---------------- Main Section ----------------
 const AiTopPicks = ({ onAuthToast }) => {
-  const SHEET_ID = import.meta.env.VITE_SHEET_ID;
-  const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-  const { listings = [], loading, error } = useDirectoryData(SHEET_ID, API_KEY);
+  const {
+    listings = [],
+    loading,
+    error,
+  } = useDirectoryData(
+    import.meta.env.VITE_SHEET_ID,
+    import.meta.env.VITE_GOOGLE_API_KEY
+  );
   const { openChat } = useChat();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imageModal, setImageModal] = useState({
     isOpen: false,
     images: [],
     initialIndex: 0,
+  });
+
+  // ✅ Header animation hook — moved inside component
+  const [headerRef, headerInView] = useInView({
+    threshold: 0.1,
+    triggerOnce: false,
   });
 
   const topPicks = listings
@@ -262,22 +271,38 @@ const AiTopPicks = ({ onAuthToast }) => {
 
   return (
     <>
-      <section className="bg-[#eef8fd] py-16 font-rubik">
+      <section className="bg-[#eef8fd] py-16 font-rubik" id="toppicks">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-10"
-          >
-            <h2 className="text-3xl font-bold text-gray-900 border-b-4 border-blue-800 inline-block pb-2">
-              Ajani’s Top Picks for You
-            </h2>
-            <p className="text-gray-600 text-sm mt-2">
-              Verified recommendations based on popular queries
-            </p>
-          </motion.div>
+          {/* ✅ Animated Header — scrolls in/out every time */}
+          <div ref={headerRef} className="mb-10">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={
+                headerInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+              }
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="text-center"
+            >
+              <motion.h2
+                initial={{ opacity: 0, x: -50 }}
+                animate={headerInView ? { opacity: 1, x: 0 } : {}}
+                transition={{ delay: 0.1, duration: 0.4 }}
+                className="text-3xl font-bold text-gray-900 border-b-4 border-blue-800 inline-block pb-2"
+              >
+                Ajani’s Top Picks for You
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, x: -50 }}
+                animate={headerInView ? { opacity: 1, x: 0 } : {}}
+                transition={{ delay: 0.2, duration: 0.4 }}
+                className="text-gray-600 text-sm mt-2"
+              >
+                Verified recommendations based on popular queries
+              </motion.p>
+            </motion.div>
+          </div>
 
+          {/* ✅ Cards — already animated individually */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {topPicks.map((card, i) => (
               <Card
@@ -298,6 +323,7 @@ const AiTopPicks = ({ onAuthToast }) => {
         </div>
       </section>
 
+      {/* Modals */}
       {isModalOpen && (
         <AuthModal
           isOpen={isModalOpen}
@@ -313,7 +339,7 @@ const AiTopPicks = ({ onAuthToast }) => {
           onClose={() =>
             setImageModal({ isOpen: false, images: [], initialIndex: 0 })
           }
-          onAuthToast={(msg) => console.log(msg)}
+          onAuthToast={() => {}}
           onOpenChat={openChat}
         />
       )}

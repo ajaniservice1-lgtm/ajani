@@ -60,12 +60,11 @@ const ChatWidget = ({ isOpen, onClose }) => {
 
     let category = null;
 
-    // Find best-matching category using variants
     for (const [base, variants] of Object.entries(keywordVariants)) {
       for (const variant of variants) {
         const normVariant = normalize(variant);
         if (normalizedQ.includes(normVariant)) {
-          category = base; // Use base form for consistency
+          category = base;
           break;
         }
       }
@@ -75,6 +74,10 @@ const ChatWidget = ({ isOpen, onClose }) => {
     if (!category) return null;
 
     const isMostExpensive = /most expensive|expensive/i.test(lowerQ);
+    const isCheapest =
+      /cheapest|lowest|affordable|budget|inexpensive|less than/i.test(lowerQ) &&
+      !isMostExpensive;
+
     const inMatch = lowerQ.match(
       /\b(?:in|around|close to|inside|at)\s+([a-z\s]+)/i
     );
@@ -88,12 +91,23 @@ const ChatWidget = ({ isOpen, onClose }) => {
       minPrice: overMatch ? parseFloat(overMatch[2].replace(/,/g, "")) : null,
       maxPrice: underMatch ? parseFloat(underMatch[2].replace(/,/g, "")) : null,
       isNearMe: /near me/i.test(lowerQ),
+      isCheapest, // ✅ new flag
     };
   };
 
   // === Fetch and build response ===
   const fetchAnswerFromSheet = async (query) => {
-    const { category, area, sortOrder, minPrice, maxPrice, isNearMe } = query;
+    const {
+      category,
+      area,
+      sortOrder,
+      minPrice,
+      maxPrice,
+      isNearMe,
+      isCheapest,
+    } = query;
+
+    // ✅ FIXED: Removed extra spaces in URL
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Catalog!A2:L1000?key=${API_KEY}`;
 
     try {
@@ -102,7 +116,6 @@ const ChatWidget = ({ isOpen, onClose }) => {
       const data = await res.json();
       const rows = data.values || [];
 
-      // Normalize & map sheet data
       let businesses = rows
         .filter((row) => row.length >= 6 && row[5])
         .map(([id, name, cat, ar, desc, pf, cur, ph, wa, addr, lat, lon]) => ({
@@ -122,19 +135,18 @@ const ChatWidget = ({ isOpen, onClose }) => {
           (b) =>
             b.price_from &&
             !isNaN(b.price_from) &&
-            // ✅ Robust category match: normalize both sides
             normalize(b.category).includes(normalize(category))
         );
 
       lastFetchedBusinessesRef.current = businesses;
 
-      // === Price filters
+      // Price filters
       if (minPrice !== null)
         businesses = businesses.filter((b) => b.price_from >= minPrice);
       if (maxPrice !== null)
         businesses = businesses.filter((b) => b.price_from <= maxPrice);
 
-      // === Area filter
+      // Area filter
       if (area) {
         let normalizedArea = area.toLowerCase().trim();
         normalizedArea = normalizedArea
@@ -162,7 +174,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
         }
       }
 
-      // === Near me filter
+      // Near me + sort
       if (isNearMe && location) {
         businesses = businesses
           .filter((b) => b.lat && b.lon)
@@ -180,7 +192,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
         );
       }
 
-      // === Pagination
+      // Pagination
       const batchSize = 5;
       const start = currentPageRef.current * batchSize;
       const end = start + batchSize;
@@ -188,13 +200,20 @@ const ChatWidget = ({ isOpen, onClose }) => {
 
       if (!batch.length) {
         currentPageRef.current = 0;
-        return "No results at the moment, That’s all available for now 😊";
+        return "No results at the moment. That’s all available for now 😊";
       }
 
-      // === Reply builder
-      let reply = `Here are ${
-        sortOrder === "desc" ? "most expensive " : ""
-      }${category}`;
+      // ✅ Reply builder: natural phrasing
+      let prefix = "";
+      if (sortOrder === "desc") {
+        prefix = "most expensive ";
+      } else if (isCheapest) {
+        prefix = "cheapest ";
+      } else {
+        prefix = ""; // neutral
+      }
+
+      let reply = `Here are the ${prefix}${category}`;
       if (area) reply += ` in **${area}**`;
       if (isNearMe) reply += ` near you`;
       if (minPrice !== null) reply += ` above ₦${minPrice.toLocaleString()}`;
@@ -248,10 +267,9 @@ const ChatWidget = ({ isOpen, onClose }) => {
         lastQueryContext = { ...parsed, location };
         reply = await fetchAnswerFromSheet({ ...parsed, location });
       } else {
-        reply =
-          input.includes("hi") || input.includes("hello")
-            ? "Hi 👋 I'm Ajani! Try: 'hotels under 10000' or 'restaurants in Bodija'."
-            : "Ajani didn’t understand. Try: 'hotels near me' or 'food under 1000 in Bodija'.";
+        reply = /\b(hi|hello|hey)\b/i.test(input)
+          ? "Hi 👋 I'm Ajani! Try: 'hotels under 10000' or 'restaurants in Bodija'."
+          : "Ajani didn’t understand. Try: 'cheapest hotels', 'food under 1000 in Bodija', or 'events near me'.";
       }
     }
 
@@ -285,7 +303,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
     if (isOpen && !hasSentWelcome.current) {
       const displayName = getDisplayName();
       const greeting = getGreeting();
-      const welcomeText = `${greeting} ${displayName}! I'm Ajani 👋\n\nAsk about hotels, food, or events in Ibadan!\n• “Hotels under 10000”\n• “Restaurants in Bodija”`;
+      const welcomeText = `${greeting} ${displayName}! I'm Ajani 👋\n\nAsk about hotels, food, or events in Ibadan!\n• “Cheapest hotels”\n• “Restaurants in Bodija”\n• “Events near me”`;
       setMessages([{ sender: "bot", text: welcomeText }]);
       hasSentWelcome.current = true;
     }
@@ -379,7 +397,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
             <div className="p-2 border-t bg-white flex gap-2">
               <input
                 className="flex-1 border rounded px-2 py-1 text-sm"
-                placeholder="E.g., hotels under 10000"
+                placeholder="E.g., cheapest hotels"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}

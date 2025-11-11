@@ -214,6 +214,11 @@ const Directory = () => {
     initialIndex: 0,
     item: null,
   });
+
+  const [headerRef, headerInView] = useInView({
+    threshold: 0.1,
+    triggerOnce: false,
+  });
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const [search, setSearch] = useState("");
   const [mainCategory, setMainCategory] = useState("");
@@ -331,32 +336,35 @@ const Directory = () => {
       className="bg-[#eef8fd] py-12 font-rubik"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
-        >
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">
-              Business Directory
-            </h2>
-            <p className="text-gray-600 text-sm mt-1">
-              Browse all verified businesses in Ibadan
-            </p>
-          </div>
-          <div className="relative w-full md:w-80">
-            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-            <input
-              type="text"
-              placeholder="Search name, service, or keyword..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </motion.div>
+        {/* Header with Scroll Animation */}
+        <div className="mb-8">
+          <motion.div
+            ref={headerRef} // 👈 Add this ref
+            initial={{ opacity: 0, y: 20 }}
+            animate={headerInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+          >
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900">
+                Business Directory
+              </h2>
+              <p className="text-gray-600 text-sm mt-1">
+                Browse all verified businesses in Ibadan
+              </p>
+            </div>
+            <div className="relative w-full md:w-80">
+              <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+              <input
+                type="text"
+                placeholder="Search name, service, or keyword..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </motion.div>
+        </div>
 
         {/* Filters + Results */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-5 relative">
@@ -575,21 +583,21 @@ const Directory = () => {
                   })}
                 </div>
 
-                {/* Pagination */}
+                {/* Pagination - System View: 1 to 6 + Prev/Next when applicable */}
                 {totalPages > 1 && (
                   <div className="flex justify-center items-center gap-2 flex-wrap">
-                    {/* Previous Button */}
+                    {/* Prev Button */}
                     {currentPage > 1 && (
                       <button
                         onClick={() => handlePageChange(currentPage - 1)}
-                        className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white border border-gray-300 transition"
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white transition"
                       >
                         Prev ←
                       </button>
                     )}
 
-                    {/* Page Numbers — Mobile: only 1–4 (or up to totalPages if <4); Desktop: all pages */}
-                    {Array.from({ length: Math.min(totalPages, 4) }).map(
+                    {/* Page Numbers: 1 to min(6, totalPages) */}
+                    {Array.from({ length: Math.min(totalPages, 6) }).map(
                       (_, idx) => {
                         const pageNum = idx + 1;
                         return (
@@ -606,32 +614,6 @@ const Directory = () => {
                           </button>
                         );
                       }
-                    )}
-
-                    {/* Ellipsis + additional pages on medium+ screens only */}
-                    {totalPages > 4 && (
-                      <>
-                        {/* Show “…” and remaining pages only on md and up */}
-                        <span className="hidden md:inline-block px-3 py-1.5 text-sm text-gray-500">
-                          …
-                        </span>
-                        {Array.from({ length: totalPages - 4 }, (_, idx) => {
-                          const pageNum = idx + 5; // starts from 5
-                          return (
-                            <button
-                              key={pageNum}
-                              onClick={() => handlePageChange(pageNum)}
-                              className={`hidden md:inline-block px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                                currentPage === pageNum
-                                  ? "bg-[rgb(0,6,90)] hover:bg-[rgb(15,19,71)] text-white"
-                                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                              }`}
-                            >
-                              {pageNum}
-                            </button>
-                          );
-                        })}
-                      </>
                     )}
 
                     {/* Next Button */}

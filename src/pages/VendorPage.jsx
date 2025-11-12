@@ -16,7 +16,10 @@ export default function VendorPage() {
     data: listings = [],
     loading,
     error,
-  } = useGoogleSheet(SHEET_ID, API_KEY);
+  } = useGoogleSheet({
+    sheetId: SHEET_ID,
+    apiKey: API_KEY,
+  });
 
   if (loading)
     return (

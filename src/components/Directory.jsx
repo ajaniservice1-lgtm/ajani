@@ -507,6 +507,7 @@ const Directory = () => {
                                   item.name,
                                   item.area
                                 )}`}
+                                className="hover:underline text-blue-700"
                               >
                                 {item.name || "Unnamed"}
                               </Link>

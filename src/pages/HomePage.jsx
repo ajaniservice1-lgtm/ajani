@@ -26,15 +26,13 @@ export default function HomePage() {
   };
   return (
     <section className="relative">
-      <div>
-        {" "}
-        <Meta
-          title="Home | Ajani Directory"
-          description="Discover top-rated local businesses near you."
-          url="https://ajani.ai/"
-          image="https://res.cloudinary.com/debpabo0a/image/upload/v1762942364/yp4z66xycbjcldfocrzc.jpg"
-        />
-      </div>
+      <Meta
+        title="Home | Ajani Directory"
+        description="Discover top-rated local businesses near you."
+        url="https://ajani.ai/"
+        image="https://res.cloudinary.com/debpabo0a/image/upload/v1762942364/yp4z66xycbjcldfocrzc.jpg"
+      />
+
       <LocalBusinessSchema />
       {toastMessage && <Toast message={toastMessage} onClose={closeToast} />}
       <ChatWidget />

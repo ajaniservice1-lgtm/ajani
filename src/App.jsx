@@ -10,6 +10,7 @@ const HomePage = lazy(() => import("./pages/HomePage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
+const VendorPage = lazy(() => import("./pages/VendorPage")); // ✅ add this
 
 function App() {
   return (
@@ -33,6 +34,9 @@ function App() {
                 <Route path="/privacypage" element={<PrivacyPage />} />
                 <Route path="/termspage" element={<TermsPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+
+                {/* Dynamic vendor page */}
+                <Route path="/vendor/:slug" element={<VendorPage />} />
               </Routes>
             </Suspense>
           </TrackingWrapper>

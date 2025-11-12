@@ -8,7 +8,8 @@ import { useAuth } from "../hook/useAuth";
 import AuthModal from "../components/ui/AuthModal";
 import ImageModal from "../components/ImageModal";
 import { useChat } from "../context/ChatContext";
-
+import { Link } from "react-router-dom";
+import { generateSlug } from "../utils/vendorUtils";
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>
@@ -484,6 +485,7 @@ const Directory = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                   {currentItems.map((item, i) => {
                     const itemId = `business-${item.id}`;
+                    const slug = generateSlug(item.name, item.area);
                     return (
                       <AppleCardWrapper key={itemId} index={i}>
                         <motion.div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
@@ -500,7 +502,14 @@ const Directory = () => {
                           />
                           <div className="p-5 flex flex-col flex-grow">
                             <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                              {item.name || "Unnamed"}
+                              <Link
+                                to={`/vendor/${generateSlug(
+                                  item.name,
+                                  item.area
+                                )}`}
+                              >
+                                {item.name || "Unnamed"}
+                              </Link>
                             </h3>
                             <p className="text-sm text-gray-500 mb-1">
                               {item.area || "Ibadan"}

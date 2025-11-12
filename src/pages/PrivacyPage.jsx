@@ -1,15 +1,23 @@
 import React, { useEffect } from "react";
+import Meta from "../components/Meta"; // ✅ Import Meta
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 const PrivacyPage = () => {
-  // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
     <>
+      {/* SEO Meta Tags */}
+      <Meta
+        title="Privacy Policy | Ajani Directory"
+        description="Learn how Ajani Directory collects, stores, and protects your personal data in compliance with NDPR."
+        url="https://ajani.ai/privacypage"
+        image="https://res.cloudinary.com/debpabo0a/image/upload/v1762946675/tomxwgwluyjdoa2fivhc.jpg"
+      />
+
       <Header />
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8 font-rubik">
         <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">

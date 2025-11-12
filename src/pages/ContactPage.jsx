@@ -1,5 +1,6 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Meta from "../components/Meta";
 import React, { useState, useEffect } from "react"; // ✅ Added useEffect
 
 const ContactPage = () => {
@@ -63,6 +64,13 @@ const ContactPage = () => {
 
   return (
     <>
+      {/* SEO Meta Tags */}
+      <Meta
+        title="Contact Us | Ajani Directory"
+        description="Reach out to Ajani Directory. Ask questions, provide feedback, or get support from our team."
+        url="https://ajani.ai/contact"
+        image="https://res.cloudinary.com/debpabo0a/image/upload/v1762946675/lyuabajoecrzzvvqvkbh.jpg"
+      />
       <Header />
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-rubik">
         <div className="max-w-6xl mx-auto">

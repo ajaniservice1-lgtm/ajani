@@ -10,21 +10,21 @@
   <!-- Contact Page -->
   <url>
     <loc>https://ajani.ai/contact</loc>
-    <priority>0.70</priority>
+    <priority>0.80</priority>
     <changefreq>monthly</changefreq>
   </url>
 
   <!-- Privacy Policy -->
   <url>
     <loc>https://ajani.ai/privacypage</loc>
-    <priority>0.80</priority>
+    <priority>0.70</priority>
     <changefreq>monthly</changefreq>
   </url>
 
   <!-- Terms and Conditions -->
   <url>
     <loc>https://ajani.ai/termspage</loc>
-    <priority>0.90</priority>
+    <priority>0.70</priority>
     <changefreq>monthly</changefreq>
   </url>
 </urlset>

@@ -12,6 +12,8 @@ import ChatWidget from "../components/ChatWidget";
 import Toast from "../components/Toast";
 import { useState } from "react";
 import Meta from "../components/Meta";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function HomePage() {
   const [toastMessage, setToastMessage] = useState("");
@@ -20,19 +22,29 @@ export default function HomePage() {
   const showAuthToast = (message) => {
     setToastMessage(message);
   };
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const el = document.querySelector(location.hash);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [location]);
 
   const closeToast = () => {
     setToastMessage("");
   };
   return (
     <section className="relative">
-      <Meta
-        title="Home | Ajani Directory"
-        description="Discover top-rated local businesses near you."
-        url="https://ajani.ai/"
-        image="https://res.cloudinary.com/debpabo0a/image/upload/v1762942364/yp4z66xycbjcldfocrzc.jpg"
-      />
-
+      <div>
+        {" "}
+        <Meta
+          title="Home | Ajani Directory"
+          description="Discover top-rated local businesses near you."
+          url="https://ajani.ai/"
+          image="https://ajani.ai/images/home-og.jpg"
+        />
+      </div>
       <LocalBusinessSchema />
       {toastMessage && <Toast message={toastMessage} onClose={closeToast} />}
       <ChatWidget />

@@ -7,6 +7,8 @@ import useGoogleSheet from "../hook/useGoogleSheet";
 import { generateSlug } from "../utils/vendorUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthModal from "../components/ui/AuthModal";
+import ImageModal from "../components/ImageModal";
+
 
 import {
   faMapMarkerAlt,
@@ -81,6 +83,8 @@ const keywordIcons = [
   { keywords: ["egg"], icon: faEgg },
 ];
 
+
+
 export default function VendorPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -91,6 +95,8 @@ export default function VendorPage() {
   const [currentImage, setCurrentImage] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalStartIndex, setModalStartIndex] = useState(0);
 
   const [showAuth, setShowAuth] = useState(false);
   const openAuthModal = () => setShowAuth(true);
@@ -397,46 +403,37 @@ export default function VendorPage() {
             </div>
 
             {/* --- Right Column: Image Slider (Large Screen) / Below Info Box (Mobile) --- */}
-            <div className="md:w-1/2 ">
-              <div
-                className="relative w-full h-64 sm:h-80 rounded-xl overflow-hidden"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-              >
+            {/* --- Right Column: Image Slider / Modal Trigger --- */}
+            <div className="md:w-1/2">
+              <div className="relative w-full h-64 sm:h-80 rounded-xl overflow-hidden">
                 {images.length > 0 && (
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={currentImage}
                       src={images[currentImage]}
                       alt={`${vendor.name} image ${currentImage + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover cursor-pointer"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.8 }}
+                      onClick={() => {
+                        setModalStartIndex(currentImage);
+                        setIsModalOpen(true);
+                      }}
                     />
                   </AnimatePresence>
                 )}
+
+                {/* Optional: Image Counter Overlay */}
                 {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={prevImage}
-                      className="absolute top-1/2 left-3 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-700 p-2 rounded-full shadow"
-                    >
-                      <FontAwesomeIcon icon={faArrowLeft} />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute top-1/2 right-3 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-700 p-2 rounded-full shadow"
-                    >
-                      <FontAwesomeIcon icon={faArrowRight} />
-                    </button>
-                  </>
+                  <div className="absolute bottom-3 right-3 bg-black/50 text-white px-2 py-1 rounded-full text-sm">
+                    {currentImage + 1}/{images.length}
+                  </div>
                 )}
               </div>
 
-              {/* ✅ Description placed directly below the image slider */}
+              {/* ✅ Description below the slider */}
               {vendor.short_desc && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <p className="text-gray-700 leading-relaxed">
@@ -445,6 +442,18 @@ export default function VendorPage() {
                 </div>
               )}
             </div>
+
+            {/* --- Image Modal --- */}
+            {isModalOpen && (
+              <ImageModal
+                images={images}
+                initialIndex={modalStartIndex}
+                onClose={() => setIsModalOpen(false)}
+                item={vendor} // pass full vendor object for WhatsApp, name, etc.
+                onAuthToast={(msg) => console.log(msg)}
+                onOpenChat={() => console.log("Open global ChatWidget")}
+              />
+            )}
           </div>
         </section>
 
@@ -505,6 +514,16 @@ export default function VendorPage() {
       </main>
 
       <Footer />
+      {isModalOpen && (
+        <ImageModal
+          images={images}
+          initialIndex={modalStartIndex}
+          onClose={() => setIsModalOpen(false)}
+          contact={{ label: "Seller", value: vendor.whatsapp }}
+          onAuthToast={(msg) => console.log(msg)}
+          onOpenChat={() => console.log("Open chat")} // replace with your ChatWidget trigger
+        />
+      )}
     </>
   );
 }

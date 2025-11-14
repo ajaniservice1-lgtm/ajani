@@ -6,8 +6,6 @@ import { CiMail, CiLock } from "react-icons/ci";
 import { FaGoogle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { useModal } from "../../context/ModalContext";
-
 
 export default function SignupModal({
   isOpen,
@@ -22,14 +20,6 @@ export default function SignupModal({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      openModal(); // ✅ Notify global state
-    } else {
-      closeModal(); // ✅ Notify global state
-    }
-  }, [isOpen, openModal, closeModal]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

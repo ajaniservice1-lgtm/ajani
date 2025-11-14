@@ -6,12 +6,20 @@ import { FaGoogle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
-export default function AuthModal({ isOpen, onClose, onAuthToast }) {
-  const [activeTab, setActiveTab] = useState("login"); // 'login' or 'signup'
+export default function AuthModal({
+  isOpen,
+  onClose,
+  onAuthToast,
+  initialTab = "login",
+  onSwitchToSignup,
+  onSwitchToLogin,
+}) {
+  const [activeTab, setActiveTab] = useState(initialTab || "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -139,6 +147,8 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
 
   useEffect(() => {
     if (!isOpen) return;
+    // Reset to *initial* tab when reopened
+    setActiveTab(initialTab || "login");
     setEmail("");
     setPassword("");
     setAgreeToTerms(false);
@@ -146,7 +156,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
     setSuccess("");
     setUnconfirmedEmail("");
     setResendCooldown(0);
-  }, [isOpen, activeTab]);
+  }, [isOpen, initialTab]);
 
   return (
     <AnimatePresence>
@@ -340,7 +350,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 <p>
                   Don't have an account?{" "}
                   <button
-                    onClick={() => setActiveTab("signup")}
+                    onClick={onSwitchToSignup}
                     className="text-blue-600 hover:underline font-medium"
                   >
                     Registration
@@ -350,7 +360,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 <p>
                   Already have an account?{" "}
                   <button
-                    onClick={() => setActiveTab("login")}
+                    onClick={onSwitchToLogin}
                     className="text-blue-600 hover:underline font-medium"
                   >
                     Sign in

@@ -15,6 +15,7 @@ export default function LoginButton({ onAuthToast }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -26,6 +27,7 @@ export default function LoginButton({ onAuthToast }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // 🔹 Handle sign out with Supabase
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -36,12 +38,14 @@ export default function LoginButton({ onAuthToast }) {
     }
   };
 
+  // 🔸 While loading user data
   if (loading) {
     return (
       <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
     );
   }
 
+  // 🔹 If logged in — show profile dropdown
   if (user) {
     return (
       <div className="relative" ref={dropdownRef}>
@@ -51,6 +55,7 @@ export default function LoginButton({ onAuthToast }) {
           aria-label="User menu"
           aria-expanded={isDropdownOpen}
         >
+          {/* Avatar (optional) */}
           {user.user_metadata?.avatar_url ? (
             <img
               src={user.user_metadata.avatar_url}
@@ -65,6 +70,7 @@ export default function LoginButton({ onAuthToast }) {
           )}
         </button>
 
+        {/* Dropdown */}
         {isDropdownOpen && (
           <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 animate-fadeInSlideUp">
             <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
@@ -97,15 +103,16 @@ export default function LoginButton({ onAuthToast }) {
     );
   }
 
-  // Logged out — mobile shows icon only, md+ shows icon + "Login"
+  // 🔸 If logged out — show login button
   return (
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="flex items-center gap-2 bg-[rgb(0,6,90)] hover:bg-[#0e1f45] duration-300 text-white px-3 md:px-4 py-2 rounded-full text-sm font-medium transition-colors"
+        className="relative w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white hover:scale-105 transition-transform shadow-md"
+        aria-label="Login"
       >
-        <FiUser className="text-base" />
-        <span className="hidden md:inline">Login</span>
+        {/* 👇 This is the exact icon style you want */}
+        <FiUser className="text-lg" />
       </button>
 
       <AuthModal

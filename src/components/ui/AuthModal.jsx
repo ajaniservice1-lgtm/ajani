@@ -338,14 +338,14 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 )}
               </button>
 
-              <button
+              {/* <button
                 type="button"
                 onClick={handleGoogleSignIn}
                 className="w-full flex items-center justify-center gap-2 bg-[rgb(0,6,90)] text-white py-2.5 rounded-lg text-sm hover:bg-[#0e1f45]"
               >
                 <FaGoogle className="text-lg" />
                 Continue with Google
-              </button>
+              </button> */}
             </form>
           </motion.div>
         </div>

@@ -14,6 +14,8 @@ export default function LoginButton({ onAuthToast }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+    const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isSignupOpen, setIsSignupOpen] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -103,22 +105,59 @@ export default function LoginButton({ onAuthToast }) {
     );
   }
 
-  // 🔸 If logged out — show login button
+  // 🔸 If logged out — separate modals for Sign in / Registration
+
+
   return (
     <>
+      {/* Desktop: Two separate buttons */}
+      <div className="hidden md:flex gap-1">
+        <button
+          onClick={() => setIsLoginOpen(true)}
+          className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)] bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
+        >
+          Sign in
+        </button>
+        <span className="text-gray-400 self-center">|</span>
+        <button
+          onClick={() => setIsSignupOpen(true)}
+          className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)] bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
+        >
+          Registration
+        </button>
+      </div>
+
+      {/* Mobile: single icon → opens Login modal by default */}
       <button
-        onClick={() => setIsModalOpen(true)}
-        className="relative w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white hover:scale-105 transition-transform shadow-md"
+        onClick={() => setIsLoginOpen(true)}
+        className="md:hidden w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white hover:scale-105 transition-transform shadow-md"
         aria-label="Login"
       >
-        {/* 👇 This is the exact icon style you want */}
         <FiUser className="text-lg" />
       </button>
 
+      {/* 🔹 Login Modal */}
       <AuthModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
         onAuthToast={onAuthToast}
+        initialTab="login"
+        onSwitchToSignup={() => {
+          setIsLoginOpen(false);
+          setIsSignupOpen(true);
+        }}
+      />
+
+      {/* 🔹 Signup Modal */}
+      <AuthModal
+        isOpen={isSignupOpen}
+        onClose={() => setIsSignupOpen(false)}
+        onAuthToast={onAuthToast}
+        initialTab="signup"
+        onSwitchToLogin={() => {
+          setIsSignupOpen(false);
+          setIsLoginOpen(true);
+        }}
       />
     </>
   );

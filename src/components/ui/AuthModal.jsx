@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
-import { FiUserPlus, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiUserPlus, FiEye, FiEyeOff, FiX } from "react-icons/fi";
 import { CiLogin, CiMail, CiLock } from "react-icons/ci";
 import { FaGoogle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function AuthModal({ isOpen, onClose, onAuthToast }) {
-  const [activeTab, setActiveTab] = useState("login");
+  const [activeTab, setActiveTab] = useState("login"); // 'login' or 'signup'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -42,7 +42,6 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
         }
 
         const { error } = await supabase.auth.signUp({ email, password });
-        console.log(error);
         if (error) {
           if (error.status === 429) {
             setError(
@@ -51,7 +50,6 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
           } else {
             setError(error.message);
           }
-
           return;
         }
 
@@ -132,7 +130,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
       }
 
       setSuccess("Confirmation email resent! Check your inbox.");
-      setResendCooldown(60); // 60s cooldown
+      setResendCooldown(60);
       setUnconfirmedEmail("");
     } catch (err) {
       setError(err.message || "Failed to resend confirmation email.");
@@ -168,40 +166,28 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
               duration: 0.4,
             }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl w-full max-w-sm md:max-w-md p-6 shadow-lg font-rubik font-bold mx-auto md:my-0"
+            className="bg-white rounded-2xl w-full max-w-sm md:max-w-md p-6 shadow-lg font-rubik mx-auto md:my-0 relative"
           >
-            {/* Tabs */}
-            <div className="flex rounded-full overflow-hidden border border-blue-200 mb-4">
-              <button
-                onClick={() => setActiveTab("signup")}
-                className={`flex-1 py-2 text-sm transition-colors ${
-                  activeTab === "signup"
-                    ? "bg-blue-50 text-blue-600 shadow-sm"
-                    : "bg-white text-blue-900"
-                }`}
-              >
-                Sign Up
-              </button>
-              <button
-                onClick={() => setActiveTab("login")}
-                className={`flex-1 py-2 text-sm transition-colors ${
-                  activeTab === "login"
-                    ? "bg-blue-50 text-blue-900 shadow-sm"
-                    : "bg-white text-blue-800"
-                }`}
-              >
-                Log In
-              </button>
-            </div>
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 z-10"
+              aria-label="Close modal"
+            >
+              <FiX className="text-lg" />
+            </button>
 
-            <h2 className="text-xl mb-1 text-gray-900">
-              {activeTab === "signup" ? "Create your account" : "Welcome back"}
-            </h2>
-            <p className="text-sm text-gray-500 mb-4">
-              {activeTab === "signup"
-                ? "Create a free account to continue on our platform."
-                : "Sign in to your existing account."}
-            </p>
+            {/* Header */}
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-gray-900">
+                {activeTab === "login" ? "Welcome back" : "Create your account"}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {activeTab === "login"
+                  ? "Sign in to your existing account."
+                  : "Create a free account to continue on our platform."}
+              </p>
+            </div>
 
             {/* Messages */}
             {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
@@ -273,7 +259,7 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                     id="terms"
                     checked={agreeToTerms}
                     onChange={(e) => setAgreeToTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-gray-300   text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                   />
                   <label htmlFor="terms" className="text-xs text-gray-900">
                     I agree to the{" "}
@@ -338,15 +324,40 @@ export default function AuthModal({ isOpen, onClose, onAuthToast }) {
                 )}
               </button>
 
-              {/* <button
+              <button
                 type="button"
                 onClick={handleGoogleSignIn}
                 className="w-full flex items-center justify-center gap-2 bg-[rgb(0,6,90)] text-white py-2.5 rounded-lg text-sm hover:bg-[#0e1f45]"
               >
                 <FaGoogle className="text-lg" />
                 Continue with Google
-              </button> */}
+              </button>
             </form>
+
+            {/* Toggle Link */}
+            <div className="mt-4 text-center text-sm">
+              {activeTab === "login" ? (
+                <p>
+                  Don't have an account?{" "}
+                  <button
+                    onClick={() => setActiveTab("signup")}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    Registration
+                  </button>
+                </p>
+              ) : (
+                <p>
+                  Already have an account?{" "}
+                  <button
+                    onClick={() => setActiveTab("login")}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    Sign in
+                  </button>
+                </p>
+              )}
+            </div>
           </motion.div>
         </div>
       )}

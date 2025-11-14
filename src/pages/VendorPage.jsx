@@ -6,6 +6,8 @@ import Footer from "../components/Footer";
 import useGoogleSheet from "../hook/useGoogleSheet";
 import { generateSlug } from "../utils/vendorUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import AuthModal from "../components/ui/AuthModal";
+
 import {
   faMapMarkerAlt,
   faStar,
@@ -19,6 +21,8 @@ import { IoPricetagsOutline } from "react-icons/io5";
 import { CiLocationOn } from "react-icons/ci";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo, useRef } from "react";
+import ContactReveal from "../components/ContactReveal";
+
 import {
   faWifi,
   faSquareParking,
@@ -87,6 +91,9 @@ export default function VendorPage() {
   const [currentImage, setCurrentImage] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+
+  const [showAuth, setShowAuth] = useState(false);
+  const openAuthModal = () => setShowAuth(true);
 
   function getFeatureIcon(feature) {
     const normalized = feature.trim().toLowerCase();
@@ -309,25 +316,37 @@ export default function VendorPage() {
               </div>
 
               {/* --- Info Box --- */}
-              <div className="bg-white rounded-xl p-4 shadow-inner border border-gray-200">
-                <div className="space-y-3">
-                  <p className="flex items-center">
-                    <CiLocationOn className="mr-2 text-gray-900" />
-                    <strong>Area:</strong> {vendor.area}
-                  </p>
-                  <p className="flex items-center">
-                    <LuPhone className="mr-2 text-gray-900" />
-                    <strong>Phone:</strong> {vendor.whatsapp || "Login to view"}
-                  </p>
-                  <p className="flex items-center">
-                    <GoOrganization className="mr-2 text-gray-900" />
-                    <strong>Category:</strong> {vendor.category}
-                  </p>
-                  <p className="flex items-center">
-                    <IoPricetagsOutline className="mr-2 text-gray-900" />
-                    <strong>From:</strong> ₦{vendor.price_from}
-                  </p>
+              <div className="space-y-3">
+                <p className="flex items-center">
+                  <CiLocationOn className="mr-2 text-gray-900" />
+                  <strong className="mr-2">Area:</strong> {vendor.area}
+                </p>
+
+                <div className="flex items-center">
+                  <LuPhone className="mr-1 text-gray-900" />
+
+                  <ContactReveal
+                    label="Phone"
+                    value={vendor.whatsapp}
+                    formattedValue={vendor.whatsapp}
+                    onAuthOpen={() => setShowAuth(true)}
+                  />
                 </div>
+                <AuthModal
+                  isOpen={showAuth}
+                  onClose={() => setShowAuth(false)}
+                  onAuthToast={(msg) => console.log(msg)}
+                />
+
+                <p className="flex items-center">
+                  <GoOrganization className="mr-2 text-gray-900" />
+                  <strong className="mr-1">Category:</strong> {vendor.category}
+                </p>
+
+                <p className="flex items-center">
+                  <IoPricetagsOutline className="mr-2 text-gray-900" />
+                  <strong className="mr-1">From:</strong> ₦{vendor.price_from}
+                </p>
               </div>
 
               {/* --- Ratings Breakdown --- */}
@@ -459,33 +478,25 @@ export default function VendorPage() {
               <div className="mt-4 text-center">
                 <Link
                   to="/"
-                  state={{
-                    mainCategory: vendor.category?.split(".")[0] || "",
-                    subCategory: vendor.category?.split(".")[1] || "",
-                    area: vendor.area || "",
-                  }}
                   onClick={(e) => {
-                    e.preventDefault();
-                    navigate("/", {
-                      state: {
-                        mainCategory: vendor.category?.split(".")[0] || "",
-                        subCategory: vendor.category?.split(".")[1] || "",
-                        area: vendor.area || "",
-                      },
-                    });
+                    e.preventDefault(); // prevent default link navigation
+                    navigate("/"); // go to homepage
 
-                    // scroll after a short delay
                     setTimeout(() => {
                       const directorySection =
                         document.getElementById("directory");
                       if (directorySection) {
-                        directorySection.scrollIntoView({ behavior: "smooth" });
+                        directorySection.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start", // push it to top of viewport
+                        });
                       }
-                    }, 300);
+                    }, 100); // slightly longer delay to ensure DOM is rendered
                   }}
                   className="text-blue-600 hover:underline font-medium"
                 >
-                  Show More {vendor.category ? `in ${vendor.area}` : ""} →
+                  Show More {vendor.category ? `in ${vendor.area}` : ""}{" "}
+                  (directory) →
                 </Link>
               </div>
             </div>

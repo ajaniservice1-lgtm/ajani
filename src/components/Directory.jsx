@@ -10,6 +10,7 @@ import ImageModal from "../components/ImageModal";
 import { useChat } from "../context/ChatContext";
 import { Link } from "react-router-dom";
 import { generateSlug } from "../utils/vendorUtils";
+import { useLocation } from "react-router-dom";
 
 // ---------------- Helpers ----------------
 const capitalizeFirst = (str) =>

@@ -54,7 +54,7 @@ const Header = ({ onAuthToast }) => {
                 <div className="flex items-center gap-2">
                   <img src={Logo} alt="Ajani Logo" className="h-8 w-24" />
                   <div className="w-px h-6 bg-gray-300 mx-0"></div>
-                  <span className="md:text-sm font-normal md:font-medium text-[11.5px] text-[#101828] hover:text-blue-400 duration-300">
+                  <span className="hidden md:inline md:text-sm font-normal md:font-medium text-[11.5px] text-[#101828] hover:text-blue-400 duration-300">
                     The Ibadan Smart Guide
                   </span>
                 </div>

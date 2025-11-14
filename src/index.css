@@ -16,6 +16,10 @@ body {
   overflow-x: hidden;
 }
 
+#directory {
+  scroll-margin-top: 80px; /* adjust for sticky header or extra spacing */
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -117,7 +121,6 @@ section[id] {
     transform: rotate(360deg);
   }
 }
-
 
 .toast {
   z-index: 10000;

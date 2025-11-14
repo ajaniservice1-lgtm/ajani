@@ -8,11 +8,11 @@ import {
 import AuthModal from "./AuthModal";
 import { useAuth } from "../../hook/useAuth";
 import { supabase } from "../../lib/supabase";
-import { useModal } from "../../context/ModalContext"; // ✅ IMPORT ADDED
+import { useModal } from "../../context/ModalContext";
 
 export default function LoginButton({ onAuthToast }) {
   const { user, loading } = useAuth();
-  const { openModal, closeModal } = useModal(); // ✅ MOVED HERE (after useAuth)
+  const { openModal, closeModal } = useModal();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -30,7 +30,7 @@ export default function LoginButton({ onAuthToast }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Auto-sync modal context
+  // ✅ SINGLE SOURCE OF TRUTH: Sync global modal state
   useEffect(() => {
     if (isLoginOpen || isSignupOpen) {
       openModal();
@@ -119,34 +119,23 @@ export default function LoginButton({ onAuthToast }) {
       {/* Desktop: Two separate buttons */}
       <div className="hidden md:flex gap-1">
         <button
-          onClick={() => {
-            setIsLoginOpen(true);
-
-            openModal(); // ✅ OPEN MODAL CONTEXT
-            console.log("Opening modal");
-          }}
+          onClick={() => setIsLoginOpen(true)} // ✅ Local state only
           className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)] bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
         >
           Sign in
         </button>
         <span className="text-gray-400 self-center">|</span>
         <button
-          onClick={() => {
-            openModal(); // ✅ OPEN MODAL CONTEXT
-            setIsSignupOpen(true);
-          }}
+          onClick={() => setIsSignupOpen(true)} // ✅ Local state only
           className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)] bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
         >
           Registration
         </button>
       </div>
 
-      {/* Mobile */}
+      {/* Mobile: single icon */}
       <button
-        onClick={() => {
-          openModal(); // ✅ OPEN MODAL CONTEXT
-          setIsLoginOpen(true);
-        }}
+        onClick={() => setIsLoginOpen(true)} // ✅ Local state only
         className="md:hidden w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white hover:scale-105 transition-transform shadow-md"
         aria-label="Login"
       >
@@ -156,34 +145,24 @@ export default function LoginButton({ onAuthToast }) {
       {/* 🔹 Login Modal */}
       <AuthModal
         isOpen={isLoginOpen}
-        onClose={() => {
-          closeModal(); // ✅ CLOSE MODAL CONTEXT
-          setIsLoginOpen(false);
-        }}
+        onClose={() => setIsLoginOpen(false)} // ✅ Local state only
         onAuthToast={onAuthToast}
         initialTab="login"
         onSwitchToSignup={() => {
-          closeModal(); // ✅ Close current modal
           setIsLoginOpen(false);
-          openModal(); // ✅ Open new one
-          setIsSignupOpen(true);
+          setIsSignupOpen(true); // ✅ Let useEffect handle openModal()
         }}
       />
 
       {/* 🔹 Signup Modal */}
       <AuthModal
         isOpen={isSignupOpen}
-        onClose={() => {
-          closeModal(); // ✅ CLOSE MODAL CONTEXT
-          setIsSignupOpen(false);
-        }}
+        onClose={() => setIsSignupOpen(false)} // ✅ Local state only
         onAuthToast={onAuthToast}
         initialTab="signup"
         onSwitchToLogin={() => {
-          closeModal(); // ✅ Close current
           setIsSignupOpen(false);
-          openModal(); // ✅ Open new
-          setIsLoginOpen(true);
+          setIsLoginOpen(true); // ✅ Let useEffect handle openModal()
         }}
       />
     </>

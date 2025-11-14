@@ -8,14 +8,15 @@ import {
 import AuthModal from "./AuthModal";
 import { useAuth } from "../../hook/useAuth";
 import { supabase } from "../../lib/supabase";
+import { useModal } from "../../context/ModalContext"; // ✅ IMPORT ADDED
 
 export default function LoginButton({ onAuthToast }) {
   const { user, loading } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { openModal, closeModal } = useModal(); // ✅ MOVED HERE (after useAuth)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-    const [isLoginOpen, setIsLoginOpen] = useState(false);
-    const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isSignupOpen, setIsSignupOpen] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -28,6 +29,15 @@ export default function LoginButton({ onAuthToast }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // ✅ Auto-sync modal context
+  useEffect(() => {
+    if (isLoginOpen || isSignupOpen) {
+      openModal();
+    } else {
+      closeModal();
+    }
+  }, [isLoginOpen, isSignupOpen, openModal, closeModal]);
 
   // 🔹 Handle sign out with Supabase
   const handleSignOut = async () => {
@@ -57,7 +67,6 @@ export default function LoginButton({ onAuthToast }) {
           aria-label="User menu"
           aria-expanded={isDropdownOpen}
         >
-          {/* Avatar (optional) */}
           {user.user_metadata?.avatar_url ? (
             <img
               src={user.user_metadata.avatar_url}
@@ -72,7 +81,6 @@ export default function LoginButton({ onAuthToast }) {
           )}
         </button>
 
-        {/* Dropdown */}
         {isDropdownOpen && (
           <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 animate-fadeInSlideUp">
             <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
@@ -105,31 +113,40 @@ export default function LoginButton({ onAuthToast }) {
     );
   }
 
-  // 🔸 If logged out — separate modals for Sign in / Registration
-
-
+  // 🔸 If logged out
   return (
     <>
       {/* Desktop: Two separate buttons */}
       <div className="hidden md:flex gap-1">
         <button
-          onClick={() => setIsLoginOpen(true)}
+          onClick={() => {
+            setIsLoginOpen(true);
+
+            openModal(); // ✅ OPEN MODAL CONTEXT
+            console.log("Opening modal");
+          }}
           className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)] bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
         >
           Sign in
         </button>
         <span className="text-gray-400 self-center">|</span>
         <button
-          onClick={() => setIsSignupOpen(true)}
+          onClick={() => {
+            openModal(); // ✅ OPEN MODAL CONTEXT
+            setIsSignupOpen(true);
+          }}
           className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)] bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
         >
           Registration
         </button>
       </div>
 
-      {/* Mobile: single icon → opens Login modal by default */}
+      {/* Mobile */}
       <button
-        onClick={() => setIsLoginOpen(true)}
+        onClick={() => {
+          openModal(); // ✅ OPEN MODAL CONTEXT
+          setIsLoginOpen(true);
+        }}
         className="md:hidden w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white hover:scale-105 transition-transform shadow-md"
         aria-label="Login"
       >
@@ -139,11 +156,16 @@ export default function LoginButton({ onAuthToast }) {
       {/* 🔹 Login Modal */}
       <AuthModal
         isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
+        onClose={() => {
+          closeModal(); // ✅ CLOSE MODAL CONTEXT
+          setIsLoginOpen(false);
+        }}
         onAuthToast={onAuthToast}
         initialTab="login"
         onSwitchToSignup={() => {
+          closeModal(); // ✅ Close current modal
           setIsLoginOpen(false);
+          openModal(); // ✅ Open new one
           setIsSignupOpen(true);
         }}
       />
@@ -151,11 +173,16 @@ export default function LoginButton({ onAuthToast }) {
       {/* 🔹 Signup Modal */}
       <AuthModal
         isOpen={isSignupOpen}
-        onClose={() => setIsSignupOpen(false)}
+        onClose={() => {
+          closeModal(); // ✅ CLOSE MODAL CONTEXT
+          setIsSignupOpen(false);
+        }}
         onAuthToast={onAuthToast}
         initialTab="signup"
         onSwitchToLogin={() => {
+          closeModal(); // ✅ Close current
           setIsSignupOpen(false);
+          openModal(); // ✅ Open new
           setIsLoginOpen(true);
         }}
       />

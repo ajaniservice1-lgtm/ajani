@@ -5,6 +5,8 @@ import { FiEye, FiEyeOff, FiX } from "react-icons/fi";
 import { CiLogin, CiMail, CiLock } from "react-icons/ci";
 import { FaGoogle } from "react-icons/fa";
 import { AnimatePresence, motion } from "framer-motion";
+import { useModal } from "../../context/ModalContext";
+
 
 export default function LoginModal({
   isOpen,
@@ -20,6 +22,9 @@ export default function LoginModal({
   const [loading, setLoading] = useState(false);
   const [unconfirmedEmail, setUnconfirmedEmail] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+
+    
+  
 
   useEffect(() => {
     let timer;

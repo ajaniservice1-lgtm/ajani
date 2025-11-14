@@ -5,6 +5,7 @@ import { CiLogin, CiMail, CiLock } from "react-icons/ci";
 import { FaGoogle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { useModal } from "../../context/ModalContext";
 
 export default function AuthModal({
   isOpen,
@@ -25,6 +26,18 @@ export default function AuthModal({
   const [loading, setLoading] = useState(false);
   const [unconfirmedEmail, setUnconfirmedEmail] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+
+   const { openModal, closeModal } = useModal();
+
+   useEffect(() => {
+     if (isOpen) {
+       openModal(); // ✅ Notify global state
+     } else {
+       closeModal(); // ✅ Notify global state
+     }
+   }, [isOpen, openModal, closeModal]);
+
+
 
   useEffect(() => {
     let timer;

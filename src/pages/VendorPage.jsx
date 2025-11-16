@@ -10,7 +10,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthModal from "../components/ui/AuthModal";
 import ImageModal from "../components/ImageModal";
 import ContactReveal from "../components/ContactReveal";
-
 import { faStar, faCircleInfo } from "@fortawesome/free-solid-svg-icons";
 import { GoOrganization } from "react-icons/go";
 import { LuPhone } from "react-icons/lu";
@@ -22,6 +21,7 @@ import {
   useLocation as useUserLocation,
   getDistance,
 } from "../hook/useLocation";
+import { useAuth } from "../hook/useAuth";
 
 // --- Feature icon mapping ---
 import {
@@ -62,6 +62,7 @@ const keywordIcons = [
 export default function VendorPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
@@ -70,13 +71,14 @@ export default function VendorPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStartIndex, setModalStartIndex] = useState(0);
   const [showAuth, setShowAuth] = useState(false);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
   const { location: userLocation, requestLocation } = useUserLocation();
 
-  // Request user location on mount
   useEffect(() => {
     requestLocation().catch((err) => console.log("Location error:", err));
   }, []);
@@ -113,12 +115,10 @@ export default function VendorPage() {
     [vendor]
   );
 
-  // Scroll top when switching vendors
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [slug]);
 
-  // Auto slide every 5s
   useEffect(() => {
     if (images.length > 1) {
       const timer = setInterval(() => {
@@ -139,7 +139,6 @@ export default function VendorPage() {
     if (touchStartX.current - touchEndX.current < -75) prevImage();
   };
 
-  // --- Similar vendors with area + distance fallback ---
   const similar = useMemo(() => {
     if (!vendor) return [];
 
@@ -157,9 +156,7 @@ export default function VendorPage() {
 
       const areaMatches =
         v.area?.toLowerCase().trim() === vendorArea && vendorArea !== "";
-
       const bothHaveCoords = vendor.lat && vendor.lon && v.lat && v.lon;
-
       let closeDistance = false;
 
       if (bothHaveCoords) {
@@ -169,20 +166,17 @@ export default function VendorPage() {
           parseFloat(v.lat),
           parseFloat(v.lon)
         );
-        closeDistance = dist <= 5; // 5km radius
+        closeDistance = dist <= 5;
       }
 
-      // final rule
       return areaMatches || closeDistance || !bothHaveCoords;
     });
 
     const sorted = filtered.sort((a, b) => {
-      // Sort by rating
       const rA = parseFloat(a.rating) || 0;
       const rB = parseFloat(b.rating) || 0;
       if (rB !== rA) return rB - rA;
 
-      // Sort by price
       const pA = parseInt(a.price_from?.replace(/\D/g, "")) || Infinity;
       const pB = parseInt(b.price_from?.replace(/\D/g, "")) || Infinity;
       return pA - pB;
@@ -200,6 +194,32 @@ export default function VendorPage() {
     return `Similar ${categoryName} in ${vendor.area}`;
   };
 
+  const handleSubmitReview = async () => {
+    if (!reviewText.trim()) return;
+    setReviewSubmitting(true);
+
+    try {
+      // TODO: replace with your Google Sheet submission logic
+      console.log(
+        "Submit review for:",
+        vendor.name,
+        "Text:",
+        reviewText,
+        "User:",
+        user?.email
+      );
+
+      // Reset after submission
+      setReviewText("");
+      alert("Review submitted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit review. Try again.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
   if (loading)
     return (
       <main className="max-w-4xl mx-auto py-12 px-4 text-center ">
@@ -209,7 +229,7 @@ export default function VendorPage() {
 
   if (error)
     return (
-      <main className="max-w-4xl mx-auto  py-12 px-4 text-center">
+      <main className="max-w-4xl mx-auto py-12 px-4 text-center">
         <p className="text-red-600">{error}</p>
       </main>
     );
@@ -236,10 +256,10 @@ export default function VendorPage() {
       <Header />
 
       <main className="max-w-5xl mx-auto py-10 px-4 font-rubik text-sm">
-        {/* Vendor Details */}
         <section className="bg-white rounded-2xl shadow-md p-6 md:p-8 border border-gray-100">
           <div className="md:flex md:flex-row md:items-start gap-6">
             <div className="flex-1 space-y-6">
+              {/* Vendor Header */}
               <div className="flex items-center gap-2 mb-4">
                 <h1 className="text-3xl font-bold">{vendor.name}</h1>
                 <div className="flex items-center text-yellow-500 font-semibold text-sm mt-1">
@@ -248,6 +268,7 @@ export default function VendorPage() {
                 </div>
               </div>
 
+              {/* Features */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {vendor.features &&
                   vendor.features.split(",").map((feature, i) => {
@@ -267,6 +288,7 @@ export default function VendorPage() {
                   })}
               </div>
 
+              {/* Vendor Info */}
               <div className="space-y-3">
                 <p className="flex items-center">
                   <CiLocationOn className="mr-2 text-gray-900" />
@@ -283,12 +305,6 @@ export default function VendorPage() {
                   />
                 </div>
 
-                <AuthModal
-                  isOpen={showAuth}
-                  onClose={() => setShowAuth(false)}
-                  onAuthToast={(msg) => console.log(msg)}
-                />
-
                 <p className="flex items-center">
                   <GoOrganization className="mr-2 text-gray-900" />
                   <strong className="mr-1">Category:</strong> {vendor.category}
@@ -300,13 +316,78 @@ export default function VendorPage() {
                 </p>
               </div>
 
-              <button className="w-full bg-gray-100 hover:bg-gray-200 my-2 text-gray-800 font-semibold py-3 px-4 rounded-lg transition">
-                <FontAwesomeIcon icon={faStar} className="mr-2 " />
-                Write a Review (Login Required)
-              </button>
+              {/* Ratings Breakdown with loader bars */}
+              {/* Ratings Breakdown with loader bars */}
+              {vendor.ratings_breakdown && (
+                <div className="mt-4">
+                  <h3 className="font-semibold mb-2">Ratings Breakdown:</h3>
+                  <div className="space-y-2">
+                    {vendor.ratings_breakdown.split(",").map((item, i) => {
+                      const [labelRaw, valueStr] = item
+                        .split(":")
+                        .map((s) => s.trim());
+                      const label =
+                        labelRaw.charAt(0).toUpperCase() + labelRaw.slice(1); // capitalize first letter
+                      const value = parseFloat(valueStr);
+                      const fillPercent = Math.min((value / 5) * 100, 100); // fill relative to 5
+
+                      return (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="w-24 text-sm font-medium">
+                            {label}
+                          </span>
+                          <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-[rgb(0,6,90)] rounded-full"
+                              style={{ width: `${fillPercent}%` }}
+                            />
+                          </div>
+                          <span className="w-10 text-right text-sm font-semibold">
+                            {value.toFixed(1)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Review Section */}
+              {!user ? (
+                <button
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg transition"
+                  onClick={() => setShowAuth(true)}
+                >
+                  <FontAwesomeIcon icon={faStar} className="mr-2" />
+                  Login to Write a Review
+                </button>
+              ) : (
+                <div className="mt-4">
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="Write your review here..."
+                    className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    rows={4}
+                  />
+                  <button
+                    onClick={handleSubmitReview}
+                    disabled={reviewSubmitting || !reviewText.trim()}
+                    className="mt-2 w-full bg-[rgb(0,6,90)] hover:bg-blue-900 text-white font-semibold py-2 rounded-lg transition"
+                  >
+                    {reviewSubmitting ? "Submitting..." : "Submit Review"}
+                  </button>
+                </div>
+              )}
+
+              <AuthModal
+                isOpen={showAuth}
+                onClose={() => setShowAuth(false)}
+                onAuthToast={(msg) => console.log(msg)}
+              />
             </div>
 
-            {/* Image slider */}
+            {/* Image Slider */}
             <div className="md:w-1/2">
               <div
                 className="relative w-full h-64 sm:h-80 rounded-xl overflow-hidden"
@@ -347,18 +428,18 @@ export default function VendorPage() {
                   </p>
                 </div>
               )}
-            </div>
 
-            {isModalOpen && (
-              <ImageModal
-                images={images}
-                initialIndex={modalStartIndex}
-                onClose={() => setIsModalOpen(false)}
-                item={vendor}
-                onAuthToast={(msg) => console.log(msg)}
-                onOpenChat={() => console.log("Open global ChatWidget")}
-              />
-            )}
+              {isModalOpen && (
+                <ImageModal
+                  images={images}
+                  initialIndex={modalStartIndex}
+                  onClose={() => setIsModalOpen(false)}
+                  item={vendor}
+                  onAuthToast={(msg) => console.log(msg)}
+                  onOpenChat={() => console.log("Open global ChatWidget")}
+                />
+              )}
+            </div>
           </div>
         </section>
 

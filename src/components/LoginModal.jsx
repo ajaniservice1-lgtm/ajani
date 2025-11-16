@@ -5,6 +5,7 @@ import { FiEye, FiEyeOff, FiX } from "react-icons/fi";
 import { CiLogin, CiMail, CiLock } from "react-icons/ci";
 import { FaGoogle } from "react-icons/fa";
 import { AnimatePresence, motion } from "framer-motion";
+import { useModal } from "../context/ModalContext";
 
 export default function LoginModal({
   isOpen,
@@ -12,6 +13,8 @@ export default function LoginModal({
   onAuthToast,
   onOpenSignup,
 }) {
+  const { openModal, closeModal } = useModal();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +24,13 @@ export default function LoginModal({
   const [unconfirmedEmail, setUnconfirmedEmail] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Track modal in ModalContext
+  useEffect(() => {
+    if (isOpen) openModal("login");
+    else closeModal("login");
+  }, [isOpen]);
+
+  // Reset resend cooldown timer
   useEffect(() => {
     let timer;
     if (resendCooldown > 0) {
@@ -28,6 +38,18 @@ export default function LoginModal({
     }
     return () => clearInterval(timer);
   }, [resendCooldown]);
+
+  // Reset fields on close
+  useEffect(() => {
+    if (!isOpen) {
+      setEmail("");
+      setPassword("");
+      setError("");
+      setSuccess("");
+      setUnconfirmedEmail("");
+      setResendCooldown(0);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,17 +125,6 @@ export default function LoginModal({
     }
   };
 
-  useEffect(() => {
-    if (!isOpen) {
-      setEmail("");
-      setPassword("");
-      setError("");
-      setSuccess("");
-      setUnconfirmedEmail("");
-      setResendCooldown(0);
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   return (
@@ -130,7 +141,6 @@ export default function LoginModal({
           onClick={(e) => e.stopPropagation()}
           className="bg-white rounded-2xl w-full max-w-sm md:max-w-md p-6 shadow-lg font-rubik relative"
         >
-          {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -246,8 +256,7 @@ export default function LoginModal({
               onClick={handleGoogleSignIn}
               className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm hover:bg-gray-50"
             >
-              <FaGoogle className="text-lg text-red-500" />
-              Continue with Google
+              <FaGoogle className="text-lg text-red-500" /> Continue with Google
             </button>
           </form>
 

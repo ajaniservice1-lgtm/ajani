@@ -6,6 +6,7 @@ import { CiMail, CiLock } from "react-icons/ci";
 import { FaGoogle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { useModal } from "../context/ModalContext";
 
 export default function SignupModal({
   isOpen,
@@ -13,6 +14,8 @@ export default function SignupModal({
   onAuthToast,
   onOpenLogin,
 }) {
+  const { openModal, closeModal } = useModal();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +23,22 @@ export default function SignupModal({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Track modal in ModalContext
+  useEffect(() => {
+    if (isOpen) openModal("signup");
+    else closeModal("signup");
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setEmail("");
+      setPassword("");
+      setAgreeToTerms(false);
+      setError("");
+      setSuccess("");
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,13 +54,12 @@ export default function SignupModal({
       }
 
       const { error } = await supabase.auth.signUp({ email, password });
-
       if (error) {
-        if (error.status === 429) {
-          setError("Too many emails sent. Please wait a few minutes.");
-        } else {
-          setError(error.message);
-        }
+        setError(
+          error.status === 429
+            ? "Too many emails sent. Please wait a few minutes."
+            : error.message
+        );
         return;
       }
 
@@ -61,16 +79,6 @@ export default function SignupModal({
     if (error) setError("Google sign-in failed. " + error.message);
   };
 
-  useEffect(() => {
-    if (!isOpen) {
-      setEmail("");
-      setPassword("");
-      setAgreeToTerms(false);
-      setError("");
-      setSuccess("");
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   return (
@@ -87,7 +95,6 @@ export default function SignupModal({
           onClick={(e) => e.stopPropagation()}
           className="bg-white rounded-2xl w-full max-w-sm md:max-w-md p-6 shadow-lg font-rubik relative"
         >
-          {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -205,8 +212,7 @@ export default function SignupModal({
               onClick={handleGoogleSignIn}
               className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm hover:bg-gray-50"
             >
-              <FaGoogle className="text-lg text-red-500" />
-              Continue with Google
+              <FaGoogle className="text-lg text-red-500" /> Continue with Google
             </button>
           </form>
 

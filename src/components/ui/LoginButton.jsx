@@ -120,14 +120,14 @@ export default function LoginButton({ onAuthToast }) {
       <div className="hidden md:flex gap-1">
         <button
           onClick={() => setIsLoginOpen(true)} // ✅ Local state only
-          className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)] bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
+          className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)]  border  rounded-full  transition-colors shadow-sm"
         >
           Sign in
         </button>
         <span className="text-gray-400 self-center">|</span>
         <button
           onClick={() => setIsSignupOpen(true)} // ✅ Local state only
-          className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)] bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
+          className="px-3 py-1.5 text-sm font-medium text-[rgb(0,6,90)]  border rounded-full transition-colors shadow-sm"
         >
           Registration
         </button>

@@ -20,6 +20,21 @@ body {
   scroll-margin-top: 80px; /* adjust for sticky header or extra spacing */
 }
 
+@keyframes fade {
+  0% {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade {
+  animation: fade 0.2s ease-out;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

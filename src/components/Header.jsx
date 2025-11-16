@@ -37,7 +37,8 @@ const Header = ({ onAuthToast }) => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#f2f9ff] font-rubik">
         <div className="max-w-7xl mx-auto px-4 py-2">
           {/* Nav Container - White rounded with shadow */}
-          <nav className="flex items-center justify-between bg-[#e6f2ff] font-medium   shadow-md rounded-full px-6 py-3 w-full">
+          {/* Nav Container - White rounded with shadow */}
+          <nav className="flex items-center justify-between bg-[#e6f2ff] font-medium shadow-md rounded-full px-6 py-3 w-full">
             {/* Left: Logo */}
             <div className="flex items-center gap-4">
               <button
@@ -61,8 +62,8 @@ const Header = ({ onAuthToast }) => {
               </button>
             </div>
 
-            {/* Center: Navigation Links — now centered on lg+ */}
-            <div className="hidden lg:flex items-center justify-center flex-1 gap-6 text-[#101828] text-sm">
+            {/* Center: Navigation Links — centered only on lg+ */}
+            <div className="hidden lg:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 items-center gap-6 text-[#101828] text-sm">
               {[
                 { label: "Directory", id: "directory" },
                 { label: "For Businesses", id: "vendors" },
@@ -79,38 +80,33 @@ const Header = ({ onAuthToast }) => {
               ))}
             </div>
 
-            {/* Right: WhatsApp Button */}
-            {/* <a
-              href="https://wa.me/2348022662256?text=Hi%20Ajani%20👋"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-2 mr-5 bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full font-semibold text-sm transition"
-            >
-              <i className="fab fa-whatsapp"></i> Chat with Ajani
-            </a> */}
-            <LoginButton onAuthToast={onAuthToast} />
+            {/* Right: Login Button + Hamburger — MOVED ORDER */}
+            <div className="flex items-center gap-2">
+              {/* 🔹 LoginButton — now rendered BEFORE hamburger */}
+              <LoginButton onAuthToast={onAuthToast} />
 
-            {/* Mobile Hamburger (still on far right on mobile) */}
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className="lg:hidden text-gray-900 focus:outline-none"
-              aria-label="Open menu"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+              {/* 🔹 Hamburger — now last (far right) */}
+              <button
+                onClick={() => setIsMenuOpen(true)}
+                className="lg:hidden text-gray-900 focus:outline-none"
+                aria-label="Open menu"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+            </div>
           </nav>
         </div>
       </header>
@@ -175,7 +171,7 @@ const Header = ({ onAuthToast }) => {
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex-1 p-5 space-y-4 font-normal  font-rubik">
+          <nav className="flex-1 p-5 space-y-4 font-normal font-rubik">
             {[
               { label: "Top Picks", id: "toppicks" },
               { label: "Directory", id: "directory" },

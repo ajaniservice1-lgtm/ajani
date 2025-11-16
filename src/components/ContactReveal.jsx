@@ -10,9 +10,9 @@ import {
 
 export default function ContactReveal({
   value,
-  label = "Phone",
   formattedValue,
   onAuthOpen,
+  Contact = "Contact",
 }) {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
@@ -36,7 +36,7 @@ export default function ContactReveal({
 
   // Choose icon based on label
   const getIcon = () => {
-    switch (label.toLowerCase()) {
+    switch (Contact) {
       case "email":
         return faEnvelope;
       default:
@@ -52,20 +52,23 @@ export default function ContactReveal({
       <div className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow text-sm">
         <div className="flex-1 min-w-0">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
-            {label}
+            Contact
           </p>
           <p className="font-semibold text-gray-900 truncate">
             {formattedValue}
           </p>
         </div>
+
+        {/* Copy Button + Tooltip */}
         <button
           onClick={handleCopy}
-          className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
+          className="relative flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
           aria-label="Copy to clipboard"
         >
           <FontAwesomeIcon icon={faCopy} className="text-sm" />
+
           {copied && (
-            <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded shadow-sm whitespace-nowrap">
+            <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded shadow-sm whitespace-nowrap animate-fade">
               Copied!
             </span>
           )}
@@ -74,7 +77,7 @@ export default function ContactReveal({
     );
   }
 
-  // Locked / Not logged in → compact & clean
+  // Locked / Not logged in (blur + CTA)
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
@@ -94,13 +97,13 @@ export default function ContactReveal({
         {/* Blurred Placeholder */}
         <div className="flex-1">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
-            {label}
+            Contact
           </p>
           <div className="bg-gray-200 animate-pulse w-20 h-4 rounded mt-1"></div>
         </div>
 
         {/* Lock Badge */}
-        <div className="flex items-center justify-center w-7 h-7 bg-[rgb(0,6,90)] text-white rounded-lg transition-transform group-hover:scale-105">
+        <div className="flex items-center justify-center w-7 h-7 bg-[rgb(0,6,90)] text-white rounded-lg transition-transform">
           <FontAwesomeIcon icon={faLock} className="text-xs" />
         </div>
       </div>
@@ -110,7 +113,7 @@ export default function ContactReveal({
         className={`
           absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-lg
           transition-opacity duration-300 ${
-            isHovered ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            isHovered ? "opacity-100" : "opacity-0"
           }
         `}
       >
@@ -123,7 +126,7 @@ export default function ContactReveal({
             Unlock Contact
           </p>
           <p className="text-[10px] text-gray-600 mb-1">
-            Log in to view and copy {label.toLowerCase()} securely.
+            Log in to view and copy Contact securely.
           </p>
           <p className="text-blue-600 text-[10px] font-medium inline-flex items-center">
             Continue{" "}

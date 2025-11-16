@@ -13,8 +13,6 @@ export default function LoginModal({
   onAuthToast,
   onOpenSignup,
 }) {
-  const { openModal, closeModal } = useModal();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,23 +22,14 @@ export default function LoginModal({
   const [unconfirmedEmail, setUnconfirmedEmail] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Track modal in ModalContext
+  const { openModal, closeModal } = useModal();
+
+  // Notify ModalContext when this modal opens/closes
   useEffect(() => {
     if (isOpen) openModal("login");
     else closeModal("login");
-  }, [isOpen]);
 
-  // Reset resend cooldown timer
-  useEffect(() => {
-    let timer;
-    if (resendCooldown > 0) {
-      timer = setInterval(() => setResendCooldown((prev) => prev - 1), 1000);
-    }
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
-
-  // Reset fields on close
-  useEffect(() => {
+    // Reset form when closing
     if (!isOpen) {
       setEmail("");
       setPassword("");
@@ -50,6 +39,15 @@ export default function LoginModal({
       setResendCooldown(0);
     }
   }, [isOpen]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => setResendCooldown((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,7 +61,6 @@ export default function LoginModal({
         email,
         password,
       });
-
       if (error) {
         if (error.message.includes("Email not confirmed")) {
           setError("Your email is not confirmed yet. Please check your inbox.");
@@ -78,7 +75,6 @@ export default function LoginModal({
         }
         return;
       }
-
       setSuccess("Logged in successfully!");
       onAuthToast?.("Welcome back!");
       setTimeout(onClose, 800);
@@ -141,6 +137,7 @@ export default function LoginModal({
           onClick={(e) => e.stopPropagation()}
           className="bg-white rounded-2xl w-full max-w-sm md:max-w-md p-6 shadow-lg font-rubik relative"
         >
+          {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"

@@ -14,8 +14,6 @@ export default function SignupModal({
   onAuthToast,
   onOpenLogin,
 }) {
-  const { openModal, closeModal } = useModal();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,13 +22,13 @@ export default function SignupModal({
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Track modal in ModalContext
+  const { openModal, closeModal } = useModal();
+
+  // Notify ModalContext when this modal opens/closes
   useEffect(() => {
     if (isOpen) openModal("signup");
     else closeModal("signup");
-  }, [isOpen]);
 
-  useEffect(() => {
     if (!isOpen) {
       setEmail("");
       setPassword("");
@@ -95,6 +93,7 @@ export default function SignupModal({
           onClick={(e) => e.stopPropagation()}
           className="bg-white rounded-2xl w-full max-w-sm md:max-w-md p-6 shadow-lg font-rubik relative"
         >
+          {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"

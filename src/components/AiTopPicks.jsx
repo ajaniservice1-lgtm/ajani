@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+// src/components/AiTopPicks.jsx
+import React, { useState, useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -8,6 +9,7 @@ import { useAuth } from "../hook/useAuth";
 import AuthModal from "./ui/AuthModal";
 import ImageModal from "./ImageModal";
 import { useChat } from "../context/ChatContext";
+import { useModal } from "../context/ModalContext";
 
 // ---------------- Fallback Images ----------------
 const FALLBACK_IMAGES = {
@@ -75,15 +77,14 @@ const AppleCardWrapper = ({ children, index }) => {
 const ImageCarousel = ({ card, onImageClick }) => {
   const images = getCardImages(card);
   const [index, setIndex] = useState(0);
-  const timeoutRef = useRef(null);
 
   useEffect(() => {
     if (images.length <= 1) return;
-    timeoutRef.current = setTimeout(
+    const timeout = setTimeout(
       () => setIndex((prev) => (prev + 1) % images.length),
       4000
     );
-    return () => clearTimeout(timeoutRef.current);
+    return () => clearTimeout(timeout);
   }, [index, images.length]);
 
   return (
@@ -151,7 +152,7 @@ const Card = ({ card, index, onShowContact, onImageClick }) => {
 
   const handleShowContact = () => {
     if (authLoading) return;
-    if (!user) return onShowContact();
+    if (!user) return onShowContact(); // open auth modal if not logged in
     setShowContact(true);
     setTimeout(() => setShowContact(false), 20000);
   };
@@ -166,10 +167,8 @@ const Card = ({ card, index, onShowContact, onImageClick }) => {
     <AppleCardWrapper index={index}>
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
         <ImageCarousel card={card} onImageClick={onImageClick} />
-
         <div className="p-5 flex flex-col flex-grow">
           <h3 className="font-bold text-lg text-gray-900 mb-1">{card.name}</h3>
-
           <p className="text-gray-600 text-sm mb-2">
             {displayText}
             {isLong && (
@@ -181,7 +180,6 @@ const Card = ({ card, index, onShowContact, onImageClick }) => {
               </button>
             )}
           </p>
-
           <div className="flex flex-wrap gap-2 mb-4">
             {formatTags(card.tags).map((tag, j) => (
               <span
@@ -192,7 +190,6 @@ const Card = ({ card, index, onShowContact, onImageClick }) => {
               </span>
             ))}
           </div>
-
           <div className="mt-auto">
             {!showContact ? (
               <button
@@ -223,7 +220,7 @@ const Card = ({ card, index, onShowContact, onImageClick }) => {
   );
 };
 
-// ---------------- Main Section ----------------
+// ---------------- Main Component ----------------
 const AiTopPicks = ({ onAuthToast }) => {
   const {
     listings = [],
@@ -233,16 +230,17 @@ const AiTopPicks = ({ onAuthToast }) => {
     import.meta.env.VITE_SHEET_ID,
     import.meta.env.VITE_GOOGLE_API_KEY
   );
-  const { openChat } = useChat();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { openChat } = useChat();
+  const { openModal, closeModal } = useModal(); // ✅ modal context
+
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [imageModal, setImageModal] = useState({
     isOpen: false,
     images: [],
     initialIndex: 0,
   });
 
-  // ✅ Header animation hook — moved inside component
   const [headerRef, headerInView] = useInView({
     threshold: 0.1,
     triggerOnce: false,
@@ -269,11 +267,30 @@ const AiTopPicks = ({ onAuthToast }) => {
 
   if (!topPicks.length) return null;
 
+  const handleAuthModalOpen = () => {
+    openModal();
+    setAuthModalOpen(true);
+  };
+
+  const handleAuthModalClose = () => {
+    closeModal();
+    setAuthModalOpen(false);
+  };
+
+  const handleImageModalOpen = (images, idx) => {
+    openModal();
+    setImageModal({ isOpen: true, images, initialIndex: idx });
+  };
+
+  const handleImageModalClose = () => {
+    closeModal();
+    setImageModal({ isOpen: false, images: [], initialIndex: 0 });
+  };
+
   return (
     <>
       <section className="bg-[#eef8fd] py-16 font-rubik" id="toppicks">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* ✅ Animated Header — scrolls in/out every time */}
           <div ref={headerRef} className="mb-10">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -302,21 +319,14 @@ const AiTopPicks = ({ onAuthToast }) => {
             </motion.div>
           </div>
 
-          {/* ✅ Cards — already animated individually */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {topPicks.map((card, i) => (
               <Card
                 key={i}
                 card={card}
                 index={i}
-                onShowContact={() => setIsModalOpen(true)}
-                onImageClick={(images, idx) =>
-                  setImageModal({
-                    isOpen: true,
-                    images,
-                    initialIndex: idx,
-                  })
-                }
+                onShowContact={handleAuthModalOpen}
+                onImageClick={handleImageModalOpen}
               />
             ))}
           </div>
@@ -324,10 +334,10 @@ const AiTopPicks = ({ onAuthToast }) => {
       </section>
 
       {/* Modals */}
-      {isModalOpen && (
+      {authModalOpen && (
         <AuthModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          isOpen={authModalOpen}
+          onClose={handleAuthModalClose}
           onAuthToast={onAuthToast}
         />
       )}
@@ -336,9 +346,7 @@ const AiTopPicks = ({ onAuthToast }) => {
         <ImageModal
           images={imageModal.images}
           initialIndex={imageModal.initialIndex}
-          onClose={() =>
-            setImageModal({ isOpen: false, images: [], initialIndex: 0 })
-          }
+          onClose={handleImageModalClose}
           onAuthToast={() => {}}
           onOpenChat={openChat}
         />

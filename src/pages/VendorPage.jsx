@@ -355,7 +355,7 @@ export default function VendorPage() {
               {/* Review Section */}
               {!user ? (
                 <button
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg transition"
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 mb-5 font-semibold py-3 px-4 rounded-lg transition"
                   onClick={() => setShowAuth(true)}
                 >
                   <FontAwesomeIcon icon={faStar} className="mr-2" />

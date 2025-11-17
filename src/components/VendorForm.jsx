@@ -1,9 +1,10 @@
 // src/components/VendorForm.jsx
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const VendorForm = () => {
+  // ====== FORM DATA ======
   const [formData, setFormData] = useState({
     businessName: "",
     category: "",
@@ -11,17 +12,26 @@ const VendorForm = () => {
     startingPrice: "",
     whatsapp: "",
     address: "",
+    Latitude: "",
+    Longitude: "",
     shortDescription: "",
     itemPrices: [{ itemName: "", price: "" }],
-    // ✅ Now an array for 4 images
     businessImages: [],
   });
 
-  const [imageURLs, setImageURLs] = useState([]); // Preview URLs
+  // ====== ADDITIONAL STATES ======
+  const [fullAddress, setFullAddress] = useState(""); // ✅ For auto-geocoding UX
+  const [locationInput, setLocationInput] = useState("");
+  const [locationCoords, setLocationCoords] = useState(null);
+  const [locationError, setLocationError] = useState("");
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const [imageURLs, setImageURLs] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, type: "", message: "" });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
+  // ====== CATEGORY MAPPING ======
   const categoryMap = {
     accommodation: ["hotel", "guesthouse", "airbnb", "shortlet", "resort"],
     food: ["restaurant", "cafe", "bar", "streetfood", "amala"],
@@ -42,6 +52,10 @@ const VendorForm = () => {
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
 
+  // ====== GOOGLE MAPS API KEY (from .env) ======
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  // ====== CATEGORY HANDLERS ======
   const handleCategoryChange = () => {
     if (selectedMainCategory && selectedSubcategory) {
       setFormData((prev) => ({
@@ -64,12 +78,72 @@ const VendorForm = () => {
     setSelectedSubcategory(e.target.value);
   };
 
+  // ====== GENERIC INPUT HANDLER ======
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Handle up to 4 image uploads
+  // ====== GEOCODING ======
+  const handleGeocode = async (input = locationInput) => {
+    if (!input.trim()) {
+      setLocationError("Please enter an address or coordinates");
+      return;
+    }
+
+    setIsGeocoding(true);
+    try {
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+        input
+      )}&key=${GOOGLE_MAPS_API_KEY}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.status === "OK") {
+        const { lat, lng } = data.results[0].geometry.location;
+        const coords = { lat, lng };
+
+        setLocationCoords(coords);
+        setLocationError("");
+        setLocationInput(input); // in case called from auto
+
+        // ✅ SYNC TO FORM DATA FOR SUBMISSION
+        setFormData((prev) => ({
+          ...prev,
+          Latitude: lat.toString(),
+          Longitude: lng.toString(),
+        }));
+
+        showToast("✅ Location found!", "success");
+      } else {
+        const msg =
+          data.error_message || data.status === "ZERO_RESULTS"
+            ? "Location not found. Try a different address."
+            : "Geocoding failed. Please try again.";
+        setLocationError(msg);
+        setFormData((prev) => ({ ...prev, Latitude: "", Longitude: "" }));
+      }
+    } catch (err) {
+      console.error("Geocode error:", err);
+      setLocationError("Failed to get location. Check internet or API key.");
+      setFormData((prev) => ({ ...prev, Latitude: "", Longitude: "" }));
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
+  // ✅ DEBOUNCE AUTO-GEOCODING (on fullAddress change)
+  useEffect(() => {
+    if (fullAddress.length > 5) {
+      const timer = setTimeout(() => {
+        handleGeocode(fullAddress);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [fullAddress]);
+
+  // ====== IMAGE HANDLING ======
   const handleImageChange = async (e) => {
     const files = Array.from(e.target.files);
     if (imageURLs.length + files.length > 4) {
@@ -136,6 +210,7 @@ const VendorForm = () => {
     }));
   };
 
+  // ====== ITEM PRICES ======
   const addItem = () => {
     setFormData((prev) => ({
       ...prev,
@@ -159,13 +234,22 @@ const VendorForm = () => {
     });
   };
 
+  // ====== TOAST ======
   const showToast = (message, type) => {
     setToast({ show: true, type, message });
     setTimeout(() => setToast({ show: false, type: "", message: "" }), 4000);
   };
 
+  // ====== SUBMIT ======
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation: coordinates required?
+    // if (!formData.Latitude || !formData.Longitude) {
+    //   showToast("❌ Please get location coordinates first.", "error");
+    //   return;
+    // }
+
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = `Submitting...`;
@@ -182,11 +266,11 @@ const VendorForm = () => {
 
       const payload = {
         ...formData,
-        // ✅ Send each image to its own column
         businessImage1: imageSlots[0],
         businessImage2: imageSlots[1],
         businessImage3: imageSlots[2],
         businessImage4: imageSlots[3],
+        // Latitude & Longitude already in formData
       };
 
       await fetch(
@@ -203,7 +287,8 @@ const VendorForm = () => {
         "✅ Form submitted! We’ll review and add you to our catalog within 24 hours.",
         "success"
       );
-      // Reset form
+
+      // ✅ Reset form
       setFormData({
         businessName: "",
         category: "",
@@ -211,11 +296,20 @@ const VendorForm = () => {
         startingPrice: "",
         whatsapp: "",
         address: "",
+        Latitude: "",
+        Longitude: "",
         shortDescription: "",
         itemPrices: [{ itemName: "", price: "" }],
         businessImages: [],
       });
+      setFullAddress("");
+      setLocationInput("");
+      setLocationCoords(null);
       setImageURLs([]);
+
+      // Reset category selects
+      setSelectedMainCategory("");
+      setSelectedSubcategory("");
     } catch (error) {
       console.error("Submission failed:", error);
       showToast(
@@ -228,7 +322,7 @@ const VendorForm = () => {
     }
   };
 
-  // Framer Motion variants
+  // ====== ANIMATIONS ======
   const fadeUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
@@ -238,33 +332,21 @@ const VendorForm = () => {
     visible: { transition: { staggerChildren: 0.08 } },
   };
 
-  // Refs for in-view animations
   const headerRef = useRef(null);
   const headerInView = useInView(headerRef, { once: false, amount: 0.2 });
 
   const formRef = useRef(null);
   const formInView = useInView(formRef, { once: false, amount: 0.2 });
 
-  const addressRef = useRef(null);
-  const addressInView = useInView(addressRef, { once: false, amount: 0.2 });
-
-  const descriptionRef = useRef(null);
-  const descriptionInView = useInView(descriptionRef, {
-    once: false,
-    amount: 0.2,
-  });
-
-  const imageRef = useRef(null);
-  const imageInView = useInView(imageRef, { once: false, amount: 0.2 });
-
-  const itemPricesRef = useRef(null);
-  const itemPricesInView = useInView(itemPricesRef, {
-    once: false,
-    amount: 0.2,
-  });
-
-  const submitRef = useRef(null);
-  const submitInView = useInView(submitRef, { once: false, amount: 0.2 });
+  const refs = [
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+  ];
+  const inViews = refs.map((r) => useInView(r, { once: false, amount: 0.2 }));
 
   return (
     <section
@@ -320,7 +402,9 @@ const VendorForm = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Business Name + Category */}
             <motion.div
+              ref={refs[0]}
               variants={fadeUp}
+              animate={inViews[0] ? "visible" : "hidden"}
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
               <div>
@@ -377,7 +461,9 @@ const VendorForm = () => {
 
             {/* Area / Starting Price / WhatsApp */}
             <motion.div
+              ref={refs[1]}
               variants={fadeUp}
+              animate={inViews[1] ? "visible" : "hidden"}
               className="grid grid-cols-1 md:grid-cols-3 gap-6"
             >
               <div>
@@ -424,31 +510,73 @@ const VendorForm = () => {
               </div>
             </motion.div>
 
-            {/* Full Address */}
+            {/* Full Address + Location */}
             <motion.div
-              ref={addressRef}
+              ref={refs[2]}
               variants={fadeUp}
-              animate={addressInView ? "visible" : "hidden"}
+              animate={inViews[2] ? "visible" : "hidden"}
             >
+              {/* Full Address */}
               <label className="block text-sm font-medium text-gray-200 mb-1">
                 Full Address
               </label>
               <input
                 type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Street, area, Ibadan"
-                className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
-                required
+                placeholder="Street, area, Ibadan (auto-detects location)"
+                value={fullAddress}
+                onChange={(e) => {
+                  const addr = e.target.value;
+                  setFullAddress(addr);
+                  setFormData((prev) => ({ ...prev, address: addr }));
+                  setLocationInput(addr);
+                }}
+                className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400 mb-4"
               />
+
+              {/* Location Input */}
+              <label className="block text-sm font-medium mb-1">
+                Business Location (Latitude, Longitude)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g., 7.385687, 3.866762 or type address"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleGeocode()}
+                  disabled={isGeocoding}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white text-sm rounded-md transition flex items-center gap-1"
+                >
+                  {isGeocoding ? (
+                    <>
+                      <span className="animate-spin h-3 w-3 rounded-full border-t-2 border-white"></span>
+                      Detecting...
+                    </>
+                  ) : (
+                    "Get Coordinates"
+                  )}
+                </button>
+              </div>
+              {locationError && (
+                <p className="text-red-400 text-xs mt-1">{locationError}</p>
+              )}
+              {locationCoords && (
+                <p className="text-green-400 text-xs mt-1 font-mono">
+                  ✅ Lat: {locationCoords.lat.toFixed(6)} | Lng:{" "}
+                  {locationCoords.lng.toFixed(6)}
+                </p>
+              )}
             </motion.div>
 
             {/* Short Description */}
             <motion.div
-              ref={descriptionRef}
+              ref={refs[3]}
               variants={fadeUp}
-              animate={descriptionInView ? "visible" : "hidden"}
+              animate={inViews[3] ? "visible" : "hidden"}
             >
               <label className="block text-sm font-medium text-gray-200 mb-1">
                 Short Description
@@ -466,9 +594,9 @@ const VendorForm = () => {
 
             {/* Business Images (up to 4) */}
             <motion.div
-              ref={imageRef}
+              ref={refs[4]}
               variants={fadeUp}
-              animate={imageInView ? "visible" : "hidden"}
+              animate={inViews[4] ? "visible" : "hidden"}
             >
               <label className="block text-sm font-medium text-gray-200 mb-1">
                 Upload Photos (up to 4)
@@ -534,9 +662,9 @@ const VendorForm = () => {
 
             {/* Item Prices */}
             <motion.div
-              ref={itemPricesRef}
+              ref={refs[5]}
               variants={fadeUp}
-              animate={itemPricesInView ? "visible" : "hidden"}
+              animate={inViews[5] ? "visible" : "hidden"}
             >
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-1">
@@ -601,9 +729,8 @@ const VendorForm = () => {
 
             {/* Submit */}
             <motion.div
-              ref={submitRef}
               variants={fadeUp}
-              animate={submitInView ? "visible" : "hidden"}
+              animate={inViews[5] ? "visible" : "hidden"}
             >
               <div className="pt-2">
                 <div className="flex gap-2.5 mb-2">

@@ -1,4 +1,3 @@
-// src/components/ChatWidget.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster } from "react-hot-toast";
@@ -15,7 +14,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
   const hasSentWelcome = useRef(false);
   const bottomRef = useRef(null);
 
-  // Auto-scroll to latest message
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
@@ -47,21 +46,26 @@ const ChatWidget = ({ isOpen, onClose }) => {
     return "Good evening! 🌙";
   };
 
-  // Send welcome on open
   useEffect(() => {
     if (isOpen && !hasSentWelcome.current) {
       const displayName = getDisplayName();
       const greeting = getGreeting();
+
       const welcomeText = `${greeting} ${displayName}! I'm Ajani 👋\nAsk about hotels, food, or events in Ibadan!`;
 
       setMessages([
         { sender: "bot", text: welcomeText, ai: true, time: getTimestamp() },
       ]);
+
       hasSentWelcome.current = true;
     }
   }, [isOpen, user]);
 
-  // ✅ REAL n8n INTEGRATION
+  const sendQuickMessage = (text) => {
+    setInput(text);
+    setTimeout(() => handleSend(), 150);
+  };
+
   const handleSend = async () => {
     if (!input.trim()) return;
 
@@ -70,48 +74,15 @@ const ChatWidget = ({ isOpen, onClose }) => {
     setInput("");
     setIsTyping(true);
 
-    try {
-      const WEBHOOK_URL = import.meta.env.VITE_N8N_CHAT_WEBHOOK;
-      if (!WEBHOOK_URL) {
-        throw new Error("n8n webhook URL not configured");
-      }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: input,
-          userId: user?.id || "anon",
-          name: getDisplayName(),
-          timestamp: new Date().toISOString(),
-        }),
-      });
+    const reply = "Check back later, Ajani bot is in training...";
+    setMessages((prev) => [
+      ...prev,
+      { sender: "bot", text: reply, ai: true, time: getTimestamp() },
+    ]);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-      }
-
-      const data = await response.json();
-      const reply =
-        data.reply || "Hmm... I couldn’t find an answer. Try rephrasing?";
-
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: reply, ai: true, time: getTimestamp() },
-      ]);
-    } catch (error) {
-      console.error("n8n request failed:", error);
-      const fallback =
-        "⚠️ Sorry, I’m having trouble connecting. Try again in a moment.";
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: fallback, ai: true, time: getTimestamp() },
-      ]);
-    } finally {
-      setIsTyping(false);
-    }
+    setIsTyping(false);
   };
 
   return (
@@ -129,29 +100,21 @@ const ChatWidget = ({ isOpen, onClose }) => {
             className="
               fixed bottom-0 right-0 z-50 
               w-full h-full 
-              md:w-[400px] md:h-[530px]
+              md:w-[400px] md:h-[540px]
               md:bottom-6 md:right-6 
-              bg-white shadow-2xl border border-gray-200 
+              bg-white  shadow-2xl border border-gray-200 
               flex flex-col overflow-hidden
             "
           >
             {/* HEADER */}
             <div className="bg-[rgb(0,6,90)] text-white p-3 flex items-center justify-between">
-              <img
-                src={Logo1}
-                alt="Ajani Logo"
-                className="w-20 object-contain"
-              />
-              <button
-                onClick={onClose}
-                className="text-white text-xl hover:text-gray-200"
-                aria-label="Close chat"
-              >
+              <img src={Logo1} className="w-20 object-contain" />
+              <button onClick={onClose} className="text-white text-xl">
                 <SlArrowDown />
               </button>
             </div>
 
-            {/* MESSAGES AREA */}
+            {/* MESSAGES */}
             <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
               {messages.map((msg, i) => (
                 <div key={i} className="mb-5">
@@ -165,11 +128,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
                     }`}
                   >
                     {msg.sender === "bot" && (
-                      <img
-                        src={Logo8}
-                        alt="Ajani Bot"
-                        className="w-4 h-4 object-contain mt-1"
-                      />
+                      <img src={Logo8} className="w-4 object-contain" />
                     )}
 
                     <div
@@ -193,14 +152,11 @@ const ChatWidget = ({ isOpen, onClose }) => {
                 </div>
               ))}
 
-              {/* Typing Indicator */}
+              {/* Typing Animation */}
               {isTyping && (
                 <div className="flex items-center gap-2 mt-3">
-                  <img
-                    src={Logo8}
-                    alt="Ajani Bot"
-                    className="w-4 h-4 object-contain"
-                  />
+                  <img src={Logo8} className="w-4 object-contain" />
+
                   <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-4 py-2">
                     <div className="flex gap-1">
                       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
@@ -215,7 +171,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
             </div>
 
             {/* INPUT BOX */}
-            <div className="p-3 bg-white flex gap-2">
+            <div className="p-3  bg-white flex gap-2">
               <input
                 className="flex-1 border rounded-full px-3 py-2 text-sm 
                   focus:outline-none focus:ring-1 focus:ring-[rgb(0,6,90)]"
@@ -223,7 +179,6 @@ const ChatWidget = ({ isOpen, onClose }) => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                autoFocus
               />
 
               <button

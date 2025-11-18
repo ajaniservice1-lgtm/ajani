@@ -39,7 +39,7 @@ export default function HomePage() {
       <div>
         {" "}
         <Meta
-          title="Ajani.ai | Home | Ajani Directory Ajani.ai | Find Hotels | Vendors | Events & Prices in Ibadan"
+          title=" Home | Ajani Directory | Ajani.ai | Find Hotels | Vendors | Events & Prices in Ibadan"
           description="Discover top-rated local businesses near you."
           url="https://ajani.ai/"
           image="https://ajani.ai/images/home-og.jpg"

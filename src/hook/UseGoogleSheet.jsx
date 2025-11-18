@@ -1,17 +1,6 @@
 // src/hook/useGoogleSheet.jsx
 import { useState, useEffect } from "react";
 
-/**
- * Custom Hook: Fetch data from Google Sheets
- * Supports:
- * 1. Google Sheets API v4 (needs SHEET_ID & API_KEY)
- * 2. Google Apps Script Web App endpoint (returns JSON)
- *
- * Usage:
- * const { data, loading, error } = useGoogleSheet({ sheetId, apiKey });
- * OR
- * const { data, loading, error } = useGoogleSheet({ webAppUrl });
- */
 const useGoogleSheet = ({ sheetId, apiKey, webAppUrl }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +19,6 @@ const useGoogleSheet = ({ sheetId, apiKey, webAppUrl }) => {
         let result = [];
 
         if (webAppUrl) {
-          // Fetch from Google Apps Script Web App
           const res = await fetch(webAppUrl);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const json = await res.json();
@@ -38,7 +26,6 @@ const useGoogleSheet = ({ sheetId, apiKey, webAppUrl }) => {
             throw new Error("Web app did not return JSON array");
           result = json;
         } else {
-          // Fetch from Google Sheets API v4
           const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=${apiKey}`;
           const res = await fetch(url);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);

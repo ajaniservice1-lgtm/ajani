@@ -4,7 +4,7 @@ import Meta from "../components/Meta";
 import LocalBusinessSchema from "../components/LocalBusinessSchema";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import useGoogleSheet from "../hook/useGoogleSheet";
+import useGoogleSheet from "./../hook/useGoogleSheet.jsx";
 import { generateSlug } from "../utils/vendorUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthModal from "../components/ui/AuthModal";

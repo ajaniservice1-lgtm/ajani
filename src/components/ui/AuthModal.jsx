@@ -202,10 +202,10 @@ export default function AuthModal({
 
             {/* Header */}
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-poppins text-gray-900">
                 {activeTab === "login" ? "Welcome back" : "Create your account"}
               </h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-[13px] text-gray-500 mt-1 font-normal font-poppins">
                 {activeTab === "login"
                   ? "Sign in to your existing account."
                   : "Create a free account to continue on our platform."}

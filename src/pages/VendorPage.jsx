@@ -4,7 +4,7 @@ import Meta from "../components/Meta";
 import LocalBusinessSchema from "../components/LocalBusinessSchema";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import useGoogleSheet from "./../hook/useGoogleSheet.jsx";
+import useGoogleSheet from "../hook/UseGoogleSheet";
 import { generateSlug } from "../utils/vendorUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthModal from "../components/ui/AuthModal";
@@ -23,7 +23,7 @@ import {
 } from "../hook/useLocation";
 import { useAuth } from "../hook/useAuth";
 
-// --- Feature icon mapping ---
+// Feature icon mapping
 import {
   faWifi,
   faSquareParking,
@@ -62,46 +62,36 @@ const keywordIcons = [
 export default function VendorPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
+  const { location: userLocation, requestLocation } = useUserLocation();
 
   const SHEET_ID = "1ZUU4Cw29jhmSnTh1yJ_ZoQB7TN1zr2_7bcMEHP8O1_Y";
   const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
+  // Vendor image carousel
   const [currentImage, setCurrentImage] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStartIndex, setModalStartIndex] = useState(0);
+
+  // Auth modal
   const [showAuth, setShowAuth] = useState(false);
+
+  // Review
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
+  // Touch references for swipe
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  const { location: userLocation, requestLocation } = useUserLocation();
-
-  useEffect(() => {
-    requestLocation().catch((err) => console.log("Location error:", err));
-  }, []);
-
-  function getFeatureIcon(feature) {
-    const normalized = feature.trim().toLowerCase();
-    for (const entry of keywordIcons) {
-      if (entry.keywords.some((kw) => normalized.includes(kw))) {
-        return entry.icon;
-      }
-    }
-    return faCircleInfo;
-  }
-
+  // Fetch vendor listings from Google Sheet
   const {
     data: listings = [],
     loading,
     error,
-  } = useGoogleSheet({
-    sheetId: SHEET_ID,
-    apiKey: API_KEY,
-  });
+  } = useGoogleSheet(SHEET_ID, API_KEY);
 
+  // Find the vendor for this page
   const vendor = useMemo(
     () => listings.find((v) => generateSlug(v.name, v.area) === slug),
     [listings, slug]
@@ -115,23 +105,30 @@ export default function VendorPage() {
     [vendor]
   );
 
+  // Request user location on mount
+  useEffect(() => {
+    requestLocation().catch((err) => console.log("Location error:", err));
+  }, []);
+
+  // Scroll to top on vendor change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [slug]);
 
+  // Automatic image slider
   useEffect(() => {
-    if (images.length > 1) {
-      const timer = setInterval(() => {
-        setCurrentImage((prev) => (prev + 1) % images.length);
-      }, 5000);
-      return () => clearInterval(timer);
-    }
+    if (images.length <= 1) return;
+    const timer = setInterval(
+      () => setCurrentImage((prev) => (prev + 1) % images.length),
+      5000
+    );
+    return () => clearInterval(timer);
   }, [images]);
 
+  // Swipe handlers
   const nextImage = () => setCurrentImage((prev) => (prev + 1) % images.length);
   const prevImage = () =>
     setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
-
   const handleTouchStart = (e) => (touchStartX.current = e.touches[0].clientX);
   const handleTouchMove = (e) => (touchEndX.current = e.touches[0].clientX);
   const handleTouchEnd = () => {
@@ -139,67 +136,21 @@ export default function VendorPage() {
     if (touchStartX.current - touchEndX.current < -75) prevImage();
   };
 
-  const similar = useMemo(() => {
-    if (!vendor) return [];
-
-    const vendorCategoryBase = vendor.category?.split(".")[0]?.toLowerCase();
-    const vendorArea = vendor.area?.toLowerCase().trim();
-
-    const filtered = listings.filter((v) => {
-      if (!v || v.name === vendor.name) return false;
-
-      const sameCategory = v.category
-        ? v.category.split(".")[0].toLowerCase() === vendorCategoryBase
-        : false;
-
-      if (!sameCategory) return false;
-
-      const areaMatches =
-        v.area?.toLowerCase().trim() === vendorArea && vendorArea !== "";
-      const bothHaveCoords = vendor.lat && vendor.lon && v.lat && v.lon;
-      let closeDistance = false;
-
-      if (bothHaveCoords) {
-        const dist = getDistance(
-          parseFloat(vendor.lat),
-          parseFloat(vendor.lon),
-          parseFloat(v.lat),
-          parseFloat(v.lon)
-        );
-        closeDistance = dist <= 5;
-      }
-
-      return areaMatches || closeDistance || !bothHaveCoords;
-    });
-
-    const sorted = filtered.sort((a, b) => {
-      const rA = parseFloat(a.rating) || 0;
-      const rB = parseFloat(b.rating) || 0;
-      if (rB !== rA) return rB - rA;
-
-      const pA = parseInt(a.price_from?.replace(/\D/g, "")) || Infinity;
-      const pB = parseInt(b.price_from?.replace(/\D/g, "")) || Infinity;
-      return pA - pB;
-    });
-
-    return sorted;
-  }, [listings, vendor]);
-
-  const getSimilarTitle = (vendor) => {
-    if (!vendor) return "Similar Vendors";
-    const parts = vendor.category?.split(".");
-    const categoryName = parts
-      ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
-      : "";
-    return `Similar ${categoryName} in ${vendor.area}`;
+  // Feature icon helper
+  const getFeatureIcon = (feature) => {
+    const normalized = feature.trim().toLowerCase();
+    for (const entry of keywordIcons) {
+      if (entry.keywords.some((kw) => normalized.includes(kw)))
+        return entry.icon;
+    }
+    return faCircleInfo;
   };
 
+  // Submit review
   const handleSubmitReview = async () => {
     if (!reviewText.trim()) return;
     setReviewSubmitting(true);
-
     try {
-      // TODO: replace with your Google Sheet submission logic
       console.log(
         "Submit review for:",
         vendor.name,
@@ -208,8 +159,6 @@ export default function VendorPage() {
         "User:",
         user?.email
       );
-
-      // Reset after submission
       setReviewText("");
       alert("Review submitted successfully!");
     } catch (err) {
@@ -220,23 +169,68 @@ export default function VendorPage() {
     }
   };
 
+  // Similar vendors
+  const similar = useMemo(() => {
+    if (!vendor) return [];
+    const baseCategory = vendor.category?.split(".")[0]?.toLowerCase();
+    const area = vendor.area?.toLowerCase().trim();
+
+    return listings
+      .filter(
+        (v) =>
+          v &&
+          v.name !== vendor.name &&
+          v.category?.split(".")[0]?.toLowerCase() === baseCategory
+      )
+      .filter((v) => {
+        const bothHaveCoords = vendor.lat && vendor.lon && v.lat && v.lon;
+        const areaMatch = v.area?.toLowerCase().trim() === area && area !== "";
+        let closeDistance = false;
+        if (bothHaveCoords) {
+          const dist = getDistance(
+            parseFloat(vendor.lat),
+            parseFloat(vendor.lon),
+            parseFloat(v.lat),
+            parseFloat(v.lon)
+          );
+          closeDistance = dist <= 5;
+        }
+        return areaMatch || closeDistance || !bothHaveCoords;
+      })
+      .sort((a, b) => {
+        const rA = parseFloat(a.rating) || 0;
+        const rB = parseFloat(b.rating) || 0;
+        if (rB !== rA) return rB - rA;
+        const pA = parseInt(a.price_from?.replace(/\D/g, "")) || Infinity;
+        const pB = parseInt(b.price_from?.replace(/\D/g, "")) || Infinity;
+        return pA - pB;
+      });
+  }, [listings, vendor]);
+
+  const getSimilarTitle = (vendor) => {
+    if (!vendor) return "Similar Vendors";
+    const categoryName = vendor.category?.split(".")[0];
+    return `Similar ${
+      categoryName?.charAt(0).toUpperCase() + categoryName?.slice(1)
+    } in ${vendor.area}`;
+  };
+
+  // Loading / error / not found states
   if (loading)
     return (
-      <main className="max-w-4xl mx-auto py-12 px-4 text-center ">
-        <p>Loading vendor...</p>
+      <main className="max-w-4xl mx-auto py-12 px-4 text-center">
+        Loading vendor...
       </main>
     );
-
   if (error)
     return (
-      <main className="max-w-4xl mx-auto py-12 px-4 text-center">
-        <p className="text-red-600">{error}</p>
+      <main className="max-w-4xl mx-auto py-12 px-4 text-center text-red-600">
+        {error}
       </main>
     );
-
   if (!vendor)
     return (
-      <main className="max-w-4xl mx-auto py-12 px-4 text-center ">
+      <main className="max-w-4xl mx-auto py-12 px-4 text-center">
         <p className="text-gray-700 mb-4">Vendor not found.</p>
         <Link to="/" className="text-blue-600 hover:underline">
           Back to Directory
@@ -258,8 +252,8 @@ export default function VendorPage() {
       <main className="max-w-5xl mx-auto py-10 px-4 font-rubik text-sm">
         <section className="bg-white rounded-2xl shadow-md p-6 md:p-8 border border-gray-100">
           <div className="md:flex md:flex-row md:items-start gap-6">
+            {/* Left: Vendor Info */}
             <div className="flex-1 space-y-6">
-              {/* Vendor Header */}
               <div className="flex items-center gap-2 mb-4">
                 <h1 className="text-3xl font-bold">{vendor.name}</h1>
                 <div className="flex items-center text-yellow-500 font-semibold text-sm mt-1">
@@ -268,33 +262,26 @@ export default function VendorPage() {
                 </div>
               </div>
 
-              {/* Features */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {vendor.features &&
-                  vendor.features.split(",").map((feature, i) => {
-                    const icon = getFeatureIcon(feature);
-                    return (
-                      <span
-                        key={i}
-                        className="flex items-center gap-1 text-sm bg-blue-50 text-blue-800 px-2 py-1 rounded-full break-words"
-                      >
-                        <FontAwesomeIcon
-                          icon={icon}
-                          className="text-blue-600"
-                        />
-                        {feature.trim()}
-                      </span>
-                    );
-                  })}
+                {vendor.features?.split(",").map((feature, i) => (
+                  <span
+                    key={i}
+                    className="flex items-center gap-1 text-sm bg-blue-50 text-blue-800 px-2 py-1 rounded-full break-words"
+                  >
+                    <FontAwesomeIcon
+                      icon={getFeatureIcon(feature)}
+                      className="text-blue-600"
+                    />
+                    {feature.trim()}
+                  </span>
+                ))}
               </div>
 
-              {/* Vendor Info */}
               <div className="space-y-3">
                 <p className="flex items-center">
                   <CiLocationOn className="mr-2 text-gray-900" />
                   <strong className="mr-2">Area:</strong> {vendor.area}
                 </p>
-
                 <div className="flex items-center">
                   <LuPhone className="mr-1 text-gray-900" />
                   <ContactReveal
@@ -304,20 +291,17 @@ export default function VendorPage() {
                     onAuthOpen={() => setShowAuth(true)}
                   />
                 </div>
-
                 <p className="flex items-center">
                   <GoOrganization className="mr-2 text-gray-900" />
                   <strong className="mr-1">Category:</strong> {vendor.category}
                 </p>
-
                 <p className="flex items-center">
                   <IoPricetagsOutline className="mr-2 text-gray-900" />
                   <strong className="mr-1">From:</strong> ₦{vendor.price_from}
                 </p>
               </div>
 
-              {/* Ratings Breakdown with loader bars */}
-              {/* Ratings Breakdown with loader bars */}
+              {/* Ratings breakdown */}
               {vendor.ratings_breakdown && (
                 <div className="mt-4">
                   <h3 className="font-semibold mb-2">Ratings Breakdown:</h3>
@@ -327,10 +311,9 @@ export default function VendorPage() {
                         .split(":")
                         .map((s) => s.trim());
                       const label =
-                        labelRaw.charAt(0).toUpperCase() + labelRaw.slice(1); // capitalize first letter
+                        labelRaw.charAt(0).toUpperCase() + labelRaw.slice(1);
                       const value = parseFloat(valueStr);
-                      const fillPercent = Math.min((value / 5) * 100, 100); // fill relative to 5
-
+                      const fillPercent = Math.min((value / 5) * 100, 100);
                       return (
                         <div key={i} className="flex items-center gap-2">
                           <span className="w-24 text-sm font-medium">
@@ -380,14 +363,10 @@ export default function VendorPage() {
                 </div>
               )}
 
-              <AuthModal
-                isOpen={showAuth}
-                onClose={() => setShowAuth(false)}
-                onAuthToast={(msg) => console.log(msg)}
-              />
+              <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
             </div>
 
-            {/* Image Slider */}
+            {/* Right: Image Carousel */}
             <div className="md:w-1/2">
               <div
                 className="relative w-full h-64 sm:h-80 rounded-xl overflow-hidden"
@@ -435,8 +414,6 @@ export default function VendorPage() {
                   initialIndex={modalStartIndex}
                   onClose={() => setIsModalOpen(false)}
                   item={vendor}
-                  onAuthToast={(msg) => console.log(msg)}
-                  onOpenChat={() => console.log("Open global ChatWidget")}
                 />
               )}
             </div>
@@ -497,12 +474,11 @@ export default function VendorPage() {
                   setTimeout(() => {
                     const directorySection =
                       document.getElementById("directory");
-                    if (directorySection) {
+                    if (directorySection)
                       directorySection.scrollIntoView({
                         behavior: "smooth",
                         block: "start",
                       });
-                    }
                   }, 100);
                 }}
                 className="text-blue-600 hover:underline font-medium"

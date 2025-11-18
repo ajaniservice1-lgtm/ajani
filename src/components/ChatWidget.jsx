@@ -115,7 +115,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
             </div>
 
             {/* MESSAGES */}
-            <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
+            <div className="flex-1 p-4 overflow-y-auto bg-gray-50 font-rubik">
               {messages.map((msg, i) => (
                 <div key={i} className="mb-5">
                   {msg.sender === "bot" && (
@@ -171,7 +171,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
             </div>
 
             {/* INPUT BOX */}
-            <div className="p-3  bg-white flex gap-2">
+            <div className="p-3  bg-white flex gap-2 font-rubik">
               <input
                 className="flex-1 border rounded-full px-3 py-2 text-sm 
                   focus:outline-none focus:ring-1 focus:ring-[rgb(0,6,90)]"

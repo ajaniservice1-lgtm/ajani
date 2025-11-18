@@ -12,26 +12,20 @@ const VendorForm = () => {
     startingPrice: "",
     whatsapp: "",
     address: "",
-    Latitude: "",
-    Longitude: "",
     shortDescription: "",
     itemPrices: [{ itemName: "", price: "" }],
     businessImages: [],
   });
 
   // ====== ADDITIONAL STATES ======
-  const [fullAddress, setFullAddress] = useState(""); // ✅ For auto-geocoding UX
-  const [locationInput, setLocationInput] = useState("");
-  const [locationCoords, setLocationCoords] = useState(null);
-  const [locationError, setLocationError] = useState("");
-  const [isGeocoding, setIsGeocoding] = useState(false);
-
   const [imageURLs, setImageURLs] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, type: "", message: "" });
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-  // ====== CATEGORY MAPPING ======
+  // NEW: submit spinner state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const categoryMap = {
     accommodation: ["hotel", "guesthouse", "airbnb", "shortlet", "resort"],
     food: ["restaurant", "cafe", "bar", "streetfood", "amala"],
@@ -51,9 +45,6 @@ const VendorForm = () => {
 
   const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
-
-  // ====== GOOGLE MAPS API KEY (from .env) ======
-  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // ====== CATEGORY HANDLERS ======
   const handleCategoryChange = () => {
@@ -84,65 +75,6 @@ const VendorForm = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ====== GEOCODING ======
-  const handleGeocode = async (input = locationInput) => {
-    if (!input.trim()) {
-      setLocationError("Please enter an address or coordinates");
-      return;
-    }
-
-    setIsGeocoding(true);
-    try {
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-        input
-      )}&key=${GOOGLE_MAPS_API_KEY}`;
-
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.status === "OK") {
-        const { lat, lng } = data.results[0].geometry.location;
-        const coords = { lat, lng };
-
-        setLocationCoords(coords);
-        setLocationError("");
-        setLocationInput(input); // in case called from auto
-
-        // ✅ SYNC TO FORM DATA FOR SUBMISSION
-        setFormData((prev) => ({
-          ...prev,
-          Latitude: lat.toString(),
-          Longitude: lng.toString(),
-        }));
-
-        showToast("✅ Location found!", "success");
-      } else {
-        const msg =
-          data.error_message || data.status === "ZERO_RESULTS"
-            ? "Location not found. Try a different address."
-            : "Geocoding failed. Please try again.";
-        setLocationError(msg);
-        setFormData((prev) => ({ ...prev, Latitude: "", Longitude: "" }));
-      }
-    } catch (err) {
-      console.error("Geocode error:", err);
-      setLocationError("Failed to get location. Check internet or API key.");
-      setFormData((prev) => ({ ...prev, Latitude: "", Longitude: "" }));
-    } finally {
-      setIsGeocoding(false);
-    }
-  };
-
-  // ✅ DEBOUNCE AUTO-GEOCODING (on fullAddress change)
-  useEffect(() => {
-    if (fullAddress.length > 5) {
-      const timer = setTimeout(() => {
-        handleGeocode(fullAddress);
-      }, 600);
-      return () => clearTimeout(timer);
-    }
-  }, [fullAddress]);
-
   // ====== IMAGE HANDLING ======
   const handleImageChange = async (e) => {
     const files = Array.from(e.target.files);
@@ -168,6 +100,7 @@ const VendorForm = () => {
     if (validFiles.length === 0) return;
 
     setIsUploading(true);
+
     try {
       const uploadPromises = validFiles.map((file) => {
         const formDataCloud = new FormData();
@@ -244,19 +177,10 @@ const VendorForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation: coordinates required?
-    // if (!formData.Latitude || !formData.Longitude) {
-    //   showToast("❌ Please get location coordinates first.", "error");
-    //   return;
-    // }
-
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = `Submitting...`;
-    submitBtn.disabled = true;
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     try {
-      // ✅ Prepare payload with 4 image slots
       const imageSlots = [
         formData.businessImages[0] || "",
         formData.businessImages[1] || "",
@@ -270,7 +194,6 @@ const VendorForm = () => {
         businessImage2: imageSlots[1],
         businessImage3: imageSlots[2],
         businessImage4: imageSlots[3],
-        // Latitude & Longitude already in formData
       };
 
       await fetch(
@@ -288,7 +211,7 @@ const VendorForm = () => {
         "success"
       );
 
-      // ✅ Reset form
+      // RESET
       setFormData({
         businessName: "",
         category: "",
@@ -296,29 +219,18 @@ const VendorForm = () => {
         startingPrice: "",
         whatsapp: "",
         address: "",
-        Latitude: "",
-        Longitude: "",
         shortDescription: "",
         itemPrices: [{ itemName: "", price: "" }],
         businessImages: [],
       });
-      setFullAddress("");
-      setLocationInput("");
-      setLocationCoords(null);
       setImageURLs([]);
-
-      // Reset category selects
       setSelectedMainCategory("");
       setSelectedSubcategory("");
     } catch (error) {
       console.error("Submission failed:", error);
-      showToast(
-        "❌ Failed to submit. Please try again or contact us on WhatsApp.",
-        "error"
-      );
+      showToast("❌ Failed to submit. Please try again.", "error");
     } finally {
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -510,66 +422,24 @@ const VendorForm = () => {
               </div>
             </motion.div>
 
-            {/* Full Address + Location */}
+            {/* Address */}
             <motion.div
               ref={refs[2]}
               variants={fadeUp}
               animate={inViews[2] ? "visible" : "hidden"}
             >
-              {/* Full Address */}
               <label className="block text-sm font-medium text-gray-200 mb-1">
                 Full Address
               </label>
-              <input
-                type="text"
-                placeholder="Street, area, Ibadan (auto-detects location)"
-                value={fullAddress}
-                onChange={(e) => {
-                  const addr = e.target.value;
-                  setFullAddress(addr);
-                  setFormData((prev) => ({ ...prev, address: addr }));
-                  setLocationInput(addr);
-                }}
-                className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400 mb-4"
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Street, area, Ibadan"
+                rows={3}
+                className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                required
               />
-
-              {/* Location Input */}
-              <label className="block text-sm font-medium mb-1">
-                Business Location (Latitude, Longitude)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="e.g., 7.385687, 3.866762 or type address"
-                  value={locationInput}
-                  onChange={(e) => setLocationInput(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleGeocode()}
-                  disabled={isGeocoding}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white text-sm rounded-md transition flex items-center gap-1"
-                >
-                  {isGeocoding ? (
-                    <>
-                      <span className="animate-spin h-3 w-3 rounded-full border-t-2 border-white"></span>
-                      Detecting...
-                    </>
-                  ) : (
-                    "Get Coordinates"
-                  )}
-                </button>
-              </div>
-              {locationError && (
-                <p className="text-red-400 text-xs mt-1">{locationError}</p>
-              )}
-              {locationCoords && (
-                <p className="text-green-400 text-xs mt-1 font-mono">
-                  ✅ Lat: {locationCoords.lat.toFixed(6)} | Lng:{" "}
-                  {locationCoords.lng.toFixed(6)}
-                </p>
-              )}
             </motion.div>
 
             {/* Short Description */}
@@ -592,7 +462,7 @@ const VendorForm = () => {
               />
             </motion.div>
 
-            {/* Business Images (up to 4) */}
+            {/* Business Images */}
             <motion.div
               ref={refs[4]}
               variants={fadeUp}
@@ -644,6 +514,7 @@ const VendorForm = () => {
                   </div>
                 )}
               </div>
+
               <input
                 type="file"
                 accept="image/png, image/jpeg"
@@ -651,12 +522,14 @@ const VendorForm = () => {
                 onChange={handleImageChange}
                 className="hidden"
                 id="businessImageInput"
-                disabled={imageURLs.length >= 4}
               />
+
+              {/* SPINNER WHILE UPLOADING */}
               {isUploading && (
-                <p className="mt-2 text-xs text-blue-400">
+                <div className="flex items-center gap-2 mt-2 text-blue-400 text-sm">
+                  <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
                   Uploading images...
-                </p>
+                </div>
               )}
             </motion.div>
 
@@ -666,64 +539,54 @@ const VendorForm = () => {
               variants={fadeUp}
               animate={inViews[5] ? "visible" : "hidden"}
             >
-              <div>
-                <label className="block text-sm font-medium text-gray-200 mb-1">
-                  Item Prices (e.g., Amala 1200, Ewedu 500, Rice 4000)
-                </label>
-                <div className="space-y-3">
-                  {formData.itemPrices.map((item, index) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center"
-                    >
+              <label className="block text-sm font-medium text-gray-200 mb-1">
+                Item Prices (e.g., Amala 1200, Ewedu 500, Rice 4000)
+              </label>
+
+              <div className="space-y-3">
+                {formData.itemPrices.map((item, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Item name"
+                      value={item.itemName}
+                      onChange={(e) =>
+                        handleItemPriceChange(index, "itemName", e.target.value)
+                      }
+                      className="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
+                    />
+
+                    <div className="flex space-x-3">
                       <input
-                        type="text"
-                        placeholder="Item name"
-                        value={item.itemName}
+                        type="number"
+                        placeholder="Price (₦)"
+                        value={item.price}
                         onChange={(e) =>
-                          handleItemPriceChange(
-                            index,
-                            "itemName",
-                            e.target.value
-                          )
+                          handleItemPriceChange(index, "price", e.target.value)
                         }
-                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
+                        className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
                       />
-                      <div className="flex space-x-3">
-                        <input
-                          type="number"
-                          placeholder="Price (₦)"
-                          value={item.price}
-                          onChange={(e) =>
-                            handleItemPriceChange(
-                              index,
-                              "price",
-                              e.target.value
-                            )
-                          }
-                          className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveItemPrice(index)}
-                          className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center w-10"
-                          aria-label="Remove item"
-                        >
-                          ×
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItemPrice(index)}
+                        className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg w-10 flex justify-center items-center"
+                      >
+                        ×
+                      </button>
                     </div>
-                  ))}
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      onClick={addItem}
-                      className="text-blue-400 hover:text-blue-300 text-sm font-medium transition"
-                    >
-                      ➕ Add another item
-                    </button>
                   </div>
-                </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                >
+                  ➕ Add another item
+                </button>
               </div>
             </motion.div>
 
@@ -735,42 +598,48 @@ const VendorForm = () => {
               <div className="pt-2">
                 <div className="flex gap-2.5 mb-2">
                   <input type="checkbox" required />
-                  <label
-                    htmlFor="checkbox"
-                    className="text-sm font-medium text-gray-200 leading-[1.2]"
-                  >
+                  <label className="text-sm text-gray-200">
                     Click here for promotional and discount messages.
                   </label>
                 </div>
-                <div className="flex items-start gap-2">
+
+                <div className="flex gap-2 items-start">
                   <input
                     type="checkbox"
-                    id="terms"
                     checked={agreeToTerms}
                     onChange={(e) => setAgreeToTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                     required
                   />
-                  <label
-                    htmlFor="terms"
-                    className="text-sm font-medium text-gray-200 my-1"
-                  >
+                  <label className="text-sm text-gray-200">
                     I agree to the{" "}
-                    <Link className="text-blue-600 underline" to="/privacypage">
+                    <Link className="text-blue-500 underline" to="/privacypage">
                       Terms & Conditions
                     </Link>{" "}
                     and{" "}
-                    <Link className="text-blue-600 underline" to="/privacypage">
+                    <Link className="text-blue-500 underline" to="/privacypage">
                       Privacy Policy
                     </Link>
                   </label>
                 </div>
+
+                {/* SUBMIT BUTTON WITH SPINNER */}
                 <button
                   type="submit"
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                  disabled={isSubmitting}
+                  className="flex items-center my-3 justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition disabled:opacity-50"
                 >
-                  <i className="fab fa-telegram-plane"></i> Submit Listing
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fab fa-telegram-plane"></i> Submit Listing
+                    </>
+                  )}
                 </button>
+
                 <p className="mt-2 text-xs text-gray-400">
                   We review all listings. By submitting, you agree your info can
                   be shown publicly on Ajani.

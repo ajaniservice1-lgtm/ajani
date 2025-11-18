@@ -1,28 +1,67 @@
 // src/components/Meta.jsx
-import React from "react";
-import { Helmet } from "react-helmet";
+import { useEffect } from "react";
 
-export default function Meta({ title, description, url, image }) {
-  return (
-    <Helmet>
-      {/* Primary Meta Tags */}
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      <meta name="robots" content="index, follow" />
-      <link rel="canonical" href={url} />
+const Meta = ({
+  title = "Ajani Directory | Find Trusted Local Businesses in Nigeria",
+  description = "Discover top-rated local businesses near you — from restaurants to tech services — verified and powered by AI recommendations.",
+  url = "https://ajani.ai/",
+  image = "https://res.cloudinary.com/debpabo0a/image/upload/v1762942364/yp4z66xycbjcldfocrzc.jpg",
+}) => {
+  useEffect(() => {
+    // Update document title
+    document.title = title;
 
-      {/* Open Graph */}
-      <meta property="og:type" content="website" />
-      <meta property="og:url" content={url} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      {image && <meta property="og:image" content={image} />}
+    // Helper to update or create meta tag
+    const updateMeta = (selector, attr, value) => {
+      let tag = document.querySelector(selector);
+      if (!tag) {
+        tag = document.createElement("meta");
+        const key = selector.includes("property") ? "property" : "name";
+        tag.setAttribute(key, attr);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute("content", value);
+    };
 
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
-      {image && <meta name="twitter:image" content={image} />}
-    </Helmet>
-  );
-}
+    // Basic SEO
+    updateMeta('meta[name="description"]', "description", description);
+
+    // Canonical link
+    let canonical = document.querySelector("link[rel='canonical']");
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", url);
+
+    // Open Graph
+    updateMeta('meta[property="og:type"]', "og:type", "website");
+    updateMeta('meta[property="og:url"]', "og:url", url);
+    updateMeta('meta[property="og:title"]', "og:title", title);
+    updateMeta(
+      'meta[property="og:description"]',
+      "og:description",
+      description
+    );
+    updateMeta('meta[property="og:image"]', "og:image", image);
+
+    // Twitter Card
+    updateMeta(
+      'meta[name="twitter:card"]',
+      "twitter:card",
+      "summary_large_image"
+    );
+    updateMeta('meta[name="twitter:title"]', "twitter:title", title);
+    updateMeta(
+      'meta[name="twitter:description"]',
+      "twitter:description",
+      description
+    );
+    updateMeta('meta[name="twitter:image"]', "twitter:image", image);
+  }, [title, description, url, image]);
+
+  return null; // No JSX needed
+};
+
+export default Meta;

@@ -46,6 +46,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
     return "Good evening! 🌙";
   };
 
+  // Welcome message
   useEffect(() => {
     if (isOpen && !hasSentWelcome.current) {
       const displayName = getDisplayName();
@@ -61,26 +62,66 @@ const ChatWidget = ({ isOpen, onClose }) => {
     }
   }, [isOpen, user]);
 
+  // QUICK MESSAGE BTN (if needed)
   const sendQuickMessage = (text) => {
     setInput(text);
     setTimeout(() => handleSend(), 150);
   };
 
+  // MAIN SEND FUNCTION — NOW CONNECTED TO WEBHOOK
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMsg = { sender: "user", text: input, time: getTimestamp() };
     setMessages((prev) => [...prev, userMsg]);
+    const userText = input;
     setInput("");
+
+    // Show typing animation
     setIsTyping(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      // === SEND TO N8N WEBHOOK ===
+      const res = await fetch(
+        "https://ajanibot.app.n8n.cloud/webhook/d9b0daf9-cb6e-49d4-a25c-9ed59f599490",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: userText,
+            user: user?.email ?? "guest",
+            time: new Date().toISOString(),
+          }),
+        }
+      );
 
-    const reply = "Check back later, Ajani bot is in training...";
-    setMessages((prev) => [
-      ...prev,
-      { sender: "bot", text: reply, ai: true, time: getTimestamp() },
-    ]);
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = { reply: "Sorry, invalid response from Ajani bot." };
+      }
+
+      const botReply =
+        data?.reply || "Ajani bot could not process this request.";
+
+      // Insert bot reply
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: botReply, ai: true, time: getTimestamp() },
+      ]);
+    } catch (err) {
+      // Webhook FAILED → fallback message
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "bot",
+          text: "Sorry, I couldn't reach Ajani's brain 🧠. Please try again.",
+          ai: true,
+          time: getTimestamp(),
+        },
+      ]);
+    }
 
     setIsTyping(false);
   };
@@ -102,7 +143,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
               w-full h-full 
               md:w-[400px] md:h-[540px]
               md:bottom-6 md:right-6 
-              bg-white  shadow-2xl border border-gray-200 
+              bg-white shadow-2xl border border-gray-200 
               flex flex-col overflow-hidden
             "
           >
@@ -143,7 +184,6 @@ const ChatWidget = ({ isOpen, onClose }) => {
                         <div key={idx}>{line}</div>
                       ))}
 
-                      {/* Timestamp */}
                       <p className="text-[10px] text-gray-400 mt-1 text-right">
                         {msg.time}
                       </p>
@@ -171,7 +211,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
             </div>
 
             {/* INPUT BOX */}
-            <div className="p-3  bg-white flex gap-2 font-rubik">
+            <div className="p-3 bg-white flex gap-2 font-rubik">
               <input
                 className="flex-1 border rounded-full px-3 py-2 text-sm 
                   focus:outline-none focus:ring-1 focus:ring-[rgb(0,6,90)]"

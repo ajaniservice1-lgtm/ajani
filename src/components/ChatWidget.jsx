@@ -74,7 +74,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
     try {
       // 🔒 TEMPORARY: Disable Google Sheets backend during Ajani's training
       // Replace with real n8n webhook when ready
-      const IS_TRAINING_MODE = true; // 👈 Set to `false` when training is over
+      const IS_TRAINING_MODE = false; // 👈 Set to `false` when training is over
 
       if (IS_TRAINING_MODE) {
         // Friendly training-phase response

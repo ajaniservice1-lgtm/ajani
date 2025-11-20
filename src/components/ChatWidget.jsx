@@ -21,7 +21,8 @@ const ChatWidget = ({ isOpen, onClose }) => {
   const bottomRef = useRef(null);
 
   // n8n Webhook URL
-  const WEBHOOK_URL = "https://ajanibot.app.n8n.cloud/webhook/chat-webhook";
+  const WEBHOOK_URL =
+    "https://ajanibot.app.n8n.cloud/webhook/c2f5c7a3-ac14-479f-b225-0842c6f64353";
 
   // Auto-scroll to latest message
   useEffect(() => {

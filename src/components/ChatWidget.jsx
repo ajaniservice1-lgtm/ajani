@@ -1,4 +1,4 @@
-// src/components/ChatWidget.jsx (FINAL INTEGRATED VERSION)
+// src/components/ChatWidget.jsx (NO DEFAULT GREETING)
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster } from "react-hot-toast";
@@ -20,45 +20,41 @@ const ChatWidget = ({ isOpen, onClose }) => {
     session_id: `session_${Math.random().toString(36).substring(2, 10)}`,
   }).current;
 
-  const hasWelcome = useRef(false);
   const bottomRef = useRef();
 
-  // === Your n8n webhook URL ===
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      // Auto-send "menu" payload
+      (async () => {
+        setIsTyping(true);
+        const raw = await sendToN8N({ text: "menu", user_id: session.user_id });
+        setIsTyping(false);
+        setMessages([buildBotMessage(raw)]);
+      })();
+    }
+  }, [isOpen]); // triggers whenever widget opens
+
   const WEBHOOK =
     "https://ajanibot.app.n8n.cloud/webhook/c2f5c7a3-ac14-479f-b225-0842c6f64353";
 
-  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // Timestamp
   const stamp = () =>
-    new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-  // Greeting
-  const greeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return "Good morning 🌞";
-    if (h < 18) return "Good afternoon ☀️";
-    return "Good evening 🌙";
-  };
-
-  const displayName = () => {
-    if (user?.name) return user.name;
-    if (user?.email) return user.email.split("@")[0];
-    return "there";
-  };
-
-  // 🔥 Sends payload to n8n EXACTLY in the structure your router expects
   const sendToN8N = async (payload) => {
     try {
       const res = await fetch(WEBHOOK, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          body: payload, // <== matches router
-          user_session: session, // <== matches router
+          body: payload,
+          user_session: session,
           timestamp: new Date().toISOString(),
         }),
       });
@@ -80,44 +76,15 @@ const ChatWidget = ({ isOpen, onClose }) => {
     }
   };
 
-  // Wrap n8n reply into message object
   const buildBotMessage = (r) => ({
     sender: "bot",
-    text: r?.reply?.text || "How can I help you?",
+    text: r?.reply?.text || "",
     cards: r?.reply?.cards || null,
     buttons: r?.reply?.buttons || null,
     time: stamp(),
   });
 
-  // === SHOW WELCOME ===
-  useEffect(() => {
-    if (isOpen && !hasWelcome.current) {
-      hasWelcome.current = true;
-
-      setMessages([
-        {
-          sender: "bot",
-          text: `${greeting()} ${displayName()}! I'm Ajani 👋  
-I can help you find hotels, food, bars, shortlets & services in Ibadan.`,
-          time: stamp(),
-          buttons: [
-            { title: "🏨 Hotels", payload: "SUBMENU_hotel" },
-            { title: "🍽 Food", payload: "SUBMENU_restaurant" },
-            { title: "🍹 Bars", payload: "SUBMENU_bar" },
-            { title: "🛍 Vendors", payload: "SUBMENU_services" },
-            { title: "📍 Attractions", payload: "SUBMENU_attractions" },
-            { title: "🎉 Events", payload: "SUBMENU_events" },
-            { title: "🛒 Market Prices", payload: "SUBMENU_market" },
-            { title: "🎓 Education", payload: "SUBMENU_education" },
-            { title: "🚌 Transport", payload: "SUBMENU_transport" },
-            { title: "🤖 Chat Search", payload: "CHAT_MODE" },
-          ],
-        },
-      ]);
-    }
-  }, [isOpen]);
-
-  // === ON BUTTON CLICK ===
+  // === BUTTON HANDLER ===
   const handleButton = async (payload) => {
     setIsTyping(true);
 
@@ -130,7 +97,7 @@ I can help you find hotels, food, bars, shortlets & services in Ibadan.`,
     setMessages((m) => [...m, buildBotMessage(raw)]);
   };
 
-  // === ON TEXT SEND ===
+  // === SEND TEXT ===
   const handleSend = async () => {
     if (!input.trim()) return;
 
@@ -150,7 +117,6 @@ I can help you find hotels, food, bars, shortlets & services in Ibadan.`,
     setMessages((m) => [...m, buildBotMessage(raw)]);
   };
 
-  // === RENDER MESSAGE CONTENT ===
   const renderMessage = (msg) => (
     <>
       {msg.text && <div className="mb-2 whitespace-pre-line">{msg.text}</div>}
@@ -279,7 +245,7 @@ I can help you find hotels, food, bars, shortlets & services in Ibadan.`,
               <div ref={bottomRef} />
             </div>
 
-            {/* INPUT AREA */}
+            {/* INPUT */}
             <div className="p-3 border-t bg-white flex gap-2">
               <input
                 className="flex-1 border px-4 py-2 rounded-full text-sm focus:ring-2 focus:ring-[rgb(0,6,90)] outline-none"

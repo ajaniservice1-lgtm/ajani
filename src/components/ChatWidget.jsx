@@ -35,7 +35,7 @@ const ChatWidget = ({ isOpen, onClose }) => {
   }, [isOpen]); // triggers whenever widget opens
 
   const WEBHOOK =
-    "https://ajanibot.app.n8n.cloud/webhook/c2f5c7a3-ac14-479f-b225-0842c6f64353";
+    "https://ajanibot.app.n8n.cloud/webhook/1b19cd2c-8f8b-4715-b062-8ca77b837def";
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

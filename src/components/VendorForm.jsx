@@ -207,7 +207,7 @@ const VendorForm = () => {
       );
 
       showToast(
-        "✅ Form submitted! We’ll review and add you to our catalog within 24 hours.",
+        "✅ Form submitted! We'll review and add you to our catalog within 24 hours.",
         "success"
       );
 
@@ -307,7 +307,7 @@ const VendorForm = () => {
           className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700"
         >
           <motion.p variants={fadeUp} className="text-sm text-gray-400 mb-6">
-            Fill this form — we’ll review and add you to our catalog within 24
+            Fill this form — we'll review and add you to our catalog within 24
             hours.
           </motion.p>
 
@@ -330,7 +330,6 @@ const VendorForm = () => {
                   onChange={handleChange}
                   placeholder="e.g., Amala Skye"
                   className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
-                  required
                 />
               </div>
 
@@ -342,7 +341,6 @@ const VendorForm = () => {
                   value={selectedMainCategory}
                   onChange={handleMainCategoryChange}
                   className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white mb-2"
-                  required
                 >
                   <option value="">Select main category</option>
                   {Object.keys(categoryMap).map((mainCat) => (
@@ -358,7 +356,6 @@ const VendorForm = () => {
                     onChange={handleSubcategoryChange}
                     onBlur={handleCategoryChange}
                     className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
-                    required
                   >
                     <option value="">Select subcategory</option>
                     {categoryMap[selectedMainCategory].map((sub) => (
@@ -389,7 +386,6 @@ const VendorForm = () => {
                   onChange={handleChange}
                   placeholder="e.g., Bodija"
                   className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
-                  required
                 />
               </div>
               <div>
@@ -403,7 +399,6 @@ const VendorForm = () => {
                   onChange={handleChange}
                   placeholder="1500"
                   className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
-                  required
                 />
               </div>
               <div>
@@ -417,7 +412,6 @@ const VendorForm = () => {
                   onChange={handleChange}
                   placeholder="+23480..."
                   className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
-                  required
                 />
               </div>
             </motion.div>
@@ -438,7 +432,6 @@ const VendorForm = () => {
                 placeholder="Street, area, Ibadan"
                 rows={3}
                 className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
-                required
               />
             </motion.div>
 
@@ -458,7 +451,6 @@ const VendorForm = () => {
                 placeholder="What makes your business great?"
                 rows={3}
                 className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white placeholder-gray-400"
-                required
               />
             </motion.div>
 
@@ -597,7 +589,7 @@ const VendorForm = () => {
             >
               <div className="pt-2">
                 <div className="flex gap-2.5 mb-2">
-                  <input type="checkbox" required />
+                  <input type="checkbox" />
                   <label className="text-sm text-gray-200">
                     Click here for promotional and discount messages.
                   </label>
@@ -608,7 +600,6 @@ const VendorForm = () => {
                     type="checkbox"
                     checked={agreeToTerms}
                     onChange={(e) => setAgreeToTerms(e.target.checked)}
-                    required
                   />
                   <label className="text-sm text-gray-200">
                     I agree to the{" "}
